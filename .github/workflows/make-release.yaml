@@ -1,0 +1,25 @@
+name: Publish to pkg.go.dev
+
+on:
+  push:
+    tags:
+      - v0.**
+
+permissions:
+  contents: read
+
+jobs:
+  publish_on_pkg_go_dev:
+    name: publish a new version in pkg.go.dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Set up Go
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+        with:
+          go-version-file: ./go.mod
+
+      - name: Publish on pkg.go.dev
+        run: GOPROXY=proxy.golang.org go list -m github.com/np-guard/models@${{ github.ref_name }}
