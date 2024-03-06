@@ -365,7 +365,7 @@ func getCubeAsTCPItems(cube []*intervals.CanonicalIntervalSet, protocol netp.Tra
 				Protocol: protocol,
 				PortRangePair: netp.PortRangePair{
 					SrcPort: item.PortRangePair.SrcPort,
-					DstPort: netp.PortRange{int(interval.Start), int(interval.End)},
+					DstPort: netp.PortRange{Min: int(interval.Start), Max: int(interval.End)},
 				},
 			})
 		}
