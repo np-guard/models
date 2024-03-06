@@ -44,7 +44,7 @@ type statefulnessTest struct {
 	// the computation applies only to the TCP protocol within those connections.
 	expectedIsStateful int
 	// expectedStatefulConn represents the subset from srcToDst which is not related to the "non-stateful" mark (*) on the srcToDst connection,
-	// the stateless part for TCP is srcToDst.Subtract(statefuleConn)
+	// the stateless part for TCP is srcToDst.Subtract(statefulConn)
 	expectedStatefulConn *ConnectionSet
 }
 

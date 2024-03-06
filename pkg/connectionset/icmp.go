@@ -3,7 +3,6 @@ package connectionset
 import (
 	"fmt"
 	"log"
-	"slices"
 )
 
 type ICMPCodeType struct {
@@ -76,24 +75,24 @@ func inverseICMPType(t int) int {
 
 //nolint:revive // magic numbers are fine here
 func ValidateICMP(t, c int) error {
-	possibleCodes := map[int][]int{
-		echoReply:              {0},
-		destinationUnreachable: {0, 1, 2, 3, 4, 5},
-		sourceQuench:           {0},
-		redirect:               {0, 1, 2, 3},
-		echo:                   {0},
-		timeExceeded:           {0, 1},
-		parameterProblem:       {0},
-		timestamp:              {0},
-		timestampReply:         {0},
-		informationRequest:     {0},
-		informationReply:       {0},
+	maxCodes := map[int]int{
+		echoReply:              0,
+		destinationUnreachable: 5,
+		sourceQuench:           0,
+		redirect:               3,
+		echo:                   0,
+		timeExceeded:           1,
+		parameterProblem:       0,
+		timestamp:              0,
+		timestampReply:         0,
+		informationRequest:     0,
+		informationReply:       0,
 	}
-	options, ok := possibleCodes[t]
+	maxCode, ok := maxCodes[t]
 	if !ok {
 		return fmt.Errorf("invalid ICMP type %v", t)
 	}
-	if !slices.Contains(options, c) {
+	if c > maxCode {
 		return fmt.Errorf("ICMP code %v is invalid for ICMP type %v", c, t)
 	}
 	return nil

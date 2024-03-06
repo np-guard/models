@@ -51,7 +51,7 @@ var dimensionsList = []Dimension{
 	icmpCode,
 }
 
-func getDimensionDomain(dim Dimension) *intervals.CanonicalIntervalSet {
+func entireDimension(dim Dimension) *intervals.CanonicalIntervalSet {
 	switch dim {
 	case protocol:
 		return intervals.CreateFromInterval(minProtocol, maxProtocol)
@@ -70,7 +70,7 @@ func getDimensionDomain(dim Dimension) *intervals.CanonicalIntervalSet {
 func getDimensionDomainsList() []*intervals.CanonicalIntervalSet {
 	res := make([]*intervals.CanonicalIntervalSet, len(dimensionsList))
 	for i := range dimensionsList {
-		res[i] = getDimensionDomain(dimensionsList[i])
+		res[i] = entireDimension(dimensionsList[i])
 	}
 	return res
 }
@@ -129,7 +129,10 @@ func (conn *ConnectionSet) Union(other *ConnectionSet) *ConnectionSet {
 	if conn.IsEmpty() {
 		return other.Copy()
 	}
-	res := &ConnectionSet{AllowAll: false, connectionProperties: conn.connectionProperties.Union(other.connectionProperties)}
+	res := &ConnectionSet{
+		AllowAll:             false,
+		connectionProperties: conn.connectionProperties.Union(other.connectionProperties),
+	}
 	if res.isAllConnectionsWithoutAllowAll() {
 		return NewConnectionSet(true)
 	}
@@ -244,7 +247,7 @@ func getProtocolStr(p int64) ProtocolStr {
 }
 
 func getDimensionStr(dimValue *intervals.CanonicalIntervalSet, dim Dimension) string {
-	domainValues := getDimensionDomain(dim)
+	domainValues := entireDimension(dim)
 	if dimValue.Equal(*domainValues) {
 		// avoid adding dimension str on full dimension values
 		return ""
@@ -330,14 +333,13 @@ func (conn *ConnectionSet) String() string {
 	return strings.Join(resStrings, "; ")
 }
 
-type ConnDetails []Protocol
-
-func getCubeAsTCPItems(cube []*intervals.CanonicalIntervalSet, protocol TransportLayerProtocolName) []TCPUDP {
-	tcpItemsTemp := []TCPUDP{}
-	tcpItemsFinal := []TCPUDP{}
+func getCubeAsTCPItems(cube []*intervals.CanonicalIntervalSet, protocol TransportLayerProtocolName) []Protocol {
+	tcpItemsTemp := []Protocol{}
 	// consider src ports
 	srcPorts := cube[srcPort]
-	if !srcPorts.Equal(*getDimensionDomain(srcPort)) {
+	if srcPorts.Equal(*entireDimension(srcPort)) {
+		tcpItemsTemp = append(tcpItemsTemp, TCPUDP{Protocol: protocol})
+	} else {
 		// iterate the intervals in the interval-set
 		for _, interval := range srcPorts.IntervalSet {
 			tcpRes := TCPUDP{
@@ -348,66 +350,57 @@ func getCubeAsTCPItems(cube []*intervals.CanonicalIntervalSet, protocol Transpor
 			}
 			tcpItemsTemp = append(tcpItemsTemp, tcpRes)
 		}
-	} else {
-		tcpItemsTemp = append(tcpItemsTemp, TCPUDP{Protocol: protocol})
 	}
 	// consider dst ports
 	dstPorts := cube[dstPort]
-	if !dstPorts.Equal(*getDimensionDomain(dstPort)) {
-		// iterate the intervals in the interval-set
-		for _, interval := range dstPorts.IntervalSet {
-			for _, tcpItemTemp := range tcpItemsTemp {
-				tcpRes := TCPUDP{
-					Protocol: protocol,
-					PortRangePair: PortRangePair{
-						SrcPort: tcpItemTemp.PortRangePair.SrcPort,
-						DstPort: PortRange{int(interval.Start), int(interval.End)},
-					},
-				}
-				tcpItemsFinal = append(tcpItemsFinal, tcpRes)
-			}
+	if dstPorts.Equal(*entireDimension(dstPort)) {
+		return tcpItemsTemp
+	}
+	tcpItemsFinal := []Protocol{}
+	for _, interval := range dstPorts.IntervalSet {
+		for _, tcpItemTemp := range tcpItemsTemp {
+			item, _ := tcpItemTemp.(TCPUDP)
+			tcpItemsFinal = append(tcpItemsFinal, TCPUDP{
+				Protocol: protocol,
+				PortRangePair: PortRangePair{
+					SrcPort: item.PortRangePair.SrcPort,
+					DstPort: PortRange{int(interval.Start), int(interval.End)},
+				},
+			})
 		}
-	} else {
-		tcpItemsFinal = tcpItemsTemp
 	}
 	return tcpItemsFinal
 }
 
-func getIntervalNumbers(c *intervals.CanonicalIntervalSet) []int {
-	res := []int{}
-	for _, interval := range c.IntervalSet {
-		for i := interval.Start; i <= interval.End; i++ {
-			res = append(res, int(i))
-		}
-	}
-	return res
-}
-
-func getCubeAsICMPItems(cube []*intervals.CanonicalIntervalSet) []ICMP {
+func getCubeAsICMPItems(cube []*intervals.CanonicalIntervalSet) []Protocol {
 	icmpTypes := cube[icmpType]
 	icmpCodes := cube[icmpCode]
-	if icmpTypes.Equal(*getDimensionDomain(icmpType)) && icmpCodes.Equal(*getDimensionDomain(icmpCode)) {
-		return []ICMP{}
-	}
-	res := []ICMP{}
-	if icmpTypes.Equal(*getDimensionDomain(icmpCode)) {
-		typeNumbers := getIntervalNumbers(icmpTypes)
-		for _, t := range typeNumbers {
+	if icmpCodes.Equal(*entireDimension(icmpCode)) {
+		if icmpTypes.Equal(*entireDimension(icmpType)) {
+			return []Protocol{ICMP{}}
+		}
+		res := []Protocol{}
+		for _, t := range icmpTypes.Elements() {
 			res = append(res, ICMP{ICMPCodeType: &ICMPCodeType{Type: t}})
 		}
 		return res
 	}
 
 	// iterate both codes and types
-	typeNumbers := getIntervalNumbers(icmpTypes)
-	codeNumbers := getIntervalNumbers(icmpCodes)
-	for i := range typeNumbers {
-		for j := range codeNumbers {
-			res = append(res, ICMP{ICMPCodeType: &ICMPCodeType{Type: typeNumbers[i], Code: &codeNumbers[j]}})
+	res := []Protocol{}
+	for _, t := range icmpTypes.Elements() {
+		codes := icmpCodes.Elements()
+		for i := range codes {
+			c := codes[i]
+			if ValidateICMP(t, c) == nil {
+				res = append(res, ICMP{ICMPCodeType: &ICMPCodeType{Type: t, Code: &c}})
+			}
 		}
 	}
 	return res
 }
+
+type ConnDetails []Protocol
 
 func ConnToJSONRep(c *ConnectionSet) ConnDetails {
 	if c == nil {
@@ -422,22 +415,13 @@ func ConnToJSONRep(c *ConnectionSet) ConnDetails {
 	for _, cube := range cubes {
 		protocols := cube[protocol]
 		if protocols.Contains(TCPCode) {
-			tcpItems := getCubeAsTCPItems(cube, TCP)
-			for _, item := range tcpItems {
-				res = append(res, item)
-			}
+			res = append(res, getCubeAsTCPItems(cube, TCP)...)
 		}
 		if protocols.Contains(UDPCode) {
-			udpItems := getCubeAsTCPItems(cube, UDP)
-			for _, item := range udpItems {
-				res = append(res, item)
-			}
+			res = append(res, getCubeAsTCPItems(cube, UDP)...)
 		}
 		if protocols.Contains(ICMPCode) {
-			icmpItems := getCubeAsICMPItems(cube)
-			for _, item := range icmpItems {
-				res = append(res, item)
-			}
+			res = append(res, getCubeAsICMPItems(cube)...)
 		}
 	}
 

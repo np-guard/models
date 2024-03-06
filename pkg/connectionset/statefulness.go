@@ -78,7 +78,7 @@ func (conn *ConnectionSet) switchSrcDstPortsOnTCP() *ConnectionSet {
 		srcPorts := cube[srcPort]
 		dstPorts := cube[dstPort]
 		// if the entire domain is enabled by both src and dst no need to switch
-		if !srcPorts.Equal(*getDimensionDomain(srcPort)) || !dstPorts.Equal(*getDimensionDomain(dstPort)) {
+		if !srcPorts.Equal(*entireDimension(srcPort)) || !dstPorts.Equal(*entireDimension(dstPort)) {
 			newCube := copyCube(cube)
 			newCube[srcPort], newCube[dstPort] = newCube[dstPort], newCube[srcPort]
 			res.connectionProperties = res.connectionProperties.Union(hypercubes.CreateFromCube(newCube))

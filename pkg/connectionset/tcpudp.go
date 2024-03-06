@@ -10,7 +10,7 @@ const (
 )
 
 const DefaultMinPort = 1
-const DefaultMaxPort = 65535
+const DefaultMaxPort = MaxPort
 
 type PortRange struct {
 	// Minimal port; default is DefaultMinPort
