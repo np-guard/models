@@ -10,14 +10,14 @@ import (
 func newTCPConn(t *testing.T, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *ConnectionSet {
 	t.Helper()
 	res := NewConnectionSet(false)
-	res.AddTCPorUDPConn(ProtocolTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+	res.AddTCPorUDPConn(ProtocolStringTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
 	return res
 }
 
 func newUDPConn(t *testing.T, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *ConnectionSet {
 	t.Helper()
 	res := NewConnectionSet(false)
-	res.AddTCPorUDPConn(ProtocolUDP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+	res.AddTCPorUDPConn(ProtocolStringUDP, srcMinP, srcMaxP, dstMinP, dstMaxP)
 	return res
 }
 
@@ -50,9 +50,9 @@ type statefulnessTest struct {
 
 func (tt statefulnessTest) runTest(t *testing.T) {
 	t.Helper()
-	statefuleConn := tt.srcToDst.ConnectionWithStatefulness(tt.dstToSrc)
+	statefulConn := tt.srcToDst.ConnectionWithStatefulness(tt.dstToSrc)
 	require.Equal(t, tt.expectedIsStateful, tt.srcToDst.IsStateful)
-	require.True(t, tt.expectedStatefulConn.Equal(statefuleConn))
+	require.True(t, tt.expectedStatefulConn.Equal(statefulConn))
 }
 
 func TestAll(t *testing.T) {

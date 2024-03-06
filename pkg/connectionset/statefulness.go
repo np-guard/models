@@ -60,7 +60,7 @@ func (conn *ConnectionSet) connTCPWithStatefulness(secondDirectionConn *Connecti
 // tcpConn returns a new ConnectionSet object, which is the intersection of `conn` with TCP
 func (conn *ConnectionSet) tcpConn() *ConnectionSet {
 	res := NewConnectionSet(false)
-	res.AddTCPorUDPConn(ProtocolTCP, MinPort, MaxPort, MinPort, MaxPort)
+	res.AddTCPorUDPConn(ProtocolStringTCP, MinPort, MaxPort, MinPort, MaxPort)
 	return conn.Intersection(res)
 }
 
