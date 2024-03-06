@@ -3,6 +3,8 @@ package connectionset
 import (
 	"fmt"
 	"testing"
+
+	"github.com/np-guard/models/pkg/netp"
 )
 
 // TODO: Add test assertions
@@ -15,7 +17,7 @@ func TestBasicConnectionSet(t *testing.T) {
 	d := NewConnectionSet(true)
 	fmt.Println(d.String())
 	e := NewConnectionSet(false)
-	e.AddTCPorUDPConn(ProtocolStringTCP, 1, 65535, 1, 65535)
+	e.AddTCPorUDPConn(netp.ProtocolStringTCP, 1, 65535, 1, 65535)
 	d = d.Subtract(e)
 	fmt.Println(d.String())
 	d = d.Union(e)
@@ -29,7 +31,7 @@ func TestBasicConnectionSet2(t *testing.T) {
 	c.AddICMPConnection(7, 7, 5, 5)
 	d := NewConnectionSet(true)
 	e := NewConnectionSet(false)
-	e.AddTCPorUDPConn(ProtocolStringTCP, 1, 65535, 1, 65535)
+	e.AddTCPorUDPConn(netp.ProtocolStringTCP, 1, 65535, 1, 65535)
 	d = d.Subtract(e)
 	d = d.Subtract(c)
 	fmt.Println(d.String())

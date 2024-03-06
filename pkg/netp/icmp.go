@@ -1,4 +1,4 @@
-package connectionset
+package netp
 
 import (
 	"fmt"
@@ -31,17 +31,17 @@ func (t ICMP) InverseDirection() Protocol {
 // Based on https://datatracker.ietf.org/doc/html/rfc792
 
 const (
-	echoReply              = 0
-	destinationUnreachable = 3
-	sourceQuench           = 4
-	redirect               = 5
-	echo                   = 8
-	timeExceeded           = 11
-	parameterProblem       = 12
-	timestamp              = 13
-	timestampReply         = 14
-	informationRequest     = 15
-	informationReply       = 16
+	EchoReply              = 0
+	DestinationUnreachable = 3
+	SourceQuench           = 4
+	Redirect               = 5
+	Echo                   = 8
+	TimeExceeded           = 11
+	ParameterProblem       = 12
+	Timestamp              = 13
+	TimestampReply         = 14
+	InformationRequest     = 15
+	InformationReply       = 16
 
 	undefinedICMP = -2
 )
@@ -50,22 +50,22 @@ const (
 // When there is no inverse, returns undefinedICMP
 func inverseICMPType(t int) int {
 	switch t {
-	case echo:
-		return echoReply
-	case echoReply:
-		return echo
+	case Echo:
+		return EchoReply
+	case EchoReply:
+		return Echo
 
-	case timestamp:
-		return timestampReply
-	case timestampReply:
-		return timestamp
+	case Timestamp:
+		return TimestampReply
+	case TimestampReply:
+		return Timestamp
 
-	case informationRequest:
-		return informationReply
-	case informationReply:
-		return informationRequest
+	case InformationRequest:
+		return InformationReply
+	case InformationReply:
+		return InformationRequest
 
-	case destinationUnreachable, sourceQuench, redirect, timeExceeded, parameterProblem:
+	case DestinationUnreachable, SourceQuench, Redirect, TimeExceeded, ParameterProblem:
 		return undefinedICMP
 	default:
 		log.Panicf("Impossible ICMP type: %v", t)
@@ -76,17 +76,17 @@ func inverseICMPType(t int) int {
 //nolint:revive // magic numbers are fine here
 func ValidateICMP(t, c int) error {
 	maxCodes := map[int]int{
-		echoReply:              0,
-		destinationUnreachable: 5,
-		sourceQuench:           0,
-		redirect:               3,
-		echo:                   0,
-		timeExceeded:           1,
-		parameterProblem:       0,
-		timestamp:              0,
-		timestampReply:         0,
-		informationRequest:     0,
-		informationReply:       0,
+		EchoReply:              0,
+		DestinationUnreachable: 5,
+		SourceQuench:           0,
+		Redirect:               3,
+		Echo:                   0,
+		TimeExceeded:           1,
+		ParameterProblem:       0,
+		Timestamp:              0,
+		TimestampReply:         0,
+		InformationRequest:     0,
+		InformationReply:       0,
 	}
 	maxCode, ok := maxCodes[t]
 	if !ok {

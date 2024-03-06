@@ -4,20 +4,21 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/np-guard/models/pkg/netp"
 	"github.com/stretchr/testify/require"
 )
 
 func newTCPConn(t *testing.T, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *ConnectionSet {
 	t.Helper()
 	res := NewConnectionSet(false)
-	res.AddTCPorUDPConn(ProtocolStringTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+	res.AddTCPorUDPConn(netp.ProtocolStringTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
 	return res
 }
 
 func newUDPConn(t *testing.T, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *ConnectionSet {
 	t.Helper()
 	res := NewConnectionSet(false)
-	res.AddTCPorUDPConn(ProtocolStringUDP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+	res.AddTCPorUDPConn(netp.ProtocolStringUDP, srcMinP, srcMaxP, dstMinP, dstMaxP)
 	return res
 }
 

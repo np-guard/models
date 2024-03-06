@@ -3,6 +3,7 @@ package connectionset
 import (
 	"github.com/np-guard/models/pkg/hypercubes"
 	"github.com/np-guard/models/pkg/intervals"
+	"github.com/np-guard/models/pkg/netp"
 )
 
 const (
@@ -60,7 +61,7 @@ func (conn *ConnectionSet) connTCPWithStatefulness(secondDirectionConn *Connecti
 // tcpConn returns a new ConnectionSet object, which is the intersection of `conn` with TCP
 func (conn *ConnectionSet) tcpConn() *ConnectionSet {
 	res := NewConnectionSet(false)
-	res.AddTCPorUDPConn(ProtocolStringTCP, MinPort, MaxPort, MinPort, MaxPort)
+	res.AddTCPorUDPConn(netp.ProtocolStringTCP, MinPort, MaxPort, MinPort, MaxPort)
 	return conn.Intersection(res)
 }
 

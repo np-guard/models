@@ -7,6 +7,7 @@ import (
 
 	"github.com/np-guard/models/pkg/hypercubes"
 	"github.com/np-guard/models/pkg/intervals"
+	"github.com/np-guard/models/pkg/netp"
 )
 
 const (
@@ -14,13 +15,13 @@ const (
 	TCPCode           = 0
 	UDPCode           = 1
 	MinICMPtype int64 = 0
-	MaxICMPtype int64 = informationReply
+	MaxICMPtype int64 = netp.InformationReply
 	MinICMPcode int64 = 0
 	MaxICMPcode int64 = 5
 	minProtocol int64 = ICMPCode
 	maxProtocol int64 = UDPCode
-	MinPort     int64 = 1
-	MaxPort     int64 = 65535
+	MinPort           = 1
+	MaxPort           = netp.DefaultMaxPort
 )
 
 const (
@@ -183,20 +184,20 @@ func (conn *ConnectionSet) ContainedIn(other *ConnectionSet) (bool, error) {
 	return res, err
 }
 
-func ProtocolStringToCode(protocol ProtocolStr) int64 {
+func ProtocolStringToCode(protocol netp.ProtocolStr) int64 {
 	switch protocol {
-	case ProtocolStringTCP:
+	case netp.ProtocolStringTCP:
 		return TCPCode
-	case ProtocolStringUDP:
+	case netp.ProtocolStringUDP:
 		return UDPCode
-	case ProtocolStringICMP:
+	case netp.ProtocolStringICMP:
 		return ICMPCode
 	}
 	log.Fatalf("Impossible protocol code %v", protocol)
 	return 0
 }
 
-func (conn *ConnectionSet) addConnection(protocol ProtocolStr,
+func (conn *ConnectionSet) addConnection(protocol netp.ProtocolStr,
 	srcMinP, srcMaxP, dstMinP, dstMaxP,
 	icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) {
 	code := ProtocolStringToCode(protocol)
@@ -211,14 +212,14 @@ func (conn *ConnectionSet) addConnection(protocol ProtocolStr,
 	}
 }
 
-func (conn *ConnectionSet) AddTCPorUDPConn(protocol ProtocolStr, srcMinP, srcMaxP, dstMinP, dstMaxP int64) {
+func (conn *ConnectionSet) AddTCPorUDPConn(protocol netp.ProtocolStr, srcMinP, srcMaxP, dstMinP, dstMaxP int64) {
 	conn.addConnection(protocol,
 		srcMinP, srcMaxP, dstMinP, dstMaxP,
 		MinICMPtype, MaxICMPtype, MinICMPcode, MaxICMPcode)
 }
 
 func (conn *ConnectionSet) AddICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) {
-	conn.addConnection(ProtocolStringICMP,
+	conn.addConnection(netp.ProtocolStringICMP,
 		MinPort, MaxPort, MinPort, MaxPort,
 		icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
 }
@@ -233,14 +234,14 @@ func (conn *ConnectionSet) Equal(other *ConnectionSet) bool {
 	return conn.connectionProperties.Equals(other.connectionProperties)
 }
 
-func getProtocolStr(p int64) ProtocolStr {
+func getProtocolStr(p int64) netp.ProtocolStr {
 	switch p {
 	case TCPCode:
-		return ProtocolStringTCP
+		return netp.ProtocolStringTCP
 	case UDPCode:
-		return ProtocolStringUDP
+		return netp.ProtocolStringUDP
 	case ICMPCode:
-		return ProtocolStringICMP
+		return netp.ProtocolStringICMP
 	}
 	log.Fatalf("Impossible protocol value %v", p)
 	return ""
@@ -333,19 +334,19 @@ func (conn *ConnectionSet) String() string {
 	return strings.Join(resStrings, "; ")
 }
 
-func getCubeAsTCPItems(cube []*intervals.CanonicalIntervalSet, protocol TransportLayerProtocolName) []Protocol {
-	tcpItemsTemp := []Protocol{}
+func getCubeAsTCPItems(cube []*intervals.CanonicalIntervalSet, protocol netp.TransportLayerProtocolName) []netp.Protocol {
+	tcpItemsTemp := []netp.Protocol{}
 	// consider src ports
 	srcPorts := cube[srcPort]
 	if srcPorts.Equal(*entireDimension(srcPort)) {
-		tcpItemsTemp = append(tcpItemsTemp, TCPUDP{Protocol: protocol})
+		tcpItemsTemp = append(tcpItemsTemp, netp.TCPUDP{Protocol: protocol})
 	} else {
 		// iterate the intervals in the interval-set
 		for _, interval := range srcPorts.IntervalSet {
-			tcpRes := TCPUDP{
+			tcpRes := netp.TCPUDP{
 				Protocol: protocol,
-				PortRangePair: PortRangePair{
-					SrcPort: PortRange{Min: int(interval.Start), Max: int(interval.End)},
+				PortRangePair: netp.PortRangePair{
+					SrcPort: netp.PortRange{Min: int(interval.Start), Max: int(interval.End)},
 				},
 			}
 			tcpItemsTemp = append(tcpItemsTemp, tcpRes)
@@ -356,15 +357,15 @@ func getCubeAsTCPItems(cube []*intervals.CanonicalIntervalSet, protocol Transpor
 	if dstPorts.Equal(*entireDimension(dstPort)) {
 		return tcpItemsTemp
 	}
-	tcpItemsFinal := []Protocol{}
+	tcpItemsFinal := []netp.Protocol{}
 	for _, interval := range dstPorts.IntervalSet {
 		for _, tcpItemTemp := range tcpItemsTemp {
-			item, _ := tcpItemTemp.(TCPUDP)
-			tcpItemsFinal = append(tcpItemsFinal, TCPUDP{
+			item, _ := tcpItemTemp.(netp.TCPUDP)
+			tcpItemsFinal = append(tcpItemsFinal, netp.TCPUDP{
 				Protocol: protocol,
-				PortRangePair: PortRangePair{
+				PortRangePair: netp.PortRangePair{
 					SrcPort: item.PortRangePair.SrcPort,
-					DstPort: PortRange{int(interval.Start), int(interval.End)},
+					DstPort: netp.PortRange{int(interval.Start), int(interval.End)},
 				},
 			})
 		}
@@ -372,53 +373,53 @@ func getCubeAsTCPItems(cube []*intervals.CanonicalIntervalSet, protocol Transpor
 	return tcpItemsFinal
 }
 
-func getCubeAsICMPItems(cube []*intervals.CanonicalIntervalSet) []Protocol {
+func getCubeAsICMPItems(cube []*intervals.CanonicalIntervalSet) []netp.Protocol {
 	icmpTypes := cube[icmpType]
 	icmpCodes := cube[icmpCode]
 	if icmpCodes.Equal(*entireDimension(icmpCode)) {
 		if icmpTypes.Equal(*entireDimension(icmpType)) {
-			return []Protocol{ICMP{}}
+			return []netp.Protocol{netp.ICMP{}}
 		}
-		res := []Protocol{}
+		res := []netp.Protocol{}
 		for _, t := range icmpTypes.Elements() {
-			res = append(res, ICMP{ICMPCodeType: &ICMPCodeType{Type: t}})
+			res = append(res, netp.ICMP{ICMPCodeType: &netp.ICMPCodeType{Type: t}})
 		}
 		return res
 	}
 
 	// iterate both codes and types
-	res := []Protocol{}
+	res := []netp.Protocol{}
 	for _, t := range icmpTypes.Elements() {
 		codes := icmpCodes.Elements()
 		for i := range codes {
 			c := codes[i]
-			if ValidateICMP(t, c) == nil {
-				res = append(res, ICMP{ICMPCodeType: &ICMPCodeType{Type: t, Code: &c}})
+			if netp.ValidateICMP(t, c) == nil {
+				res = append(res, netp.ICMP{ICMPCodeType: &netp.ICMPCodeType{Type: t, Code: &c}})
 			}
 		}
 	}
 	return res
 }
 
-type ConnDetails []Protocol
+type ConnDetails []netp.Protocol
 
 func ConnToJSONRep(c *ConnectionSet) ConnDetails {
 	if c == nil {
 		return nil // one of the connections in connectionDiff can be empty
 	}
 	if c.AllowAll {
-		return []Protocol{}
+		return []netp.Protocol{}
 	}
-	var res []Protocol
+	var res []netp.Protocol
 
 	cubes := c.connectionProperties.GetCubesList()
 	for _, cube := range cubes {
 		protocols := cube[protocol]
 		if protocols.Contains(TCPCode) {
-			res = append(res, getCubeAsTCPItems(cube, TCP)...)
+			res = append(res, getCubeAsTCPItems(cube, netp.TCP)...)
 		}
 		if protocols.Contains(UDPCode) {
-			res = append(res, getCubeAsTCPItems(cube, UDP)...)
+			res = append(res, getCubeAsTCPItems(cube, netp.UDP)...)
 		}
 		if protocols.Contains(ICMPCode) {
 			res = append(res, getCubeAsICMPItems(cube)...)
@@ -431,6 +432,6 @@ func ConnToJSONRep(c *ConnectionSet) ConnDetails {
 // NewTCPConnectionSet returns a ConnectionSet object with TCPCode protocol (all ports)
 func NewTCPConnectionSet() *ConnectionSet {
 	res := NewConnectionSet(false)
-	res.AddTCPorUDPConn(ProtocolStringTCP, MinPort, MaxPort, MinPort, MaxPort)
+	res.AddTCPorUDPConn(netp.ProtocolStringTCP, MinPort, MaxPort, MinPort, MaxPort)
 	return res
 }

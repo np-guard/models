@@ -1,4 +1,4 @@
-package connectionset
+package netp
 
 import "log"
 
@@ -10,7 +10,7 @@ const (
 )
 
 const DefaultMinPort = 1
-const DefaultMaxPort = MaxPort
+const DefaultMaxPort = 65535
 
 type PortRange struct {
 	// Minimal port; default is DefaultMinPort

@@ -1,4 +1,4 @@
-package connectionset
+package netp
 
 type Protocol interface {
 	// InverseDirection returns the response expected for a request made using this protocol
