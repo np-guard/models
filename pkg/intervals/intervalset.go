@@ -253,6 +253,7 @@ func (c *CanonicalIntervalSet) IsSingleNumber() bool {
 	}
 	return false
 }
+
 func (c *CanonicalIntervalSet) Elements() []int {
 	res := []int{}
 	for _, interval := range c.IntervalSet {
@@ -262,6 +263,7 @@ func (c *CanonicalIntervalSet) Elements() []int {
 	}
 	return res
 }
+
 func CreateFromInterval(start, end int64) *CanonicalIntervalSet {
 	return &CanonicalIntervalSet{IntervalSet: []Interval{{Start: start, End: end}}}
 }
