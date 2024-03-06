@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/np-guard/models/pkg/netp"
 	"github.com/stretchr/testify/require"
+
+	"github.com/np-guard/models/pkg/netp"
 )
 
 func newTCPConn(t *testing.T, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *ConnectionSet {
