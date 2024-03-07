@@ -27,16 +27,6 @@ func (i *Interval) overlaps(other Interval) bool {
 	return other.End >= i.Start && other.Start <= i.End
 }
 
-func (i *Interval) touches(other Interval) bool {
-	if i.Start > other.End {
-		return i.Start == other.End+1
-	}
-	if other.Start > i.End {
-		return other.Start == i.End+1
-	}
-	return false
-}
-
 func (i *Interval) isSubset(other Interval) bool {
 	return other.Start <= i.Start && other.End >= i.End
 }
