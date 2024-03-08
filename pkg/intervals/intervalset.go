@@ -2,6 +2,8 @@ package intervals
 
 import (
 	"fmt"
+	"slices"
+	"sort"
 )
 
 // CanonicalIntervalSet is a canonical representation of a set of Interval objects
@@ -33,119 +35,22 @@ func (c *CanonicalIntervalSet) Equal(other CanonicalIntervalSet) bool {
 	return true
 }
 
-func (c *CanonicalIntervalSet) findIntervalLeft(interval Interval) int {
-	if c.IsEmpty() {
-		return -1
+// AddInterval adds a new interval range to the set
+func (c *CanonicalIntervalSet) AddInterval(v Interval) {
+	set := c.IntervalSet
+	left := sort.Search(len(set), func(i int) bool {
+		return set[i].End >= v.Start-1
+	})
+	if left < len(set) && set[left].Start <= v.End {
+		v.Start = min(v.Start, set[left].Start)
 	}
-	low := 0
-	high := len(c.IntervalSet)
-	for {
-		if low == high {
-			break
-		}
-		mid := (low + high) / 2
-		if c.IntervalSet[mid].End < interval.Start-1 {
-			if mid == len(c.IntervalSet)-1 || c.IntervalSet[mid+1].End >= interval.Start-1 {
-				return mid
-			}
-			low = mid + 1
-		} else {
-			high = mid
-		}
+	right := sort.Search(len(set), func(j int) bool {
+		return set[j].Start > v.End+1
+	})
+	if right > 0 && set[right-1].End >= v.Start {
+		v.End = max(v.End, set[right-1].End)
 	}
-	if low == len(c.IntervalSet) {
-		low -= 1
-	}
-	if c.IntervalSet[low].End >= interval.Start-1 {
-		return -1
-	}
-	return low
-}
-
-func (c *CanonicalIntervalSet) findIntervalRight(interval Interval) int {
-	if c.IsEmpty() {
-		return -1
-	}
-	low := 0
-	high := len(c.IntervalSet)
-	for {
-		if low == high {
-			break
-		}
-		mid := (low + high) / 2
-		if c.IntervalSet[mid].Start > interval.End+1 {
-			if mid == 0 || c.IntervalSet[mid-1].Start <= interval.End+1 {
-				return mid
-			}
-			high = mid
-		} else {
-			low = mid + 1
-		}
-	}
-	if low == len(c.IntervalSet) {
-		low -= 1
-	}
-	if c.IntervalSet[low].Start <= interval.End+1 {
-		return -1
-	}
-	return low
-}
-
-func insert(array []Interval, element Interval, i int) []Interval {
-	return append(array[:i], append([]Interval{element}, array[i:]...)...)
-}
-
-// AddInterval updates the current CanonicalIntervalSet with a new Interval to add
-//
-//gocyclo:ignore
-func (c *CanonicalIntervalSet) AddInterval(intervalToAdd Interval) {
-	if c.IsEmpty() {
-		c.IntervalSet = append(c.IntervalSet, intervalToAdd)
-		return
-	}
-	left := c.findIntervalLeft(intervalToAdd)
-	right := c.findIntervalRight(intervalToAdd)
-
-	// interval_to_add has no overlapping/touching intervals between left to right
-	if left >= 0 && right >= 0 && right-left == 1 {
-		c.IntervalSet = insert(c.IntervalSet, intervalToAdd, left+1)
-		return
-	}
-
-	// interval_to_add has no overlapping/touching intervals and is smaller than first interval
-	if left == -1 && right == 0 {
-		c.IntervalSet = insert(c.IntervalSet, intervalToAdd, 0)
-		return
-	}
-
-	// interval_to_add has no overlapping/touching intervals and is greater than last interval
-	if right == -1 && left == len(c.IntervalSet)-1 {
-		c.IntervalSet = append(c.IntervalSet, intervalToAdd)
-		return
-	}
-
-	// update left/right indexes to be the first potential overlapping/touching intervals from left/right
-	left += 1
-	if right >= 0 {
-		right -= 1
-	} else {
-		right = len(c.IntervalSet) - 1
-	}
-	// check which of left/right is overlapping/touching interval_to_add
-	leftOverlaps := c.IntervalSet[left].overlaps(intervalToAdd) || c.IntervalSet[left].touches(intervalToAdd)
-	rightOverlaps := c.IntervalSet[right].overlaps(intervalToAdd) || c.IntervalSet[right].touches(intervalToAdd)
-	newIntervalStart := intervalToAdd.Start
-	if leftOverlaps && c.IntervalSet[left].Start < newIntervalStart {
-		newIntervalStart = c.IntervalSet[left].Start
-	}
-	newIntervalEnd := intervalToAdd.End
-	if rightOverlaps && c.IntervalSet[right].End > newIntervalEnd {
-		newIntervalEnd = c.IntervalSet[right].End
-	}
-	newInterval := Interval{Start: newIntervalStart, End: newIntervalEnd}
-	tmp := c.IntervalSet[right+1:]
-	c.IntervalSet = append(c.IntervalSet[:left], newInterval)
-	c.IntervalSet = append(c.IntervalSet, tmp...)
+	c.IntervalSet = slices.Replace(c.IntervalSet, left, right, v)
 }
 
 // AddHole updates the current CanonicalIntervalSet object by removing the input Interval from the set
@@ -189,12 +94,6 @@ func (c *CanonicalIntervalSet) Copy() CanonicalIntervalSet {
 	return CanonicalIntervalSet{IntervalSet: append([]Interval(nil), c.IntervalSet...)}
 }
 
-/*func Union(a, b CanonicalIntervalSet) CanonicalIntervalSet {
-	res := a.Copy()
-	res.Union(b)
-	return res
-}*/
-
 func (c *CanonicalIntervalSet) Contains(n int64) bool {
 	i := CreateFromInterval(n, n)
 	return i.ContainedIn(*c)
@@ -202,17 +101,16 @@ func (c *CanonicalIntervalSet) Contains(n int64) bool {
 
 // ContainedIn returns true of the current CanonicalIntervalSet is contained in the input CanonicalIntervalSet
 func (c *CanonicalIntervalSet) ContainedIn(other CanonicalIntervalSet) bool {
-	if len(c.IntervalSet) == 1 && len(other.IntervalSet) == 1 {
-		return c.IntervalSet[0].isSubset(other.IntervalSet[0])
-	}
-	for _, interval := range c.IntervalSet {
-		left := other.findIntervalLeft(interval)
-		if left == len(other.IntervalSet)-1 {
+	larger := other.IntervalSet
+	for _, target := range c.IntervalSet {
+		left := sort.Search(len(larger), func(i int) bool {
+			return larger[i].End >= target.End
+		})
+		if left == len(larger) || larger[left].Start > target.Start {
 			return false
 		}
-		if !interval.isSubset(other.IntervalSet[left+1]) {
-			return false
-		}
+		// Optimization
+		larger = larger[left:]
 	}
 	return true
 }
