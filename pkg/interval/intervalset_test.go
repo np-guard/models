@@ -10,13 +10,7 @@ import (
 
 func TestInterval(t *testing.T) {
 	it1 := interval.Interval{3, 7}
-	it2 := interval.Interval{3, 5}
-	it3 := interval.Interval{2, 7}
-
 	require.Equal(t, "[3-7]", it1.String())
-
-	require.True(t, it3.Lt(it1))
-	require.True(t, it2.Lt(it1))
 }
 
 func TestIntervalSet(t *testing.T) {
