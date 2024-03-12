@@ -95,7 +95,7 @@ func (c *CanonicalIntervalSet) Copy() CanonicalIntervalSet {
 }
 
 func (c *CanonicalIntervalSet) Contains(n int64) bool {
-	i := CreateFromInterval(n, n)
+	i := FromInterval(n, n)
 	return i.ContainedIn(*c)
 }
 
@@ -115,8 +115,8 @@ func (c *CanonicalIntervalSet) ContainedIn(other CanonicalIntervalSet) bool {
 	return true
 }
 
-// Intersection updates current CanonicalIntervalSet with intersection result of input CanonicalIntervalSet
-func (c *CanonicalIntervalSet) Intersection(other CanonicalIntervalSet) {
+// Intersect updates current CanonicalIntervalSet with intersection result of input CanonicalIntervalSet
+func (c *CanonicalIntervalSet) Intersect(other CanonicalIntervalSet) {
 	newIntervalSet := []Interval{}
 	for _, interval := range c.IntervalSet {
 		for _, otherInterval := range other.IntervalSet {
@@ -152,6 +152,6 @@ func (c *CanonicalIntervalSet) IsSingleNumber() bool {
 	return false
 }
 
-func CreateFromInterval(start, end int64) *CanonicalIntervalSet {
+func FromInterval(start, end int64) *CanonicalIntervalSet {
 	return &CanonicalIntervalSet{IntervalSet: []Interval{{Start: start, End: end}}}
 }
