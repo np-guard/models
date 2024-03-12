@@ -1,3 +1,5 @@
+// Copyright 2020- IBM Inc. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
 package hypercube
 
 import (
@@ -53,40 +55,39 @@ func (c *CanonicalSet) Union(other *CanonicalSet) *CanonicalSet {
 	if c.dimensions != other.dimensions {
 		return nil
 	}
-	res := NewCanonicalSet(c.dimensions)
 	remainingFromOther := map[*interval.CanonicalSet]*interval.CanonicalSet{}
-	for k := range other.layers {
-		kCopy := k.Copy()
-		remainingFromOther[k] = &kCopy
+	for otherKey := range other.layers {
+		remainingFromOther[otherKey] = otherKey.Copy()
 	}
+	layers := map[*interval.CanonicalSet]*CanonicalSet{}
 	for k, v := range c.layers {
-		remainingFromSelf := copyIntervalSet(k)
+		remainingFromSelf := k.Copy()
 		for otherKey, otherVal := range other.layers {
-			commonElem := copyIntervalSet(k)
-			commonElem.Intersect(*otherKey)
+			commonElem := k.Intersect(otherKey)
 			if commonElem.IsEmpty() {
 				continue
 			}
-			remainingFromOther[otherKey].Subtract(*commonElem)
-			remainingFromSelf.Subtract(*commonElem)
-			if c.dimensions == 1 {
-				res.layers[commonElem] = NewCanonicalSet(0)
-				continue
+			remainingFromOther[otherKey] = remainingFromOther[otherKey].Subtract(commonElem)
+			remainingFromSelf = remainingFromSelf.Subtract(commonElem)
+			newSubElem := NewCanonicalSet(0)
+			if c.dimensions != 1 {
+				newSubElem = v.Union(otherVal)
 			}
-			newSubElem := v.Union(otherVal)
-			res.layers[commonElem] = newSubElem
+			layers[commonElem] = newSubElem
 		}
 		if !remainingFromSelf.IsEmpty() {
-			res.layers[remainingFromSelf] = v.Copy()
+			layers[remainingFromSelf] = v.Copy()
 		}
 	}
 	for k, v := range remainingFromOther {
 		if !v.IsEmpty() {
-			res.layers[v] = other.layers[k].Copy()
+			layers[v] = other.layers[k].Copy()
 		}
 	}
-	res.applyElementsUnionPerLayer()
-	return res
+	return &CanonicalSet{
+		layers:     getElementsUnionPerLayer(layers),
+		dimensions: c.dimensions,
+	}
 }
 
 // IsEmpty returns true if c is empty
@@ -99,26 +100,28 @@ func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
 	if c.dimensions != other.dimensions {
 		return nil
 	}
-	res := NewCanonicalSet(c.dimensions)
+
+	layers := map[*interval.CanonicalSet]*CanonicalSet{}
 	for k, v := range c.layers {
 		for otherKey, otherVal := range other.layers {
-			commonELem := copyIntervalSet(k)
-			commonELem.Intersect(*otherKey)
+			commonELem := k.Intersect(otherKey)
 			if commonELem.IsEmpty() {
 				continue
 			}
 			if c.dimensions == 1 {
-				res.layers[commonELem] = NewCanonicalSet(0)
+				layers[commonELem] = NewCanonicalSet(0)
 				continue
 			}
 			newSubElem := v.Intersect(otherVal)
 			if !newSubElem.IsEmpty() {
-				res.layers[commonELem] = newSubElem
+				layers[commonELem] = newSubElem
 			}
 		}
 	}
-	res.applyElementsUnionPerLayer()
-	return res
+	return &CanonicalSet{
+		layers:     getElementsUnionPerLayer(layers),
+		dimensions: c.dimensions,
+	}
 }
 
 // Subtract returns a new CanonicalSet object that results from subtraction other from c
@@ -126,41 +129,42 @@ func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
 	if c.dimensions != other.dimensions {
 		return nil
 	}
-	res := NewCanonicalSet(c.dimensions)
+	layers := map[*interval.CanonicalSet]*CanonicalSet{}
 	for k, v := range c.layers {
-		remainingFromSelf := copyIntervalSet(k)
+		remainingFromSelf := k.Copy()
 		for otherKey, otherVal := range other.layers {
-			commonELem := copyIntervalSet(k)
-			commonELem.Intersect(*otherKey)
-			if commonELem.IsEmpty() {
+			commonElem := k.Intersect(otherKey)
+			if commonElem.IsEmpty() {
 				continue
 			}
-			remainingFromSelf.Subtract(*commonELem)
+			remainingFromSelf = remainingFromSelf.Subtract(commonElem)
 			if c.dimensions == 1 {
 				continue
 			}
 			newSubElem := v.Subtract(otherVal)
 			if !newSubElem.IsEmpty() {
-				res.layers[commonELem] = newSubElem
+				layers[commonElem] = newSubElem
 			}
 		}
 		if !remainingFromSelf.IsEmpty() {
-			res.layers[remainingFromSelf] = v.Copy()
+			layers[remainingFromSelf] = v.Copy()
 		}
 	}
-	res.applyElementsUnionPerLayer()
-	return res
+	return &CanonicalSet{
+		layers:     getElementsUnionPerLayer(layers),
+		dimensions: c.dimensions,
+	}
 }
 
 func (c *CanonicalSet) getIntervalSetUnion() *interval.CanonicalSet {
 	res := interval.NewCanonicalIntervalSet()
 	for k := range c.layers {
-		res.Union(*k)
+		res = res.Union(k)
 	}
 	return res
 }
 
-// ContainedIn returns true ic other contained in c
+// ContainedIn returns true if c is subset of other
 func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
 	if c.dimensions != other.dimensions {
 		return false, errors.New("ContainedIn mismatch between num of dimensions for input args")
@@ -171,17 +175,14 @@ func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
 		}
 		cInterval := c.getIntervalSetUnion()
 		otherInterval := other.getIntervalSetUnion()
-		return cInterval.ContainedIn(*otherInterval), nil
+		return cInterval.ContainedIn(otherInterval), nil
 	}
 
 	isSubsetCount := 0
-	for k, v := range c.layers {
-		currentLayer := copyIntervalSet(k)
+	for currentLayer, v := range c.layers {
 		for otherKey, otherVal := range other.layers {
-			commonKey := copyIntervalSet(currentLayer)
-			commonKey.Intersect(*otherKey)
-			remaining := copyIntervalSet(currentLayer)
-			remaining.Subtract(*commonKey)
+			commonKey := currentLayer.Intersect(otherKey)
+			remaining := currentLayer.Subtract(commonKey)
 			if !commonKey.IsEmpty() {
 				subContainment, err := v.ContainedIn(otherVal)
 				if !subContainment || err != nil {
@@ -203,8 +204,7 @@ func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
 func (c *CanonicalSet) Copy() *CanonicalSet {
 	res := NewCanonicalSet(c.dimensions)
 	for k, v := range c.layers {
-		newKey := k.Copy()
-		res.layers[&newKey] = v.Copy()
+		res.layers[k.Copy()] = v.Copy()
 	}
 	return res
 }
@@ -248,13 +248,13 @@ func (c *CanonicalSet) GetCubesList() [][]*interval.CanonicalSet {
 	return res
 }
 
-func (c *CanonicalSet) applyElementsUnionPerLayer() {
+func getElementsUnionPerLayer(layers map[*interval.CanonicalSet]*CanonicalSet) map[*interval.CanonicalSet]*CanonicalSet {
 	type pair struct {
 		hc *CanonicalSet            // hypercube set object
 		is []*interval.CanonicalSet // interval-set list
 	}
 	equivClasses := map[string]*pair{}
-	for k, v := range c.layers {
+	for k, v := range layers {
 		if _, ok := equivClasses[v.String()]; ok {
 			equivClasses[v.String()].is = append(equivClasses[v.String()].is, k)
 		} else {
@@ -266,11 +266,11 @@ func (c *CanonicalSet) applyElementsUnionPerLayer() {
 		newVal := p.hc
 		newKey := p.is[0]
 		for i := 1; i < len(p.is); i += 1 {
-			newKey.Union(*p.is[i])
+			newKey = newKey.Union(p.is[i])
 		}
 		newLayers[newKey] = newVal
 	}
-	c.layers = newLayers
+	return newLayers
 }
 
 // FromCube returns a new CanonicalSet created from a single input cube
@@ -281,13 +281,11 @@ func FromCube(cube []*interval.CanonicalSet) *CanonicalSet {
 	}
 	if len(cube) == 1 {
 		res := NewCanonicalSet(1)
-		cubeVal := cube[0].Copy()
-		res.layers[&cubeVal] = NewCanonicalSet(0)
+		res.layers[cube[0].Copy()] = NewCanonicalSet(0)
 		return res
 	}
 	res := NewCanonicalSet(len(cube))
-	cubeVal := cube[0].Copy()
-	res.layers[&cubeVal] = FromCube(cube[1:])
+	res.layers[cube[0].Copy()] = FromCube(cube[1:])
 	return res
 }
 
@@ -297,12 +295,16 @@ func FromCube(cube []*interval.CanonicalSet) *CanonicalSet {
 func FromCubeShort(values ...int64) *CanonicalSet {
 	cube := []*interval.CanonicalSet{}
 	for i := 0; i < len(values); i += 2 {
-		cube = append(cube, interval.FromInterval(values[i], values[i+1]))
+		cube = append(cube, interval.CreateSetFromInterval(values[i], values[i+1]))
 	}
 	return FromCube(cube)
 }
 
-func copyIntervalSet(a *interval.CanonicalSet) *interval.CanonicalSet {
-	res := a.Copy()
-	return &res
+// CopyCube returns a new slice of intervals copied from input cube
+func CopyCube(cube []*interval.CanonicalSet) []*interval.CanonicalSet {
+	newCube := make([]*interval.CanonicalSet, len(cube))
+	for i, intervalSet := range cube {
+		newCube[i] = intervalSet.Copy()
+	}
+	return newCube
 }

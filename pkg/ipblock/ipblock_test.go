@@ -1,3 +1,5 @@
+// Copyright 2020- IBM Inc. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
 package ipblock_test
 
 import (
@@ -21,15 +23,17 @@ func TestOps(t *testing.T) {
 	minus := ipb1.Subtract(ipb2)
 	require.Equal(t, "1.2.3.0-1.2.3.3, 1.2.3.5-1.2.3.255", minus.ToIPRanges())
 
-	minus2, err := ipblock.FromCidrExcept(ipb1.ToCidrListString(), []string{ipb2.ToCidrListString()})
+	minus2, err := ipblock.FromCidr(ipb1.ToCidrListString())
+	require.Nil(t, err)
+	minus2, err = minus2.ExceptCidrs(ipb2.ToCidrListString())
 	require.Nil(t, err)
 	require.Equal(t, minus.ToCidrListString(), minus2.ToCidrListString())
 
 	intersect := ipb1.Intersect(ipb2)
-	require.True(t, intersect.Equal(ipb2))
+	require.Equal(t, intersect, ipb2)
 
 	union := intersect.Union(minus)
-	require.True(t, union.Equal(ipb1))
+	require.Equal(t, union, ipb1)
 
 	intersect2 := minus.Intersect(intersect)
 	require.True(t, intersect2.Empty())
@@ -107,10 +111,7 @@ func TestPrefixLength(t *testing.T) {
 }
 
 func TestBadPath(t *testing.T) {
-	_, err := ipblock.FromCidrExcept("not-a-cidr", nil)
-	require.NotNil(t, err)
-
-	_, err = ipblock.FromCidrExcept("2.5.7.9/24", []string{"5.6.7.8/20", "not-a-cidr"})
+	_, err := ipblock.FromCidr("not-a-cidr")
 	require.NotNil(t, err)
 
 	_, err = ipblock.FromCidrList([]string{"1.2.3.4/20", "not-a-cidr"})
