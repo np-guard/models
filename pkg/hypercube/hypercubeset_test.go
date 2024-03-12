@@ -9,12 +9,12 @@ import (
 )
 
 func TestHCBasic(t *testing.T) {
-	cube1 := []*interval.CanonicalIntervalSet{interval.FromInterval(1, 100)}
-	cube2 := []*interval.CanonicalIntervalSet{interval.FromInterval(1, 100)}
-	cube3 := []*interval.CanonicalIntervalSet{interval.FromInterval(1, 200)}
-	cube4 := []*interval.CanonicalIntervalSet{interval.FromInterval(1, 100), interval.FromInterval(1, 100)}
-	cube5 := []*interval.CanonicalIntervalSet{interval.FromInterval(1, 100), interval.FromInterval(1, 100)}
-	cube6 := []*interval.CanonicalIntervalSet{interval.FromInterval(1, 100), interval.FromInterval(1, 200)}
+	cube1 := []*interval.CanonicalSet{interval.FromInterval(1, 100)}
+	cube2 := []*interval.CanonicalSet{interval.FromInterval(1, 100)}
+	cube3 := []*interval.CanonicalSet{interval.FromInterval(1, 200)}
+	cube4 := []*interval.CanonicalSet{interval.FromInterval(1, 100), interval.FromInterval(1, 100)}
+	cube5 := []*interval.CanonicalSet{interval.FromInterval(1, 100), interval.FromInterval(1, 100)}
+	cube6 := []*interval.CanonicalSet{interval.FromInterval(1, 100), interval.FromInterval(1, 200)}
 
 	a := hypercube.FromCube(cube1)
 	b := hypercube.FromCube(cube2)
@@ -57,7 +57,7 @@ func TestHCBasic(t *testing.T) {
 }
 
 func TestCopy(t *testing.T) {
-	cube1 := []*interval.CanonicalIntervalSet{interval.FromInterval(1, 100)}
+	cube1 := []*interval.CanonicalSet{interval.FromInterval(1, 100)}
 	a := hypercube.FromCube(cube1)
 	b := a.Copy()
 	if !a.Equal(b) {
@@ -72,8 +72,8 @@ func TestCopy(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	cube1 := []*interval.CanonicalIntervalSet{interval.FromInterval(1, 100)}
-	cube2 := []*interval.CanonicalIntervalSet{interval.FromInterval(1, 100), interval.FromInterval(1, 100)}
+	cube1 := []*interval.CanonicalSet{interval.FromInterval(1, 100)}
+	cube2 := []*interval.CanonicalSet{interval.FromInterval(1, 100), interval.FromInterval(1, 100)}
 	a := hypercube.FromCube(cube1)
 	b := hypercube.FromCube(cube2)
 	fmt.Println(a.String())
@@ -82,8 +82,8 @@ func TestString(t *testing.T) {
 }
 
 func TestOr(t *testing.T) {
-	cube1 := []*interval.CanonicalIntervalSet{interval.FromInterval(1, 100), interval.FromInterval(1, 100)}
-	cube2 := []*interval.CanonicalIntervalSet{interval.FromInterval(1, 90), interval.FromInterval(1, 200)}
+	cube1 := []*interval.CanonicalSet{interval.FromInterval(1, 100), interval.FromInterval(1, 100)}
+	cube2 := []*interval.CanonicalSet{interval.FromInterval(1, 90), interval.FromInterval(1, 200)}
 	a := hypercube.FromCube(cube1)
 	b := hypercube.FromCube(cube2)
 	c := a.Union(b)
@@ -94,19 +94,19 @@ func TestOr(t *testing.T) {
 }
 
 func addCube1Dim(o *hypercube.CanonicalSet, start, end int64) *hypercube.CanonicalSet {
-	cube := []*interval.CanonicalIntervalSet{interval.FromInterval(start, end)}
+	cube := []*interval.CanonicalSet{interval.FromInterval(start, end)}
 	a := hypercube.FromCube(cube)
 	return o.Union(a)
 }
 
 func addCube2Dim(o *hypercube.CanonicalSet, start1, end1, start2, end2 int64) *hypercube.CanonicalSet {
-	cube := []*interval.CanonicalIntervalSet{interval.FromInterval(start1, end1), interval.FromInterval(start2, end2)}
+	cube := []*interval.CanonicalSet{interval.FromInterval(start1, end1), interval.FromInterval(start2, end2)}
 	a := hypercube.FromCube(cube)
 	return o.Union(a)
 }
 
 func addCube3Dim(o *hypercube.CanonicalSet, s1, e1, s2, e2, s3, e3 int64) *hypercube.CanonicalSet {
-	cube := []*interval.CanonicalIntervalSet{
+	cube := []*interval.CanonicalSet{
 		interval.FromInterval(s1, e1),
 		interval.FromInterval(s2, e2),
 		interval.FromInterval(s3, e3)}
