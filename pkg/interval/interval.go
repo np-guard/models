@@ -18,31 +18,12 @@ func (i *Interval) Equal(x Interval) bool {
 	return i.Start == x.Start && i.End == x.End
 }
 
-// Lt returns true if current Interval obj is less than the input Interval
-func (i *Interval) Lt(x Interval) bool {
-	return i.Start < x.Start || (i.Start == x.Start && i.End < x.End)
-}
-
 func (i *Interval) overlaps(other Interval) bool {
 	return other.End >= i.Start && other.Start <= i.End
 }
 
 func (i *Interval) isSubset(other Interval) bool {
 	return other.Start <= i.Start && other.End >= i.End
-}
-
-func min(a, b int64) int64 {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a, b int64) int64 {
-	if a > b {
-		return a
-	}
-	return b
 }
 
 // returns a list with up to 2 intervals
