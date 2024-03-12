@@ -128,12 +128,9 @@ func (b *IPBlock) Split() []*IPBlock {
 
 // intToIP4 returns a string of an ip address from an input integer ip value
 func intToIP4(ipInt int64) string {
-	// need to do two bit shifting and “0xff” masking
-	b0 := strconv.FormatInt((ipInt>>ipShift0)&ipByte, ipBase)
-	b1 := strconv.FormatInt((ipInt>>ipShift1)&ipByte, ipBase)
-	b2 := strconv.FormatInt((ipInt>>ipShift2)&ipByte, ipBase)
-	b3 := strconv.FormatInt((ipInt & ipByte), ipBase)
-	return b0 + "." + b1 + "." + b2 + "." + b3
+	var d [4]byte
+	binary.BigEndian.PutUint32(d[:], uint32(ipInt))
+	return net.IPv4(d[0], d[1], d[2], d[3]).String()
 }
 
 // DisjointIPBlocks returns an IPBlock of disjoint ip ranges from 2 input IPBlock objects
