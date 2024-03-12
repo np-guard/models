@@ -291,10 +291,6 @@ func FromCube(cube []*interval.CanonicalSet) *CanonicalSet {
 	return res
 }
 
-func FromCubeAsIntervals(values ...*interval.CanonicalSet) *CanonicalSet {
-	return FromCube(values)
-}
-
 // FromCubeShort returns a new CanonicalSet created from a single input cube
 // the input cube is given as an ordered list of integer values, where each two values
 // represent the range (start,end) for a dimension value
