@@ -338,8 +338,8 @@ func intervalToCidrList(ipStart, ipEnd int64) []string {
 	return res
 }
 
-// IPBlockFromIPRangeStr returns IPBlock object from input IP range string (example: "169.255.0.0-172.15.255.255")
-func IPBlockFromIPRangeStr(ipRangeStr string) (*IPBlock, error) {
+// FromIPRangeStr returns IPBlock object from input IP range string (example: "169.255.0.0-172.15.255.255")
+func FromIPRangeStr(ipRangeStr string) (*IPBlock, error) {
 	ipAddresses := strings.Split(ipRangeStr, dash)
 	if len(ipAddresses) != 2 {
 		return nil, errors.New("unexpected ipRange str")

@@ -37,7 +37,7 @@ func TestOps(t *testing.T) {
 
 func TestConversions(t *testing.T) {
 	ipRange := "172.0.10.0-195.8.5.14"
-	ipb1, err := ipblock.IPBlockFromIPRangeStr(ipRange)
+	ipb1, err := ipblock.FromIPRangeStr(ipRange)
 	require.Nil(t, err)
 	require.Equal(t, ipRange, ipb1.ToIPRanges())
 
@@ -66,7 +66,7 @@ func TestDisjointIPBlocks(t *testing.T) {
 
 	ipb2, err := ipblock.FromCidrList([]string{"1.2.3.0/30"})
 	require.Nil(t, err)
-	ipb3, err := ipblock.IPBlockFromIPRangeStr("1.2.2.255-1.2.3.1")
+	ipb3, err := ipblock.FromIPRangeStr("1.2.2.255-1.2.3.1")
 	require.Nil(t, err)
 	disjointBlocks = ipblock.DisjointIPBlocks([]*ipblock.IPBlock{ipb2}, []*ipblock.IPBlock{ipb3})
 	require.Len(t, disjointBlocks, 3)
@@ -119,19 +119,19 @@ func TestBadPath(t *testing.T) {
 	_, err = ipblock.FromCidrList([]string{"1.2.3.4/20", "1.2.3.4/40"})
 	require.NotNil(t, err)
 
-	_, err = ipblock.IPBlockFromIPRangeStr("1.2.3.4")
+	_, err = ipblock.FromIPRangeStr("1.2.3.4")
 	require.NotNil(t, err)
 
-	_, err = ipblock.IPBlockFromIPRangeStr("prefix-1.2.3.4")
+	_, err = ipblock.FromIPRangeStr("prefix-1.2.3.4")
 	require.NotNil(t, err)
 
-	_, err = ipblock.IPBlockFromIPRangeStr("1.2.3.290-1.2.3.4")
+	_, err = ipblock.FromIPRangeStr("1.2.3.290-1.2.3.4")
 	require.NotNil(t, err)
 
-	_, err = ipblock.IPBlockFromIPRangeStr("1.2.3.4-suffix")
+	_, err = ipblock.FromIPRangeStr("1.2.3.4-suffix")
 	require.NotNil(t, err)
 
-	_, err = ipblock.IPBlockFromIPRangeStr("1.2.3.4-2.5.6.7/20")
+	_, err = ipblock.FromIPRangeStr("1.2.3.4-2.5.6.7/20")
 	require.NotNil(t, err)
 
 	_, _, err = ipblock.PairCIDRsToIPBlocks("1.2.3.4/40", "1.2.3.5/24")
