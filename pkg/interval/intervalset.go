@@ -138,8 +138,8 @@ func (c *CanonicalSet) Overlaps(other *CanonicalSet) bool {
 	return false
 }
 
-// Subtraction updates current CanonicalSet with subtraction result of input CanonicalSet
-func (c *CanonicalSet) Subtraction(other CanonicalSet) {
+// Subtract updates current CanonicalSet with subtraction result of input CanonicalSet
+func (c *CanonicalSet) Subtract(other CanonicalSet) {
 	for _, i := range other.IntervalSet {
 		c.AddHole(i)
 	}

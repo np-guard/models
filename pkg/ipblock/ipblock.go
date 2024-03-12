@@ -79,7 +79,7 @@ func (b *IPBlock) Equal(c *IPBlock) bool {
 func (b *IPBlock) Subtract(c *IPBlock) *IPBlock {
 	res := &IPBlock{}
 	res.ipRange = b.ipRange.Copy()
-	res.ipRange.Subtraction(c.ipRange)
+	res.ipRange.Subtract(c.ipRange)
 	return res
 }
 
@@ -172,10 +172,10 @@ func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 		}
 		intersection := ipb.Copy()
 		intersection.ipRange.Intersect(ipbNew.ipRange)
-		ipbNew.ipRange.Subtraction(intersection.ipRange)
+		ipbNew.ipRange.Subtract(intersection.ipRange)
 		if !ipb.ipRange.Equal(intersection.ipRange) {
 			toAdd = append(toAdd, intersection)
-			ipbList[idx].ipRange.Subtraction(intersection.ipRange)
+			ipbList[idx].ipRange.Subtract(intersection.ipRange)
 		}
 		if len(ipbNew.ipRange.IntervalSet) == 0 {
 			break

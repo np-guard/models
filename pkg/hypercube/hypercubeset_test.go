@@ -262,11 +262,11 @@ func TestBasicAddCube(t *testing.T) {
 }
 func TestBasicAddHole(t *testing.T) {
 	a := hypercube.FromCubeShort(1, 10)
-	b := a.Subtraction(hypercube.FromCubeShort(3, 20))
-	c := a.Subtraction(hypercube.FromCubeShort(0, 20))
-	d := a.Subtraction(hypercube.FromCubeShort(0, 5))
-	e := a.Subtraction(hypercube.FromCubeShort(12, 14))
-	a = a.Subtraction(hypercube.FromCubeShort(3, 7))
+	b := a.Subtract(hypercube.FromCubeShort(3, 20))
+	c := a.Subtract(hypercube.FromCubeShort(0, 20))
+	d := a.Subtract(hypercube.FromCubeShort(0, 5))
+	e := a.Subtract(hypercube.FromCubeShort(12, 14))
+	a = a.Subtract(hypercube.FromCubeShort(3, 7))
 	f := hypercube.FromCubeShort(1, 2)
 	f = addCube1Dim(f, 8, 10)
 	checkEqual(t, a, f, true)
@@ -280,19 +280,19 @@ func TestAddHoleBasic2(t *testing.T) {
 	a := hypercube.FromCubeShort(1, 100, 200, 300)
 	b := a.Copy()
 	c := a.Copy()
-	a = a.Subtraction(hypercube.FromCubeShort(50, 60, 220, 300))
+	a = a.Subtract(hypercube.FromCubeShort(50, 60, 220, 300))
 	resA := hypercube.FromCubeShort(61, 100, 200, 300)
 	resA = addCube2Dim(resA, 50, 60, 200, 219)
 	resA = addCube2Dim(resA, 1, 49, 200, 300)
 	checkEqual(t, a, resA, true)
 
-	b = b.Subtraction(hypercube.FromCubeShort(50, 1000, 0, 250))
+	b = b.Subtract(hypercube.FromCubeShort(50, 1000, 0, 250))
 	resB := hypercube.FromCubeShort(50, 100, 251, 300)
 	resB = addCube2Dim(resB, 1, 49, 200, 300)
 	checkEqual(t, b, resB, true)
 
 	c = addCube2Dim(c, 400, 700, 200, 300)
-	c = c.Subtraction(hypercube.FromCubeShort(50, 1000, 0, 250))
+	c = c.Subtract(hypercube.FromCubeShort(50, 1000, 0, 250))
 	resC := hypercube.FromCubeShort(50, 100, 251, 300)
 	resC = addCube2Dim(resC, 1, 49, 200, 300)
 	resC = addCube2Dim(resC, 400, 700, 251, 300)
@@ -301,7 +301,7 @@ func TestAddHoleBasic2(t *testing.T) {
 
 func TestAddHole(t *testing.T) {
 	c := hypercube.FromCubeShort(1, 100, 200, 300)
-	c = c.Subtraction(hypercube.FromCubeShort(50, 60, 220, 300))
+	c = c.Subtract(hypercube.FromCubeShort(50, 60, 220, 300))
 	d := hypercube.FromCubeShort(1, 49, 200, 300)
 	d = addCube2Dim(d, 50, 60, 200, 219)
 	d = addCube2Dim(d, 61, 100, 200, 300)
@@ -311,7 +311,7 @@ func TestAddHole(t *testing.T) {
 func TestAddHole2(t *testing.T) {
 	c := hypercube.FromCubeShort(80, 100, 20, 300)
 	c = addCube2Dim(c, 250, 400, 20, 300)
-	c = c.Subtraction(hypercube.FromCubeShort(30, 300, 100, 102))
+	c = c.Subtract(hypercube.FromCubeShort(30, 300, 100, 102))
 	d := hypercube.FromCubeShort(80, 100, 20, 99)
 	d = addCube2Dim(d, 80, 100, 103, 300)
 	d = addCube2Dim(d, 250, 300, 20, 99)
@@ -321,7 +321,7 @@ func TestAddHole2(t *testing.T) {
 }
 func TestAddHole3(t *testing.T) {
 	c := hypercube.FromCubeShort(1, 100, 200, 300)
-	c = c.Subtraction(hypercube.FromCubeShort(1, 100, 200, 300))
+	c = c.Subtract(hypercube.FromCubeShort(1, 100, 200, 300))
 	checkEqual(t, c, hypercube.NewCanonicalSet(2), true)
 }
 
@@ -370,7 +370,7 @@ func TestAndSubOr(t *testing.T) {
 	e = addCube2Dim(e, 8, 30, 11, 20)
 	checkEqual(t, e, f, true)
 
-	g := a.Subtraction(b)
+	g := a.Subtract(b)
 	h := hypercube.FromCubeShort(5, 7, 3, 10)
 	h = addCube2Dim(h, 8, 15, 3, 6)
 	checkEqual(t, g, h, true)

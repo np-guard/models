@@ -67,8 +67,8 @@ func (c *CanonicalSet) Union(other *CanonicalSet) *CanonicalSet {
 			if commonElem.IsEmpty() {
 				continue
 			}
-			remainingFromOther[otherKey].Subtraction(*commonElem)
-			remainingFromSelf.Subtraction(*commonElem)
+			remainingFromOther[otherKey].Subtract(*commonElem)
+			remainingFromSelf.Subtract(*commonElem)
 			if c.dimensions == 1 {
 				res.layers[commonElem] = NewCanonicalSet(0)
 				continue
@@ -121,8 +121,8 @@ func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
 	return res
 }
 
-// Subtraction returns a new CanonicalSet object that results from subtraction other from c
-func (c *CanonicalSet) Subtraction(other *CanonicalSet) *CanonicalSet {
+// Subtract returns a new CanonicalSet object that results from subtraction other from c
+func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
 	if c.dimensions != other.dimensions {
 		return nil
 	}
@@ -135,11 +135,11 @@ func (c *CanonicalSet) Subtraction(other *CanonicalSet) *CanonicalSet {
 			if commonELem.IsEmpty() {
 				continue
 			}
-			remainingFromSelf.Subtraction(*commonELem)
+			remainingFromSelf.Subtract(*commonELem)
 			if c.dimensions == 1 {
 				continue
 			}
-			newSubElem := v.Subtraction(otherVal)
+			newSubElem := v.Subtract(otherVal)
 			if !newSubElem.IsEmpty() {
 				res.layers[commonELem] = newSubElem
 			}
@@ -181,7 +181,7 @@ func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
 			commonKey := copyIntervalSet(currentLayer)
 			commonKey.Intersect(*otherKey)
 			remaining := copyIntervalSet(currentLayer)
-			remaining.Subtraction(*commonKey)
+			remaining.Subtract(*commonKey)
 			if !commonKey.IsEmpty() {
 				subContainment, err := v.ContainedIn(otherVal)
 				if !subContainment || err != nil {

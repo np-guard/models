@@ -35,7 +35,7 @@ func TestIntervalSet(t *testing.T) {
 	require.True(t, is1.Overlaps(is2))
 	require.True(t, is2.Overlaps(is1))
 
-	is1.Subtraction(*is2)
+	is1.Subtract(*is2)
 	require.False(t, is2.ContainedIn(*is1))
 	require.False(t, is1.ContainedIn(*is2))
 	require.False(t, is1.Overlaps(is2))
