@@ -33,7 +33,14 @@ const (
 
 // IPBlock captures a set of IP ranges
 type IPBlock struct {
-	ipRange interval.CanonicalSet
+	ipRange *interval.CanonicalSet
+}
+
+// New returns a new IPBlock object
+func New() *IPBlock {
+	return &IPBlock{
+		ipRange: interval.NewCanonicalIntervalSet(),
+	}
 }
 
 // ToIPRanges returns a string of the ip ranges in the current IPBlock object
@@ -59,34 +66,46 @@ func (b *IPBlock) toIPRangesList() []string {
 
 // ContainedIn checks if this IP block is contained within another IP block.
 func (b *IPBlock) ContainedIn(other *IPBlock) bool {
+	if b == other {
+		return true
+	}
 	return b.ipRange.ContainedIn(other.ipRange)
 }
 
 // Intersect returns a new IPBlock from intersection of this IPBlock with input IPBlock
 func (b *IPBlock) Intersect(c *IPBlock) *IPBlock {
-	res := &IPBlock{}
-	res.ipRange = b.ipRange.Copy()
+	res := b.Copy()
+	if b == c {
+		return res
+	}
 	res.ipRange.Intersect(c.ipRange)
 	return res
 }
 
 // Equal returns true if this IPBlock equals the input IPBlock
 func (b *IPBlock) Equal(c *IPBlock) bool {
+	if b == c {
+		return true
+	}
 	return b.ipRange.Equal(c.ipRange)
 }
 
 // Subtract returns a new IPBlock from subtraction of input IPBlock from this IPBlock
 func (b *IPBlock) Subtract(c *IPBlock) *IPBlock {
-	res := &IPBlock{}
-	res.ipRange = b.ipRange.Copy()
+	if b == c {
+		return New()
+	}
+	res := b.Copy()
 	res.ipRange.Subtract(c.ipRange)
 	return res
 }
 
 // Union returns a new IPBlock from union of input IPBlock with this IPBlock
 func (b *IPBlock) Union(c *IPBlock) *IPBlock {
-	res := &IPBlock{}
-	res.ipRange = b.ipRange.Copy()
+	res := b.Copy()
+	if b == c {
+		return res
+	}
 	res.ipRange.Union(c.ipRange)
 	return res
 }
@@ -102,9 +121,7 @@ func rangeIPstr(start, end string) string {
 
 // Copy returns a new copy of IPBlock object
 func (b *IPBlock) Copy() *IPBlock {
-	res := &IPBlock{}
-	res.ipRange = b.ipRange.Copy()
-	return res
+	return &IPBlock{ipRange: b.ipRange.Copy()}
 }
 
 func (b *IPBlock) ipCount() int {
@@ -119,9 +136,9 @@ func (b *IPBlock) ipCount() int {
 func (b *IPBlock) Split() []*IPBlock {
 	res := make([]*IPBlock, len(b.ipRange.IntervalSet))
 	for index, ipr := range b.ipRange.IntervalSet {
-		newBlock := IPBlock{}
-		newBlock.ipRange.IntervalSet = append(newBlock.ipRange.IntervalSet, interval.Interval{Start: ipr.Start, End: ipr.End})
-		res[index] = &newBlock
+		res[index] = &IPBlock{
+			ipRange: interval.FromInterval(ipr.Start, ipr.End),
+		}
 	}
 	return res
 }
@@ -164,7 +181,7 @@ func DisjointIPBlocks(set1, set2 []*IPBlock) []*IPBlock {
 func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 	toAdd := []*IPBlock{}
 	for idx, ipb := range ipbList {
-		if !ipb.ipRange.Overlaps(&ipbNew.ipRange) {
+		if !ipb.ipRange.Overlaps(ipbNew.ipRange) {
 			continue
 		}
 		intersection := ipb.Copy()
@@ -208,7 +225,7 @@ func FromCidrOrAddress(s string) (*IPBlock, error) {
 
 // FromCidrList returns IPBlock object from multiple CIDRs given as list of strings
 func FromCidrList(cidrsList []string) (*IPBlock, error) {
-	res := &IPBlock{ipRange: interval.CanonicalSet{}}
+	res := New()
 	for _, cidr := range cidrsList {
 		block, err := FromCidr(cidr)
 		if err != nil {
@@ -221,20 +238,19 @@ func FromCidrList(cidrsList []string) (*IPBlock, error) {
 
 // FromCidrExcept returns an IPBlock object from input cidr str an exceptions cidr str
 func FromCidrExcept(cidr string, exceptions []string) (*IPBlock, error) {
-	res := IPBlock{ipRange: interval.CanonicalSet{}}
 	span, err := cidrToInterval(cidr)
 	if err != nil {
 		return nil, err
 	}
-	res.ipRange.AddInterval(*span)
+	ipRange := interval.FromInterval(span.Start, span.End)
 	for i := range exceptions {
 		intervalHole, err := cidrToInterval(exceptions[i])
 		if err != nil {
 			return nil, err
 		}
-		res.ipRange.AddHole(*intervalHole)
+		ipRange.AddHole(intervalHole)
 	}
-	return &res, nil
+	return &IPBlock{ipRange: ipRange}, nil
 }
 
 func ipv4AddressToCidr(ipAddress string) string {
@@ -264,12 +280,12 @@ func cidrToIPRange(cidr string) (start, end int64, err error) {
 	return
 }
 
-func cidrToInterval(cidr string) (*interval.Interval, error) {
+func cidrToInterval(cidr string) (interval.Interval, error) {
 	start, end, err := cidrToIPRange(cidr)
 	if err != nil {
-		return nil, err
+		return interval.Interval{}, err
 	}
-	return &interval.Interval{Start: start, End: end}, nil
+	return interval.Interval{Start: start, End: end}, nil
 }
 
 // ToCidrList returns a list of CIDR strings for this IPBlock object
@@ -349,8 +365,7 @@ func FromIPRangeStr(ipRangeStr string) (*IPBlock, error) {
 	if endIP, err = FromIPAddress(ipAddresses[1]); err != nil {
 		return nil, err
 	}
-	res := &IPBlock{}
-	res.ipRange = interval.CanonicalSet{IntervalSet: []interval.Interval{}}
+	res := New()
 	startIPNum := startIP.ipRange.IntervalSet[0].Start
 	endIPNum := endIP.ipRange.IntervalSet[0].Start
 	res.ipRange.IntervalSet = append(res.ipRange.IntervalSet, interval.Interval{Start: startIPNum, End: endIPNum})
