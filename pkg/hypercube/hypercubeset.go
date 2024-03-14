@@ -52,6 +52,9 @@ func (c *CanonicalSet) Equal(other *CanonicalSet) bool {
 
 // Union returns a new CanonicalSet object that results from union of c with other
 func (c *CanonicalSet) Union(other *CanonicalSet) *CanonicalSet {
+	if c == other {
+		return c.Copy()
+	}
 	if c.dimensions != other.dimensions {
 		return nil
 	}
@@ -97,6 +100,9 @@ func (c *CanonicalSet) IsEmpty() bool {
 
 // Intersect returns a new CanonicalSet object that results from intersection of c with other
 func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
+	if c == other {
+		return c.Copy()
+	}
 	if c.dimensions != other.dimensions {
 		return nil
 	}
@@ -126,6 +132,9 @@ func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
 
 // Subtract returns a new CanonicalSet object that results from subtraction other from c
 func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
+	if c == other {
+		return NewCanonicalSet(c.dimensions)
+	}
 	if c.dimensions != other.dimensions {
 		return nil
 	}
@@ -166,6 +175,9 @@ func (c *CanonicalSet) getIntervalSetUnion() *interval.CanonicalSet {
 
 // ContainedIn returns true if c is subset of other
 func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
+	if c == other {
+		return true, nil
+	}
 	if c.dimensions != other.dimensions {
 		return false, errors.New("ContainedIn mismatch between num of dimensions for input args")
 	}

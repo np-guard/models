@@ -96,22 +96,23 @@ func inverseICMPType(t int) int {
 }
 
 //nolint:revive // magic numbers are fine here
+var maxCodes = map[int]int{
+	EchoReply:              0,
+	DestinationUnreachable: 5,
+	SourceQuench:           0,
+	Redirect:               3,
+	Echo:                   0,
+	TimeExceeded:           1,
+	ParameterProblem:       0,
+	Timestamp:              0,
+	TimestampReply:         0,
+	InformationRequest:     0,
+	InformationReply:       0,
+}
+
 func ValidateICMP(typeCode *ICMPTypeCode) error {
 	if typeCode == nil {
 		return nil
-	}
-	maxCodes := map[int]int{
-		EchoReply:              0,
-		DestinationUnreachable: 5,
-		SourceQuench:           0,
-		Redirect:               3,
-		Echo:                   0,
-		TimeExceeded:           1,
-		ParameterProblem:       0,
-		Timestamp:              0,
-		TimestampReply:         0,
-		InformationRequest:     0,
-		InformationReply:       0,
 	}
 	maxCode, ok := maxCodes[typeCode.Type]
 	if !ok {

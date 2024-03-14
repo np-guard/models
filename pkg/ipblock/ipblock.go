@@ -38,6 +38,13 @@ type IPBlock struct {
 	ipRange *interval.CanonicalSet
 }
 
+// New returns a new IPBlock object
+func New() *IPBlock {
+	return &IPBlock{
+		ipRange: interval.NewCanonicalIntervalSet(),
+	}
+}
+
 // ToIPRanges returns a string of the ip ranges in the current IPBlock object
 func (b *IPBlock) ToIPRanges() string {
 	return strings.Join(b.toIPRangesList(), commaSeparator)
@@ -59,13 +66,19 @@ func (b *IPBlock) toIPRangesList() []string {
 	return IPRanges
 }
 
-// ContainedIn returns true if the input IPBlock is contained in this IPBlock
-func (b *IPBlock) ContainedIn(c *IPBlock) bool {
-	return b.ipRange.ContainedIn(c.ipRange)
+// ContainedIn checks if this IP block is contained within another IP block.
+func (b *IPBlock) ContainedIn(other *IPBlock) bool {
+	if b == other {
+		return true
+	}
+	return b.ipRange.ContainedIn(other.ipRange)
 }
 
 // Intersect returns a new IPBlock from intersection of this IPBlock with input IPBlock
 func (b *IPBlock) Intersect(c *IPBlock) *IPBlock {
+	if b == c {
+		return b.Copy()
+	}
 	return &IPBlock{
 		ipRange: b.ipRange.Intersect(c.ipRange),
 	}
@@ -73,11 +86,17 @@ func (b *IPBlock) Intersect(c *IPBlock) *IPBlock {
 
 // Equal returns true if this IPBlock equals the input IPBlock
 func (b *IPBlock) Equal(c *IPBlock) bool {
+	if b == c {
+		return true
+	}
 	return b.ipRange.Equal(c.ipRange)
 }
 
 // Subtract returns a new IPBlock from subtraction of input IPBlock from this IPBlock
 func (b *IPBlock) Subtract(c *IPBlock) *IPBlock {
+	if b == c {
+		return New()
+	}
 	return &IPBlock{
 		ipRange: b.ipRange.Subtract(c.ipRange),
 	}
@@ -85,6 +104,9 @@ func (b *IPBlock) Subtract(c *IPBlock) *IPBlock {
 
 // Union returns a new IPBlock from union of input IPBlock with this IPBlock
 func (b *IPBlock) Union(c *IPBlock) *IPBlock {
+	if b == c {
+		return b.Copy()
+	}
 	return &IPBlock{
 		ipRange: b.ipRange.Union(c.ipRange),
 	}
@@ -101,9 +123,7 @@ func rangeIPstr(start, end string) string {
 
 // Copy returns a new copy of IPBlock object
 func (b *IPBlock) Copy() *IPBlock {
-	return &IPBlock{
-		ipRange: b.ipRange.Copy(),
-	}
+	return &IPBlock{ipRange: b.ipRange.Copy()}
 }
 
 func (b *IPBlock) ipCount() int {
@@ -207,13 +227,6 @@ func PairCIDRsToIPBlocks(cidr1, cidr2 string) (ipb1, ipb2 *IPBlock, err error) {
 		return nil, nil, errors.Join(err1, err2)
 	}
 	return ipb1, ipb2, nil
-}
-
-// New returns a new IPBlock object
-func New() *IPBlock {
-	return &IPBlock{
-		ipRange: interval.NewCanonicalIntervalSet(),
-	}
 }
 
 // FromCidr returns a new IPBlock object from input string of CIDR or IP address
