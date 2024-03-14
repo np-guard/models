@@ -23,7 +23,10 @@ func (c *CanonicalSet) IsEmpty() bool {
 }
 
 // Equal returns true if the CanonicalSet equals the input CanonicalSet
-func (c *CanonicalSet) Equal(other CanonicalSet) bool {
+func (c *CanonicalSet) Equal(other *CanonicalSet) bool {
+	if c == other {
+		return true
+	}
 	if len(c.IntervalSet) != len(other.IntervalSet) {
 		return false
 	}
@@ -83,24 +86,30 @@ func (c *CanonicalSet) String() string {
 }
 
 // Union updates the CanonicalSet object with the union result of the input CanonicalSet
-func (c *CanonicalSet) Union(other CanonicalSet) {
+func (c *CanonicalSet) Union(other *CanonicalSet) {
+	if c == other {
+		return
+	}
 	for _, interval := range other.IntervalSet {
 		c.AddInterval(interval)
 	}
 }
 
 // Copy returns a new copy of the CanonicalSet object
-func (c *CanonicalSet) Copy() CanonicalSet {
-	return CanonicalSet{IntervalSet: append([]Interval(nil), c.IntervalSet...)}
+func (c *CanonicalSet) Copy() *CanonicalSet {
+	return &CanonicalSet{IntervalSet: slices.Clone(c.IntervalSet)}
 }
 
 func (c *CanonicalSet) Contains(n int64) bool {
 	i := FromInterval(n, n)
-	return i.ContainedIn(*c)
+	return i.ContainedIn(c)
 }
 
 // ContainedIn returns true of the current CanonicalSet is contained in the input CanonicalSet
-func (c *CanonicalSet) ContainedIn(other CanonicalSet) bool {
+func (c *CanonicalSet) ContainedIn(other *CanonicalSet) bool {
+	if c == other {
+		return true
+	}
 	larger := other.IntervalSet
 	for _, target := range c.IntervalSet {
 		left := sort.Search(len(larger), func(i int) bool {
@@ -116,7 +125,10 @@ func (c *CanonicalSet) ContainedIn(other CanonicalSet) bool {
 }
 
 // Intersect updates current CanonicalSet with intersection result of input CanonicalSet
-func (c *CanonicalSet) Intersect(other CanonicalSet) {
+func (c *CanonicalSet) Intersect(other *CanonicalSet) {
+	if c == other {
+		return
+	}
 	newIntervalSet := []Interval{}
 	for _, interval := range c.IntervalSet {
 		for _, otherInterval := range other.IntervalSet {
@@ -128,6 +140,9 @@ func (c *CanonicalSet) Intersect(other CanonicalSet) {
 
 // Overlaps returns true if current CanonicalSet overlaps with input CanonicalSet
 func (c *CanonicalSet) Overlaps(other *CanonicalSet) bool {
+	if c == other {
+		return !c.IsEmpty()
+	}
 	for _, selfInterval := range c.IntervalSet {
 		for _, otherInterval := range other.IntervalSet {
 			if selfInterval.overlaps(otherInterval) {
@@ -139,7 +154,7 @@ func (c *CanonicalSet) Overlaps(other *CanonicalSet) bool {
 }
 
 // Subtract updates current CanonicalSet with subtraction result of input CanonicalSet
-func (c *CanonicalSet) Subtract(other CanonicalSet) {
+func (c *CanonicalSet) Subtract(other *CanonicalSet) {
 	for _, i := range other.IntervalSet {
 		c.AddHole(i)
 	}

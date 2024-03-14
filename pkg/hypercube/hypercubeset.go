@@ -50,25 +50,27 @@ func (c *CanonicalSet) Equal(other *CanonicalSet) bool {
 
 // Union returns a new CanonicalSet object that results from union of c with other
 func (c *CanonicalSet) Union(other *CanonicalSet) *CanonicalSet {
+	if c == other {
+		return c.Copy()
+	}
 	if c.dimensions != other.dimensions {
 		return nil
 	}
 	res := NewCanonicalSet(c.dimensions)
 	remainingFromOther := map[*interval.CanonicalSet]*interval.CanonicalSet{}
 	for k := range other.layers {
-		kCopy := k.Copy()
-		remainingFromOther[k] = &kCopy
+		remainingFromOther[k] = k.Copy()
 	}
 	for k, v := range c.layers {
-		remainingFromSelf := copyIntervalSet(k)
+		remainingFromSelf := k.Copy()
 		for otherKey, otherVal := range other.layers {
-			commonElem := copyIntervalSet(k)
-			commonElem.Intersect(*otherKey)
+			commonElem := k.Copy()
+			commonElem.Intersect(otherKey)
 			if commonElem.IsEmpty() {
 				continue
 			}
-			remainingFromOther[otherKey].Subtract(*commonElem)
-			remainingFromSelf.Subtract(*commonElem)
+			remainingFromOther[otherKey].Subtract(commonElem)
+			remainingFromSelf.Subtract(commonElem)
 			if c.dimensions == 1 {
 				res.layers[commonElem] = NewCanonicalSet(0)
 				continue
@@ -96,14 +98,17 @@ func (c *CanonicalSet) IsEmpty() bool {
 
 // Intersect returns a new CanonicalSet object that results from intersection of c with other
 func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
+	if c == other {
+		return c.Copy()
+	}
 	if c.dimensions != other.dimensions {
 		return nil
 	}
 	res := NewCanonicalSet(c.dimensions)
 	for k, v := range c.layers {
 		for otherKey, otherVal := range other.layers {
-			commonELem := copyIntervalSet(k)
-			commonELem.Intersect(*otherKey)
+			commonELem := k.Copy()
+			commonELem.Intersect(otherKey)
 			if commonELem.IsEmpty() {
 				continue
 			}
@@ -123,19 +128,22 @@ func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
 
 // Subtract returns a new CanonicalSet object that results from subtraction other from c
 func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
+	if c == other {
+		return NewCanonicalSet(c.dimensions)
+	}
 	if c.dimensions != other.dimensions {
 		return nil
 	}
 	res := NewCanonicalSet(c.dimensions)
 	for k, v := range c.layers {
-		remainingFromSelf := copyIntervalSet(k)
+		remainingFromSelf := k.Copy()
 		for otherKey, otherVal := range other.layers {
-			commonELem := copyIntervalSet(k)
-			commonELem.Intersect(*otherKey)
+			commonELem := k.Copy()
+			commonELem.Intersect(otherKey)
 			if commonELem.IsEmpty() {
 				continue
 			}
-			remainingFromSelf.Subtract(*commonELem)
+			remainingFromSelf.Subtract(commonELem)
 			if c.dimensions == 1 {
 				continue
 			}
@@ -155,13 +163,16 @@ func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
 func (c *CanonicalSet) getIntervalSetUnion() *interval.CanonicalSet {
 	res := interval.NewCanonicalIntervalSet()
 	for k := range c.layers {
-		res.Union(*k)
+		res.Union(k)
 	}
 	return res
 }
 
 // ContainedIn returns true ic other contained in c
 func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
+	if c == other {
+		return true, nil
+	}
 	if c.dimensions != other.dimensions {
 		return false, errors.New("ContainedIn mismatch between num of dimensions for input args")
 	}
@@ -171,17 +182,17 @@ func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
 		}
 		cInterval := c.getIntervalSetUnion()
 		otherInterval := other.getIntervalSetUnion()
-		return cInterval.ContainedIn(*otherInterval), nil
+		return cInterval.ContainedIn(otherInterval), nil
 	}
 
 	isSubsetCount := 0
 	for k, v := range c.layers {
-		currentLayer := copyIntervalSet(k)
+		currentLayer := k.Copy()
 		for otherKey, otherVal := range other.layers {
-			commonKey := copyIntervalSet(currentLayer)
-			commonKey.Intersect(*otherKey)
-			remaining := copyIntervalSet(currentLayer)
-			remaining.Subtract(*commonKey)
+			commonKey := currentLayer.Copy()
+			commonKey.Intersect(otherKey)
+			remaining := currentLayer.Copy()
+			remaining.Subtract(commonKey)
 			if !commonKey.IsEmpty() {
 				subContainment, err := v.ContainedIn(otherVal)
 				if !subContainment || err != nil {
@@ -203,8 +214,7 @@ func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
 func (c *CanonicalSet) Copy() *CanonicalSet {
 	res := NewCanonicalSet(c.dimensions)
 	for k, v := range c.layers {
-		newKey := k.Copy()
-		res.layers[&newKey] = v.Copy()
+		res.layers[k.Copy()] = v.Copy()
 	}
 	return res
 }
@@ -266,7 +276,7 @@ func (c *CanonicalSet) applyElementsUnionPerLayer() {
 		newVal := p.hc
 		newKey := p.is[0]
 		for i := 1; i < len(p.is); i += 1 {
-			newKey.Union(*p.is[i])
+			newKey.Union(p.is[i])
 		}
 		newLayers[newKey] = newVal
 	}
@@ -281,13 +291,11 @@ func FromCube(cube []*interval.CanonicalSet) *CanonicalSet {
 	}
 	if len(cube) == 1 {
 		res := NewCanonicalSet(1)
-		cubeVal := cube[0].Copy()
-		res.layers[&cubeVal] = NewCanonicalSet(0)
+		res.layers[cube[0].Copy()] = NewCanonicalSet(0)
 		return res
 	}
 	res := NewCanonicalSet(len(cube))
-	cubeVal := cube[0].Copy()
-	res.layers[&cubeVal] = FromCube(cube[1:])
+	res.layers[cube[0].Copy()] = FromCube(cube[1:])
 	return res
 }
 
@@ -300,9 +308,4 @@ func FromCubeShort(values ...int64) *CanonicalSet {
 		cube = append(cube, interval.FromInterval(values[i], values[i+1]))
 	}
 	return FromCube(cube)
-}
-
-func copyIntervalSet(a *interval.CanonicalSet) *interval.CanonicalSet {
-	res := a.Copy()
-	return &res
 }

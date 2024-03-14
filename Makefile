@@ -1,4 +1,4 @@
-REPOSITORY := github.com/np-guard/common
+REPOSITORY := github.com/np-guard/models
 
 mod: go.mod
 	@echo -- $@ --
