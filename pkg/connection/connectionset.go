@@ -197,7 +197,7 @@ func (conn *Set) addConnection(protocol netp.ProtocolString,
 	srcMinP, srcMaxP, dstMinP, dstMaxP,
 	icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) {
 	code := ProtocolStringToCode(protocol)
-	cube := hypercube.FromCubeShort(code, code,
+	cube := hypercube.Cube(code, code,
 		srcMinP, srcMaxP, dstMinP, dstMaxP,
 		icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
 	conn.connectionProperties = conn.connectionProperties.Union(cube)

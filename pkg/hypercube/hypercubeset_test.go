@@ -14,11 +14,7 @@ import (
 // the input cube is given as an ordered list of integer values, where each two values
 // represent the range (start,end) for a dimension value
 func cube(values ...int64) *hypercube.CanonicalSet {
-	cube := []*interval.CanonicalSet{}
-	for i := 0; i < len(values); i += 2 {
-		cube = append(cube, interval.FromInterval(values[i], values[i+1]))
-	}
-	return hypercube.FromCube(cube)
+	return hypercube.Cube(values...)
 }
 
 func union(set *hypercube.CanonicalSet, sets ...*hypercube.CanonicalSet) *hypercube.CanonicalSet {

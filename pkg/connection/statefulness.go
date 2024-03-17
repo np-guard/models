@@ -3,6 +3,8 @@
 package connection
 
 import (
+	"slices"
+
 	"github.com/np-guard/models/pkg/hypercube"
 	"github.com/np-guard/models/pkg/netp"
 )
@@ -75,7 +77,8 @@ func (conn *Set) switchSrcDstPortsOnTCP() *Set {
 		// assuming cube[protocol] contains TCP only
 		// no need to switch if src equals dst
 		if !cube[srcPort].Equal(cube[dstPort]) {
-			cube = hypercube.CopyCube(cube)
+			// Shallow clone should be enough, since we do shallow swap:
+			cube = slices.Clone(cube)
 			cube[srcPort], cube[dstPort] = cube[dstPort], cube[srcPort]
 		}
 		res.connectionProperties = res.connectionProperties.Union(hypercube.FromCube(cube))

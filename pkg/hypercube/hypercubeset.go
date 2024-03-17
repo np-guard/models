@@ -300,3 +300,14 @@ func FromCube(cube []*interval.CanonicalSet) *CanonicalSet {
 	res.layers[cube[0].Copy()] = FromCube(cube[1:])
 	return res
 }
+
+// cube returns a new hypercube.CanonicalSet created from a single input cube
+// the input cube is given as an ordered list of integer values, where each two values
+// represent the range (start,end) for a dimension value
+func Cube(values ...int64) *CanonicalSet {
+	cube := []*interval.CanonicalSet{}
+	for i := 0; i < len(values); i += 2 {
+		cube = append(cube, interval.CreateSetFromInterval(values[i], values[i+1]))
+	}
+	return FromCube(cube)
+}
