@@ -3,11 +3,7 @@
 package netp
 
 import (
-	"fmt"
-	"log"
 	"math"
-
-	"github.com/np-guard/models/pkg/interval"
 )
 
 const (
