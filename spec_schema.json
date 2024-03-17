@@ -1,0 +1,241 @@
+{
+    "title": "Spec",
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "$id": "https://github.com/np-guard/vpc-network-synthesis/v0.1",
+    "$defs": {
+        "any-protocol": {
+            "type": "object",
+            "properties": {
+                "protocol": {
+                    "description": "Necessarily ANY",
+                    "enum": [
+                        "ANY"
+                    ]
+                }
+            },
+            "required": [
+                "protocol"
+            ],
+            "additionalProperties": false
+        },
+        "tcp-udp": {
+            "type": "object",
+            "properties": {
+                "protocol": {
+                    "description": "Is it TCP or UDP",
+                    "enum": [
+                        "TCP",
+                        "UDP"
+                    ]
+                },
+                "min_destination_port": {
+                    "description": "Minimal destination port; default is 1",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 65535,
+                    "default": 1
+                },
+                "max_destination_port": {
+                    "description": "Maximal destination port; default is 65535",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 65535,
+                    "default": 65535
+                },
+                "min_source_port": {
+                    "description": "Minimal source port; default is 1. Unsupported in vpc synthesis",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 65535,
+                    "default": 1
+                },
+                "max_source_port": {
+                    "description": "Maximal source port; default is 65535. Unsupported in vpc synthesis",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 65535,
+                    "default": 65535
+                }
+            },
+            "required": [
+                "protocol"
+            ],
+            "additionalProperties": false
+        },
+        "icmp": {
+            "type": "object",
+            "properties": {
+                "protocol": {
+                    "description": "Necessarily ICMP",
+                    "enum": [
+                        "ICMP"
+                    ]
+                },
+                "type": {
+                    "description": "ICMP type allowed. If omitted, any type is allowed",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 16
+                },
+                "code": {
+                    "description": "ICMP code allowed. If omitted, any code is allowed",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 5
+                }
+            },
+            "required": [
+                "protocol"
+            ],
+            "additionalProperties": false
+        },
+        "protocol": {
+            "oneOf": [
+                {
+                    "$ref": "#/$defs/tcp-udp"
+                },
+                {
+                    "$ref": "#/$defs/icmp"
+                },
+                {
+                    "$ref": "#/$defs/any-protocol"
+                }
+            ]
+        },
+        "protocol-list": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/protocol"
+            }
+        },
+        "resource": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "description": "Name of resource",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type of resource",
+                    "enum": [
+                        "external",
+                        "segment",
+                        "subnet",
+                        "instance",
+                        "nif",
+                        "cidr",
+                        "vpe"
+                    ]
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ]
+        }
+    },
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "segments": {
+            "description": "Segments are a way for users to create aggregations. These can later be used in src/dst fields",
+            "type": "object",
+            "additionalProperties": {
+                "description": "A segment is a named collection of resources of the same type (subnet, cidr, instance, or nif)",
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "type",
+                    "items"
+                ],
+                "properties": {
+                    "type": {
+                        "description": "The type of the elements inside the segment",
+                        "enum": [
+                            "subnet",
+                            "cidr",
+                            "instance",
+                            "nif"
+                        ]
+                    },
+                    "items": {
+                        "description": "All items are of the type specified in the type property, identified by name",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "subnets": {
+            "type": "object",
+            "description": "Lightweight way to define subnets.",
+            "additionalProperties": {
+                "type": "string",
+                "pattern": "^\\d{1,3}(\\.\\d{1,3}){3}/([1-2]?[0-9]|3[0-2])$"
+            }
+        },
+        "nifs": {
+            "type": "object",
+            "description": "Lightweight way to define network interfaces.",
+            "additionalProperties": {
+                "type": "string",
+                "pattern": "^\\d{1,3}(\\.\\d{1,3}){3}$"
+            }
+        },
+        "instances": {
+            "type": "object",
+            "description": "Lightweight way to define instance as a list of interfaces.",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        },
+        "externals": {
+            "type": "object",
+            "description": "Externals are a way for users to name CIDRs external to the VPC. These are later used in src/dst definitions",
+            "additionalProperties": {
+                "type": "string",
+                "pattern": "^\\d{1,3}(\\.\\d{1,3}){3}(/([1-2]?[0-9]|3[0-2]))?$"
+            }
+        },
+        "required-connections": {
+            "type": "array",
+            "description": "A list of required connections",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "src",
+                    "dst"
+                ],
+                "properties": {
+                    "src": {
+                        "description": "In unidirectional connection, this is the egress resource",
+                        "$ref": "#/$defs/resource"
+                    },
+                    "dst": {
+                        "description": "In unidirectional connection, this is the ingress resource",
+                        "$ref": "#/$defs/resource"
+                    },
+                    "bidirectional": {
+                        "description": "If true, allow both connections from src to dst and connections from dst to src",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "allowed-protocols": {
+                        "description": "List of allowed protocols",
+                        "$ref": "#/$defs/protocol-list"
+                    }
+                }
+            }
+        }
+    },
+    "required": [
+        "required-connections"
+    ]
+}
