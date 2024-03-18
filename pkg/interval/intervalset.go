@@ -107,7 +107,7 @@ func (c *CanonicalSet) Union(other *CanonicalSet) *CanonicalSet {
 	if c == other {
 		return res
 	}
-	for _, v := range other.IntervalSet {
+	for _, v := range other.intervalSet {
 		res.AddInterval(v)
 	}
 	return res
@@ -148,9 +148,11 @@ func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
 		return c.Copy()
 	}
 	res := NewCanonicalIntervalSet()
-	for _, interval := range c.IntervalSet {
-		for _, otherInterval := range other.IntervalSet {
-			res.IntervalSet = append(res.IntervalSet, interval.intersection(otherInterval)...)
+	for _, interval := range c.intervalSet {
+		for _, otherInterval := range other.intervalSet {
+			for _, span := range interval.intersection(otherInterval) {
+				res.AddInterval(span)
+			}
 		}
 	}
 	return res
@@ -176,8 +178,8 @@ func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
 	if c == other {
 		return NewCanonicalIntervalSet()
 	}
-	res := slices.Clone(c.IntervalSet)
-	for _, hole := range other.IntervalSet {
+	res := slices.Clone(c.intervalSet)
+	for _, hole := range other.intervalSet {
 		newIntervalSet := []Interval{}
 		for _, interval := range res {
 			newIntervalSet = append(newIntervalSet, interval.subtract(hole)...)
@@ -185,7 +187,7 @@ func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
 		res = newIntervalSet
 	}
 	return &CanonicalSet{
-		IntervalSet: res,
+		intervalSet: res,
 	}
 }
 
