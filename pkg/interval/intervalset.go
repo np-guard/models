@@ -119,7 +119,7 @@ func (c *CanonicalSet) Copy() *CanonicalSet {
 }
 
 func (c *CanonicalSet) Contains(n int64) bool {
-	i := FromInterval(n, n)
+	i := NewSetFromInterval(New(n, n))
 	return i.ContainedIn(c)
 }
 
@@ -158,8 +158,8 @@ func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
 	return res
 }
 
-// Overlaps returns true if current CanonicalSet overlaps with input CanonicalSet
-func (c *CanonicalSet) Overlaps(other *CanonicalSet) bool {
+// Overlap returns true if current CanonicalSet overlaps with input CanonicalSet
+func (c *CanonicalSet) Overlap(other *CanonicalSet) bool {
 	if c == other {
 		return !c.IsEmpty()
 	}
@@ -198,6 +198,6 @@ func (c *CanonicalSet) IsSingleNumber() bool {
 	return false
 }
 
-func FromInterval(start, end int64) *CanonicalSet {
-	return &CanonicalSet{intervalSet: []Interval{{Start: start, End: end}}}
+func NewSetFromInterval(span Interval) *CanonicalSet {
+	return &CanonicalSet{intervalSet: []Interval{span}}
 }

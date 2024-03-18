@@ -137,7 +137,7 @@ func (b *IPBlock) Split() []*IPBlock {
 	res := make([]*IPBlock, b.ipRange.NumIntervals())
 	for index, span := range b.ipRange.Intervals() {
 		res[index] = &IPBlock{
-			ipRange: interval.FromInterval(span.Start, span.End),
+			ipRange: span.ToSet(),
 		}
 	}
 	return res
@@ -181,7 +181,7 @@ func DisjointIPBlocks(set1, set2 []*IPBlock) []*IPBlock {
 func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 	toAdd := []*IPBlock{}
 	for idx, ipb := range ipbList {
-		if !ipb.ipRange.Overlaps(ipbNew.ipRange) {
+		if !ipb.ipRange.Overlap(ipbNew.ipRange) {
 			continue
 		}
 		intersection := ipb.Intersect(ipbNew)
@@ -206,7 +206,7 @@ func FromCidr(cidr string) (*IPBlock, error) {
 		return nil, err
 	}
 	return &IPBlock{
-		ipRange: interval.FromInterval(span.Start, span.End),
+		ipRange: span.ToSet(),
 	}, nil
 }
 
@@ -369,7 +369,7 @@ func FromIPRangeStr(ipRangeStr string) (*IPBlock, error) {
 	startIPNum := startIP.ipRange.Min()
 	endIPNum := endIP.ipRange.Min()
 	res := &IPBlock{
-		ipRange: interval.FromInterval(startIPNum, endIPNum),
+		ipRange: interval.New(startIPNum, endIPNum).ToSet(),
 	}
 	return res, nil
 }
