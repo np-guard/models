@@ -74,12 +74,12 @@ func (b *IPBlock) ContainedIn(other *IPBlock) bool {
 
 // Intersect returns a new IPBlock from intersection of this IPBlock with input IPBlock
 func (b *IPBlock) Intersect(c *IPBlock) *IPBlock {
-	res := b.Copy()
 	if b == c {
-		return res
+		return b.Copy()
 	}
-	res.ipRange.Intersect(c.ipRange)
-	return res
+	return &IPBlock{
+		ipRange: b.ipRange.Intersect(c.ipRange),
+	}
 }
 
 // Equal returns true if this IPBlock equals the input IPBlock
@@ -95,19 +95,19 @@ func (b *IPBlock) Subtract(c *IPBlock) *IPBlock {
 	if b == c {
 		return New()
 	}
-	res := b.Copy()
-	res.ipRange.Subtract(c.ipRange)
-	return res
+	return &IPBlock{
+		ipRange: b.ipRange.Subtract(c.ipRange),
+	}
 }
 
 // Union returns a new IPBlock from union of input IPBlock with this IPBlock
 func (b *IPBlock) Union(c *IPBlock) *IPBlock {
-	res := b.Copy()
 	if b == c {
-		return res
+		return b.Copy()
 	}
-	res.ipRange.Union(c.ipRange)
-	return res
+	return &IPBlock{
+		ipRange: b.ipRange.Union(c.ipRange),
+	}
 }
 
 // Empty returns true if this IPBlock is empty
@@ -184,14 +184,13 @@ func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 		if !ipb.ipRange.Overlaps(ipbNew.ipRange) {
 			continue
 		}
-		intersection := ipb.Copy()
-		intersection.ipRange.Intersect(ipbNew.ipRange)
-		ipbNew.ipRange.Subtract(intersection.ipRange)
-		if !ipb.ipRange.Equal(intersection.ipRange) {
+		intersection := ipb.Intersect(ipbNew)
+		ipbNew = ipbNew.Subtract(intersection)
+		if !ipb.Equal(intersection) {
 			toAdd = append(toAdd, intersection)
-			ipbList[idx].ipRange.Subtract(intersection.ipRange)
+			ipbList[idx] = ipbList[idx].Subtract(intersection)
 		}
-		if ipbNew.ipRange.IsEmpty() {
+		if ipbNew.Empty() {
 			break
 		}
 	}
@@ -202,7 +201,13 @@ func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 
 // FromCidr returns a new IPBlock object from input CIDR string
 func FromCidr(cidr string) (*IPBlock, error) {
-	return FromCidrExcept(cidr, []string{})
+	span, err := cidrToInterval(cidr)
+	if err != nil {
+		return nil, err
+	}
+	return &IPBlock{
+		ipRange: interval.FromInterval(span.Start, span.End),
+	}, nil
 }
 
 // PairCIDRsToIPBlocks returns two IPBlock objects from two input CIDR strings
@@ -236,21 +241,17 @@ func FromCidrList(cidrsList []string) (*IPBlock, error) {
 	return res, nil
 }
 
-// FromCidrExcept returns an IPBlock object from input cidr str an exceptions cidr str
-func FromCidrExcept(cidr string, exceptions []string) (*IPBlock, error) {
-	span, err := cidrToInterval(cidr)
-	if err != nil {
-		return nil, err
-	}
-	ipRange := interval.FromInterval(span.Start, span.End)
+// Except creates a new IP block that excludes the specified CIDRs from the current IP block
+func (b *IPBlock) Except(exceptions ...string) (*IPBlock, error) {
+	holes := interval.NewCanonicalIntervalSet()
 	for i := range exceptions {
 		intervalHole, err := cidrToInterval(exceptions[i])
 		if err != nil {
 			return nil, err
 		}
-		ipRange.AddHole(intervalHole)
+		holes.AddInterval(intervalHole)
 	}
-	return &IPBlock{ipRange: ipRange}, nil
+	return &IPBlock{ipRange: b.ipRange.Subtract(holes)}, nil
 }
 
 func ipv4AddressToCidr(ipAddress string) string {
@@ -259,7 +260,7 @@ func ipv4AddressToCidr(ipAddress string) string {
 
 // FromIPAddress returns an IPBlock object from input IP address string
 func FromIPAddress(ipAddress string) (*IPBlock, error) {
-	return FromCidrExcept(ipv4AddressToCidr(ipAddress), []string{})
+	return FromCidr(ipv4AddressToCidr(ipAddress))
 }
 
 func cidrToIPRange(cidr string) (start, end int64, err error) {
