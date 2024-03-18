@@ -15,7 +15,7 @@ import (
 func cube(values ...int64) *hypercube.CanonicalSet {
 	cube := []*interval.CanonicalSet{}
 	for i := 0; i < len(values); i += 2 {
-		cube = append(cube, interval.FromInterval(values[i], values[i+1]))
+		cube = append(cube, interval.New(values[i], values[i+1]).ToSet())
 	}
 	return hypercube.FromCube(cube)
 }
