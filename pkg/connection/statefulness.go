@@ -32,7 +32,7 @@ func (conn *Set) EnhancedString() string {
 }
 
 func newTCPSet() *Set {
-	return TCPorUDPConnection(netp.ProtocolStringTCP, MinPort, MaxPort, MinPort, MaxPort)
+	return TCPorUDPConnection(netp.ProtocolStringTCP, MinIP, MaxIP, MinPort, MaxPort, MinPort, MaxPort)
 }
 
 // ConnectionWithStatefulness updates `conn` object with `IsStateful` property, based on input `secondDirectionConn`.

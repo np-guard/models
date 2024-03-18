@@ -52,8 +52,8 @@ func (b *IPBlock) ToIPRanges() string {
 
 // toIPRange returns a string of the ip range of a single interval
 func toIPRange(i interval.Interval) string {
-	startIP := intToIP4(i.Start)
-	endIP := intToIP4(i.End)
+	startIP := IntToIP4(i.Start)
+	endIP := IntToIP4(i.End)
 	return rangeIPstr(startIP, endIP)
 }
 
@@ -141,8 +141,8 @@ func (b *IPBlock) Split() []*IPBlock {
 	return res
 }
 
-// intToIP4 returns a string of an ip address from an input integer ip value
-func intToIP4(ipInt int64) string {
+// IntToIP4 returns a string of an ip address from an input integer ip value
+func IntToIP4(ipInt int64) string {
 	var d [4]byte
 	binary.BigEndian.PutUint32(d[:], uint32(ipInt))
 	return net.IPv4(d[0], d[1], d[2], d[3]).String()
@@ -311,7 +311,7 @@ func (b *IPBlock) ListToPrint() []string {
 func (b *IPBlock) ToIPAddressString() string {
 	if b.ipRange.IsSingleNumber() {
 		m, _ := b.ipRange.Min()
-		return intToIP4(m)
+		return IntToIP4(m)
 	}
 	return ""
 }
@@ -336,7 +336,7 @@ func intervalToCidrList(ipRange interval.Interval) []string {
 		if maxSize < int(maxDiff) {
 			maxSize = int(maxDiff)
 		}
-		ip := intToIP4(start)
+		ip := IntToIP4(start)
 		res = append(res, fmt.Sprintf("%s/%d", ip, maxSize))
 		start += int64(math.Pow(2, maxIPv4Bits-float64(maxSize)))
 	}
@@ -366,6 +366,12 @@ func FromIPRangeStr(ipRangeStr string) (*IPBlock, error) {
 		ipRange: interval.CreateSetFromInterval(startIPNum, endIPNum),
 	}
 	return res, nil
+}
+
+func FromIntervalSet(set *interval.CanonicalSet) *IPBlock {
+	return &IPBlock{
+		ipRange: set.Copy(),
+	}
 }
 
 // GetCidrAll returns IPBlock object of the entire range 0.0.0.0/0

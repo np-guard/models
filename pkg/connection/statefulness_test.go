@@ -13,17 +13,20 @@ import (
 
 func newTCPConn(t *testing.T, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *connection.Set {
 	t.Helper()
-	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+	return connection.TCPorUDPConnection(netp.ProtocolStringTCP,
+		connection.MinIP, connection.MaxIP, srcMinP, srcMaxP, dstMinP, dstMaxP)
 }
 
 func newUDPConn(t *testing.T, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *connection.Set {
 	t.Helper()
-	return connection.TCPorUDPConnection(netp.ProtocolStringUDP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+	return connection.TCPorUDPConnection(netp.ProtocolStringUDP,
+		connection.MinIP, connection.MaxIP, srcMinP, srcMaxP, dstMinP, dstMaxP)
 }
 
 func newICMPconn(t *testing.T) *connection.Set {
 	t.Helper()
 	return connection.ICMPConnection(
+		connection.MinIP, connection.MaxIP,
 		connection.MinICMPtype, connection.MaxICMPtype,
 		connection.MinICMPcode, connection.MaxICMPcode)
 }
@@ -31,6 +34,7 @@ func newICMPconn(t *testing.T) *connection.Set {
 func newTCPUDPSet(t *testing.T, p netp.ProtocolString) *connection.Set {
 	t.Helper()
 	return connection.TCPorUDPConnection(p,
+		connection.MinIP, connection.MaxIP,
 		connection.MinPort, connection.MaxPort,
 		connection.MinPort, connection.MaxPort)
 }

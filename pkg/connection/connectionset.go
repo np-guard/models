@@ -9,6 +9,7 @@ import (
 
 	"github.com/np-guard/models/pkg/hypercube"
 	"github.com/np-guard/models/pkg/interval"
+	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/netp"
 )
 
@@ -16,6 +17,8 @@ const (
 	TCPCode           = 0
 	UDPCode           = 1
 	ICMPCode          = 2
+	MinIP             = 0
+	MaxIP             = 0xFFFFFFFF
 	MinICMPtype int64 = 0
 	MaxICMPtype int64 = netp.InformationReply
 	MinICMPcode int64 = 0
@@ -34,12 +37,13 @@ const (
 type Dimension int
 
 const (
-	protocol      Dimension = 0
-	srcPort       Dimension = 1
-	dstPort       Dimension = 2
-	icmpType      Dimension = 3
-	icmpCode      Dimension = 4
-	numDimensions           = 5
+	ipRange       Dimension = 0
+	protocol      Dimension = 1
+	srcPort       Dimension = 2
+	dstPort       Dimension = 3
+	icmpType      Dimension = 4
+	icmpCode      Dimension = 5
+	numDimensions           = 6
 )
 
 const propertySeparator string = " "
@@ -47,6 +51,7 @@ const propertySeparator string = " "
 // dimensionsList is the ordered list of dimensions in the Set object
 // this should be the only place where the order is hard-coded
 var dimensionsList = []Dimension{
+	ipRange,
 	protocol,
 	srcPort,
 	dstPort,
@@ -56,6 +61,8 @@ var dimensionsList = []Dimension{
 
 func entireDimension(dim Dimension) *interval.CanonicalSet {
 	switch dim {
+	case ipRange:
+		return interval.CreateSetFromInterval(MinIP, MaxIP)
 	case protocol:
 		return interval.CreateSetFromInterval(minProtocol, maxProtocol)
 	case srcPort:
@@ -194,12 +201,18 @@ func ProtocolStringToCode(protocol netp.ProtocolString) int64 {
 }
 
 func (conn *Set) addConnection(protocol netp.ProtocolString,
+	ipStart, ipEnd,
 	srcMinP, srcMaxP, dstMinP, dstMaxP,
 	icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) {
 	code := ProtocolStringToCode(protocol)
-	cube := hypercube.Cube(code, code,
-		srcMinP, srcMaxP, dstMinP, dstMaxP,
-		icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
+	cube := hypercube.Cube(
+		ipStart, ipEnd,
+		code, code,
+		srcMinP, srcMaxP,
+		dstMinP, dstMaxP,
+		icmpTypeMin, icmpTypeMax,
+		icmpCodeMin, icmpCodeMax,
+	)
 	conn.connectionProperties = conn.connectionProperties.Union(cube)
 	conn.canonicalize()
 }
@@ -211,17 +224,22 @@ func (conn *Set) canonicalize() {
 	}
 }
 
-func TCPorUDPConnection(protocol netp.ProtocolString, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *Set {
+func TCPorUDPConnection(protocol netp.ProtocolString, ipStart, ipEnd, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *Set {
 	conn := None()
 	conn.addConnection(protocol,
-		srcMinP, srcMaxP, dstMinP, dstMaxP,
-		MinICMPtype, MaxICMPtype, MinICMPcode, MaxICMPcode)
+		ipStart, ipEnd,
+		srcMinP, srcMaxP,
+		dstMinP, dstMaxP,
+		MinICMPtype, MaxICMPtype,
+		MinICMPcode, MaxICMPcode,
+	)
 	return conn
 }
 
-func ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) *Set {
+func ICMPConnection(ipStart, ipEnd, icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) *Set {
 	conn := None()
 	conn.addConnection(netp.ProtocolStringICMP,
+		ipStart, ipEnd,
 		MinPort, MaxPort, MinPort, MaxPort,
 		icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
 	return conn
@@ -272,6 +290,8 @@ func getDimensionString(dimValue *interval.CanonicalSet, dim Dimension) string {
 		return "icmp-type: " + dimValue.String()
 	case icmpCode:
 		return "icmp-code: " + dimValue.String()
+	case ipRange:
+		return "ip-range: " + ipblock.FromIntervalSet(dimValue).ToIPRanges()
 	}
 	return ""
 }
@@ -286,8 +306,9 @@ func filterEmptyPropertiesStr(inputList []string) []string {
 	return res
 }
 
-func getICMPbasedCubeStr(protocolsValues, icmpTypeValues, icmpCodeValues *interval.CanonicalSet) string {
+func getICMPbasedCubeStr(ipRanges, protocolsValues, icmpTypeValues, icmpCodeValues *interval.CanonicalSet) string {
 	strList := []string{
+		getDimensionString(ipRanges, ipRange),
 		getDimensionString(protocolsValues, protocol),
 		getDimensionString(icmpTypeValues, icmpType),
 		getDimensionString(icmpCodeValues, icmpCode),
@@ -295,8 +316,9 @@ func getICMPbasedCubeStr(protocolsValues, icmpTypeValues, icmpCodeValues *interv
 	return strings.Join(filterEmptyPropertiesStr(strList), propertySeparator)
 }
 
-func getPortBasedCubeStr(protocolsValues, srcPortsValues, dstPortsValues *interval.CanonicalSet) string {
+func getPortBasedCubeStr(ipRanges, protocolsValues, srcPortsValues, dstPortsValues *interval.CanonicalSet) string {
 	strList := []string{
+		getDimensionString(ipRanges, ipRange),
 		getDimensionString(protocolsValues, protocol),
 		getDimensionString(srcPortsValues, srcPort),
 		getDimensionString(dstPortsValues, dstPort),
@@ -312,10 +334,10 @@ func getMixedProtocolsCubeStr(protocols *interval.CanonicalSet) string {
 func getConnsCubeStr(cube []*interval.CanonicalSet) string {
 	protocols := cube[protocol]
 	if (protocols.Contains(TCPCode) || protocols.Contains(UDPCode)) && !protocols.Contains(ICMPCode) {
-		return getPortBasedCubeStr(protocols, cube[srcPort], cube[dstPort])
+		return getPortBasedCubeStr(cube[ipRange], protocols, cube[srcPort], cube[dstPort])
 	}
 	if protocols.Contains(ICMPCode) && !(protocols.Contains(TCPCode) || protocols.Contains(UDPCode)) {
-		return getICMPbasedCubeStr(protocols, cube[icmpType], cube[icmpCode])
+		return getICMPbasedCubeStr(cube[ipRange], protocols, cube[icmpType], cube[icmpCode])
 	}
 	return getMixedProtocolsCubeStr(protocols)
 }
@@ -413,29 +435,39 @@ func getCubeAsICMPItems(cube []*interval.CanonicalSet) []netp.Protocol {
 	return res
 }
 
-type Details []netp.Protocol
+type Item struct {
+	IP        *ipblock.IPBlock
+	Protocols []netp.Protocol
+}
+type Details []Item
 
 func ConnToJSONRep(c *Set) Details {
 	if c == nil {
 		return nil // one of the connections in connectionDiff can be empty
 	}
 	if c.AllowAll {
-		return []netp.Protocol{netp.AnyProtocol{}}
+		return []Item{{IP: ipblock.GetCidrAll(), Protocols: []netp.Protocol{netp.AnyProtocol{}}}}
 	}
-	var res []netp.Protocol
+	res := []Item{}
 
 	cubes := c.connectionProperties.GetCubesList()
 	for _, cube := range cubes {
-		protocols := cube[protocol]
-		if protocols.Contains(TCPCode) {
-			res = append(res, getCubeAsTCPorUDPItems(cube, true)...)
+		protocolCube := cube[protocol]
+		protocols := []netp.Protocol{}
+		if protocolCube.Contains(TCPCode) {
+			protocols = append(protocols, getCubeAsTCPorUDPItems(cube, true)...)
 		}
-		if protocols.Contains(UDPCode) {
-			res = append(res, getCubeAsTCPorUDPItems(cube, false)...)
+		if protocolCube.Contains(UDPCode) {
+			protocols = append(protocols, getCubeAsTCPorUDPItems(cube, false)...)
 		}
-		if protocols.Contains(ICMPCode) {
-			res = append(res, getCubeAsICMPItems(cube)...)
+		if protocolCube.Contains(ICMPCode) {
+			protocols = append(protocols, getCubeAsICMPItems(cube)...)
 		}
+		v := Item{
+			IP:        ipblock.FromIntervalSet(cube[ipRange]),
+			Protocols: protocols,
+		}
+		res = append(res, v)
 	}
 
 	return res

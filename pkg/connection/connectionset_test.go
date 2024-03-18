@@ -24,12 +24,12 @@ func TestNoConnections(t *testing.T) {
 }
 
 func TestBasicSetICMP(t *testing.T) {
-	c := connection.ICMPConnection(ICMPValue, ICMPValue, 5, 5)
+	c := connection.ICMPConnection(connection.MinIP, connection.MaxIP, ICMPValue, ICMPValue, 5, 5)
 	require.Equal(t, "protocol: ICMP icmp-type: 3 icmp-code: 5", c.String())
 }
 
 func TestBasicSetTCP(t *testing.T) {
-	e := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 1, 65535, 1, 65535)
+	e := connection.TCPorUDPConnection(netp.ProtocolStringTCP, connection.MinIP, connection.MaxIP, 1, 65535, 1, 65535)
 	require.Equal(t, "protocol: TCP", e.String())
 
 	c := connection.All().Subtract(e)
@@ -40,9 +40,9 @@ func TestBasicSetTCP(t *testing.T) {
 }
 
 func TestBasicSet2(t *testing.T) {
-	except1 := connection.ICMPConnection(ICMPValue, ICMPValue, 5, 5)
+	except1 := connection.ICMPConnection(connection.MinIP, connection.MaxIP, ICMPValue, ICMPValue, 5, 5)
 
-	except2 := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 1, 65535, 1, 65535)
+	except2 := connection.TCPorUDPConnection(netp.ProtocolStringTCP, connection.MinIP, connection.MaxIP, 1, 65535, 1, 65535)
 
 	d := connection.All().Subtract(except1).Subtract(except2)
 	require.Equal(t, ""+
@@ -52,7 +52,7 @@ func TestBasicSet2(t *testing.T) {
 }
 
 func TestBasicSet3(t *testing.T) {
-	c := connection.ICMPConnection(ICMPValue, ICMPValue, 5, 5)
-	d := connection.All().Subtract(c).Union(connection.ICMPConnection(ICMPValue, ICMPValue, 5, 5))
+	c := connection.ICMPConnection(connection.MinIP, connection.MaxIP, ICMPValue, ICMPValue, 5, 5)
+	d := connection.All().Subtract(c).Union(connection.ICMPConnection(connection.MinIP, connection.MaxIP, ICMPValue, ICMPValue, 5, 5))
 	require.Equal(t, "All Connections", d.String())
 }
