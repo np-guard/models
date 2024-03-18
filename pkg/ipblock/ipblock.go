@@ -39,7 +39,7 @@ type IPBlock struct {
 // New returns a new IPBlock object
 func New() *IPBlock {
 	return &IPBlock{
-		ipRange: interval.NewCanonicalIntervalSet(),
+		ipRange: interval.NewCanonicalSet(),
 	}
 }
 
@@ -243,7 +243,7 @@ func FromCidrList(cidrsList []string) (*IPBlock, error) {
 
 // Except creates a new IP block that excludes the specified CIDRs from the current IP block
 func (b *IPBlock) Except(exceptions ...string) (*IPBlock, error) {
-	holes := interval.NewCanonicalIntervalSet()
+	holes := interval.NewCanonicalSet()
 	for i := range exceptions {
 		intervalHole, err := cidrToInterval(exceptions[i])
 		if err != nil {

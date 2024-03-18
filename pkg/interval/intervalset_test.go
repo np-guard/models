@@ -14,7 +14,7 @@ func TestInterval(t *testing.T) {
 }
 
 func TestIntervalSet(t *testing.T) {
-	is1 := interval.NewCanonicalIntervalSet()
+	is1 := interval.NewCanonicalSet()
 	is1.AddInterval(interval.Interval{5, 10})
 	is1.AddInterval(interval.Interval{0, 1})
 	is1.AddInterval(interval.Interval{3, 3})
@@ -23,7 +23,7 @@ func TestIntervalSet(t *testing.T) {
 	require.True(t, is1.Contains(5))
 	require.False(t, is1.Contains(8))
 
-	is2 := interval.NewCanonicalIntervalSet()
+	is2 := interval.NewCanonicalSet()
 	require.Equal(t, "Empty", is2.String())
 	is2.AddInterval(interval.Interval{6, 8})
 	require.Equal(t, "6-8", is2.String())

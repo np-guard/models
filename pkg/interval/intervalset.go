@@ -12,7 +12,7 @@ type CanonicalSet struct {
 	intervalSet []Interval // sorted list of non-overlapping intervals
 }
 
-func NewCanonicalIntervalSet() *CanonicalSet {
+func NewCanonicalSet() *CanonicalSet {
 	return &CanonicalSet{
 		intervalSet: []Interval{},
 	}
@@ -147,7 +147,7 @@ func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
 	if c == other {
 		return c.Copy()
 	}
-	res := NewCanonicalIntervalSet()
+	res := NewCanonicalSet()
 	for _, interval := range c.intervalSet {
 		for _, otherInterval := range other.intervalSet {
 			for _, span := range interval.intersection(otherInterval) {
@@ -176,7 +176,7 @@ func (c *CanonicalSet) Overlap(other *CanonicalSet) bool {
 // Subtract returns the subtraction result of input CanonicalSet
 func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
 	if c == other {
-		return NewCanonicalIntervalSet()
+		return NewCanonicalSet()
 	}
 	res := slices.Clone(c.intervalSet)
 	for _, hole := range other.intervalSet {

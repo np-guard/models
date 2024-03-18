@@ -164,7 +164,7 @@ func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
 }
 
 func (c *CanonicalSet) getIntervalSetUnion() *interval.CanonicalSet {
-	res := interval.NewCanonicalIntervalSet()
+	res := interval.NewCanonicalSet()
 	for k := range c.layers {
 		res.Union(k)
 	}
