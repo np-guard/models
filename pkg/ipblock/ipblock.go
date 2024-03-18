@@ -57,9 +57,9 @@ func toIPRange(i interval.Interval) string {
 
 // toIPRangesList: returns a list of the ip-ranges strings in the current IPBlock object
 func (b *IPBlock) toIPRangesList() []string {
-	IPRanges := make([]string, len(b.ipRange.IntervalSet))
-	for index := range b.ipRange.IntervalSet {
-		IPRanges[index] = toIPRange(b.ipRange.IntervalSet[index])
+	IPRanges := make([]string, b.ipRange.NumIntervals())
+	for index, span := range b.ipRange.Intervals() {
+		IPRanges[index] = toIPRange(span)
 	}
 	return IPRanges
 }
@@ -126,7 +126,7 @@ func (b *IPBlock) Copy() *IPBlock {
 
 func (b *IPBlock) ipCount() int {
 	res := 0
-	for _, r := range b.ipRange.IntervalSet {
+	for _, r := range b.ipRange.Intervals() {
 		res += int(r.End) - int(r.Start) + 1
 	}
 	return res
@@ -134,10 +134,10 @@ func (b *IPBlock) ipCount() int {
 
 // Split returns a set of IpBlock objects, each with a single range of ips
 func (b *IPBlock) Split() []*IPBlock {
-	res := make([]*IPBlock, len(b.ipRange.IntervalSet))
-	for index, ipr := range b.ipRange.IntervalSet {
+	res := make([]*IPBlock, b.ipRange.NumIntervals())
+	for index, span := range b.ipRange.Intervals() {
 		res[index] = &IPBlock{
-			ipRange: interval.FromInterval(ipr.Start, ipr.End),
+			ipRange: interval.FromInterval(span.Start, span.End),
 		}
 	}
 	return res
@@ -191,7 +191,7 @@ func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 			toAdd = append(toAdd, intersection)
 			ipbList[idx].ipRange.Subtract(intersection.ipRange)
 		}
-		if len(ipbNew.ipRange.IntervalSet) == 0 {
+		if ipbNew.ipRange.IsEmpty() {
 			break
 		}
 	}
@@ -291,7 +291,7 @@ func cidrToInterval(cidr string) (interval.Interval, error) {
 // ToCidrList returns a list of CIDR strings for this IPBlock object
 func (b *IPBlock) ToCidrList() []string {
 	cidrList := []string{}
-	for _, interval := range b.ipRange.IntervalSet {
+	for _, interval := range b.ipRange.Intervals() {
 		cidrList = append(cidrList, intervalToCidrList(interval.Start, interval.End)...)
 	}
 	return cidrList
@@ -305,7 +305,7 @@ func (b *IPBlock) ToCidrListString() string {
 // ListToPrint: returns a uniform to print list s.t. each element contains either a single cidr or an ip range
 func (b *IPBlock) ListToPrint() []string {
 	cidrsIPRangesList := []string{}
-	for _, interval := range b.ipRange.IntervalSet {
+	for _, interval := range b.ipRange.Intervals() {
 		cidr := intervalToCidrList(interval.Start, interval.End)
 		if len(cidr) == 1 {
 			cidrsIPRangesList = append(cidrsIPRangesList, cidr[0])
@@ -319,7 +319,7 @@ func (b *IPBlock) ListToPrint() []string {
 // ToIPAdressString returns the IP Address string for this IPBlock
 func (b *IPBlock) ToIPAddressString() string {
 	if b.ipRange.IsSingleNumber() {
-		return intToIP4(b.ipRange.IntervalSet[0].Start)
+		return intToIP4(b.ipRange.Min())
 	}
 	return ""
 }
@@ -365,10 +365,11 @@ func FromIPRangeStr(ipRangeStr string) (*IPBlock, error) {
 	if endIP, err = FromIPAddress(ipAddresses[1]); err != nil {
 		return nil, err
 	}
-	res := New()
-	startIPNum := startIP.ipRange.IntervalSet[0].Start
-	endIPNum := endIP.ipRange.IntervalSet[0].Start
-	res.ipRange.IntervalSet = append(res.ipRange.IntervalSet, interval.Interval{Start: startIPNum, End: endIPNum})
+	startIPNum := startIP.ipRange.Min()
+	endIPNum := endIP.ipRange.Min()
+	res := &IPBlock{
+		ipRange: interval.FromInterval(startIPNum, endIPNum),
+	}
 	return res, nil
 }
 
