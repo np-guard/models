@@ -60,8 +60,8 @@ func toIPRange(i interval.Interval) string {
 // toIPRangesList: returns a list of the ip-ranges strings in the current IPBlock object
 func (b *IPBlock) toIPRangesList() []string {
 	IPRanges := make([]string, b.ipRange.NumIntervals())
-	for index, v := range b.ipRange.Intervals() {
-		IPRanges[index] = toIPRange(v)
+	for index, span := range b.ipRange.Intervals() {
+		IPRanges[index] = toIPRange(span)
 	}
 	return IPRanges
 }
@@ -310,8 +310,7 @@ func (b *IPBlock) ListToPrint() []string {
 // ToIPAdressString returns the IP Address string for this IPBlock
 func (b *IPBlock) ToIPAddressString() string {
 	if b.ipRange.IsSingleNumber() {
-		m, _ := b.ipRange.Min()
-		return intToIP4(m)
+		return intToIP4(b.ipRange.Min())
 	}
 	return ""
 }

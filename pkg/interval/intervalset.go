@@ -5,6 +5,7 @@ package interval
 import (
 	"errors"
 	"fmt"
+	"log"
 	"slices"
 	"sort"
 )
@@ -18,6 +19,21 @@ func NewCanonicalIntervalSet() *CanonicalSet {
 	return &CanonicalSet{
 		intervalSet: []Interval{},
 	}
+}
+
+func (c *CanonicalSet) Intervals() []Interval {
+	return slices.Clone(c.intervalSet)
+}
+
+func (c *CanonicalSet) NumIntervals() int {
+	return len(c.intervalSet)
+}
+
+func (c *CanonicalSet) Min() int64 {
+	if len(c.intervalSet) == 0 {
+		log.Panic("cannot take min from empty interval set")
+	}
+	return c.intervalSet[0].Start
 }
 
 // IsEmpty returns true if the  CanonicalSet is empty
@@ -65,6 +81,15 @@ func (c *CanonicalSet) AddInterval(v Interval) {
 		v.End = max(v.End, set[right-1].End)
 	}
 	c.intervalSet = slices.Replace(c.intervalSet, left, right, v)
+}
+
+// AddHole updates the current CanonicalSet object by removing the input Interval from the set
+func (c *CanonicalSet) AddHole(hole Interval) {
+	newIntervalSet := []Interval{}
+	for _, interval := range c.intervalSet {
+		newIntervalSet = append(newIntervalSet, interval.subtract(hole)...)
+	}
+	c.intervalSet = newIntervalSet
 }
 
 // String returns a string representation of the current CanonicalSet object
@@ -130,13 +155,13 @@ func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
 	if c == other {
 		return c.Copy()
 	}
-	res := NewCanonicalIntervalSet()
+	newIntervalSet := []Interval{}
 	for _, interval := range c.intervalSet {
 		for _, otherInterval := range other.intervalSet {
-			res.intervalSet = append(res.intervalSet, interval.intersection(otherInterval)...)
+			newIntervalSet = append(newIntervalSet, interval.intersection(otherInterval)...)
 		}
 	}
-	return res
+	c.intervalSet = newIntervalSet
 }
 
 // Overlaps returns true if current CanonicalSet overlaps with input CanonicalSet
@@ -154,21 +179,10 @@ func (c *CanonicalSet) Overlaps(other *CanonicalSet) bool {
 	return false
 }
 
-// Subtract returns the subtraction result of input CanonicalSet
-func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
-	if c == other {
-		return NewCanonicalIntervalSet()
-	}
-	res := slices.Clone(c.intervalSet)
-	for _, hole := range other.intervalSet {
-		newIntervalSet := []Interval{}
-		for _, interval := range res {
-			newIntervalSet = append(newIntervalSet, interval.subtract(hole)...)
-		}
-		res = newIntervalSet
-	}
-	return &CanonicalSet{
-		intervalSet: res,
+// Subtract updates current CanonicalSet with subtraction result of input CanonicalSet
+func (c *CanonicalSet) Subtract(other *CanonicalSet) {
+	for _, i := range other.intervalSet {
+		c.AddHole(i)
 	}
 }
 
@@ -178,14 +192,6 @@ func (c *CanonicalSet) IsSingleNumber() bool {
 	}
 	return false
 }
-
-func (c *CanonicalSet) Min() (int64, error) {
-	if len(c.intervalSet) > 0 {
-		return c.intervalSet[0].Start, nil
-	}
-	return 0, errors.New("empty interval set")
-}
-
 // Split returns a set of canonical set objects, each with a single interval
 func (c *CanonicalSet) Split() []*CanonicalSet {
 	res := make([]*CanonicalSet, len(c.intervalSet))
