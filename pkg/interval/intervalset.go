@@ -38,7 +38,9 @@ func (c *CanonicalSet) Equal(other *CanonicalSet) bool {
 	return true
 }
 
-func addInterval(v Interval, set []Interval) []Interval {
+// AddInterval adds a new interval range to the set
+func (c *CanonicalSet) AddInterval(v Interval) {
+	set := c.IntervalSet
 	left := sort.Search(len(set), func(i int) bool {
 		return set[i].End >= v.Start-1
 	})
@@ -51,12 +53,7 @@ func addInterval(v Interval, set []Interval) []Interval {
 	if right > 0 && set[right-1].End >= v.Start {
 		v.End = max(v.End, set[right-1].End)
 	}
-	return slices.Replace(set, left, right, v)
-}
-
-// AddInterval adds a new interval range to the set
-func (c *CanonicalSet) AddInterval(v Interval) {
-	c.IntervalSet = addInterval(v, c.IntervalSet)
+	c.IntervalSet = slices.Replace(c.IntervalSet, left, right, v)
 }
 
 func getNumAsStr(num int64) string {
@@ -86,7 +83,7 @@ func (c *CanonicalSet) Union(other *CanonicalSet) *CanonicalSet {
 		return res
 	}
 	for _, v := range other.IntervalSet {
-		res.IntervalSet = addInterval(v, res.IntervalSet)
+		res.AddInterval(v)
 	}
 	return res
 }

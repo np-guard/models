@@ -74,9 +74,8 @@ func (b *IPBlock) ContainedIn(other *IPBlock) bool {
 
 // Intersect returns a new IPBlock from intersection of this IPBlock with input IPBlock
 func (b *IPBlock) Intersect(c *IPBlock) *IPBlock {
-	res := b.Copy()
 	if b == c {
-		return res
+		return b.Copy()
 	}
 	return &IPBlock{
 		ipRange: b.ipRange.Intersect(c.ipRange),
@@ -242,17 +241,17 @@ func FromCidrList(cidrsList []string) (*IPBlock, error) {
 	return res, nil
 }
 
-// Except returns an IPBlock object from input cidr str an exceptions cidr str
+// Except creates a new IP block that excludes the specified CIDRs from the current IP block
 func (b *IPBlock) Except(exceptions ...string) (*IPBlock, error) {
-	ipRange := b.ipRange.Copy()
+	holes := interval.NewCanonicalIntervalSet()
 	for i := range exceptions {
 		intervalHole, err := cidrToInterval(exceptions[i])
 		if err != nil {
 			return nil, err
 		}
-		ipRange = ipRange.Subtract(interval.FromInterval(intervalHole.Start, intervalHole.End))
+		holes.AddInterval(intervalHole)
 	}
-	return &IPBlock{ipRange: ipRange}, nil
+	return &IPBlock{ipRange: b.ipRange.Subtract(holes)}, nil
 }
 
 func ipv4AddressToCidr(ipAddress string) string {
