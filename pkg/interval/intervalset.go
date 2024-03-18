@@ -101,14 +101,16 @@ func (c *CanonicalSet) String() string {
 	return res[:len(res)-1]
 }
 
-// Union updates the CanonicalSet object with the union result of the input CanonicalSet
-func (c *CanonicalSet) Union(other *CanonicalSet) {
+// Union returns the union of the two sets
+func (c *CanonicalSet) Union(other *CanonicalSet) *CanonicalSet {
+	res := c.Copy()
 	if c == other {
-		return
+		return res
 	}
-	for _, interval := range other.intervalSet {
-		c.AddInterval(interval)
+	for _, v := range other.intervalSet {
+		res.AddInterval(v)
 	}
+	return res
 }
 
 // Copy returns a new copy of the CanonicalSet object
@@ -140,18 +142,20 @@ func (c *CanonicalSet) ContainedIn(other *CanonicalSet) bool {
 	return true
 }
 
-// Intersect updates current CanonicalSet with intersection result of input CanonicalSet
-func (c *CanonicalSet) Intersect(other *CanonicalSet) {
+// Intersect returns the intersection of the current set with the input set
+func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
 	if c == other {
-		return
+		return c.Copy()
 	}
-	newIntervalSet := []Interval{}
+	res := NewCanonicalIntervalSet()
 	for _, interval := range c.intervalSet {
 		for _, otherInterval := range other.intervalSet {
-			newIntervalSet = append(newIntervalSet, interval.intersection(otherInterval)...)
+			for _, span := range interval.intersection(otherInterval) {
+				res.AddInterval(span)
+			}
 		}
 	}
-	c.intervalSet = newIntervalSet
+	return res
 }
 
 // Overlaps returns true if current CanonicalSet overlaps with input CanonicalSet
@@ -169,10 +173,21 @@ func (c *CanonicalSet) Overlaps(other *CanonicalSet) bool {
 	return false
 }
 
-// Subtract updates current CanonicalSet with subtraction result of input CanonicalSet
-func (c *CanonicalSet) Subtract(other *CanonicalSet) {
-	for _, i := range other.intervalSet {
-		c.AddHole(i)
+// Subtract returns the subtraction result of input CanonicalSet
+func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
+	if c == other {
+		return NewCanonicalIntervalSet()
+	}
+	res := slices.Clone(c.intervalSet)
+	for _, hole := range other.intervalSet {
+		newIntervalSet := []Interval{}
+		for _, interval := range res {
+			newIntervalSet = append(newIntervalSet, interval.subtract(hole)...)
+		}
+		res = newIntervalSet
+	}
+	return &CanonicalSet{
+		intervalSet: res,
 	}
 }
 

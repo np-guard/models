@@ -19,7 +19,7 @@ func TestIntervalSet(t *testing.T) {
 	is1.AddInterval(interval.Interval{0, 1})
 	is1.AddInterval(interval.Interval{3, 3})
 	is1.AddInterval(interval.Interval{70, 80})
-	is1.AddHole(interval.Interval{7, 9})
+	is1 = is1.Subtract(interval.FromInterval(7, 9))
 	require.True(t, is1.Contains(5))
 	require.False(t, is1.Contains(8))
 
@@ -35,21 +35,20 @@ func TestIntervalSet(t *testing.T) {
 	require.True(t, is1.Overlaps(is2))
 	require.True(t, is2.Overlaps(is1))
 
-	is1.Subtract(is2)
+	is1 = is1.Subtract(is2)
 	require.False(t, is2.ContainedIn(is1))
 	require.False(t, is1.ContainedIn(is2))
 	require.False(t, is1.Overlaps(is2))
 	require.False(t, is2.Overlaps(is1))
 
-	is1.Union(is2)
+	is1 = is1.Union(is2)
 	is1.Union(interval.FromInterval(7, 9))
 	require.True(t, is2.ContainedIn(is1))
 	require.False(t, is1.ContainedIn(is2))
 	require.True(t, is1.Overlaps(is2))
 	require.True(t, is2.Overlaps(is1))
 
-	is3 := is1.Copy()
-	is3.Intersect(is2)
+	is3 := is1.Intersect(is2)
 	require.True(t, is3.Equal(is2))
 	require.True(t, is2.ContainedIn(is3))
 
