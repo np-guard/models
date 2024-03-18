@@ -111,7 +111,7 @@ func (b *IPBlock) Union(c *IPBlock) *IPBlock {
 }
 
 // Empty returns true if this IPBlock is empty
-func (b *IPBlock) Empty() bool {
+func (b *IPBlock) IsEmpty() bool {
 	return b.ipRange.IsEmpty()
 }
 
@@ -190,7 +190,7 @@ func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 			toAdd = append(toAdd, intersection)
 			ipbList[idx] = ipbList[idx].Subtract(intersection)
 		}
-		if ipbNew.Empty() {
+		if ipbNew.IsEmpty() {
 			break
 		}
 	}
