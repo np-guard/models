@@ -1,5 +1,5 @@
 REPOSITORY := github.com/np-guard/models
-JSON_PACKAGE_NAME := model
+JSON_PACKAGE_NAME := spec
 
 mod: go.mod
 	@echo -- $@ --
