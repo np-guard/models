@@ -28,7 +28,7 @@ func (c *CanonicalSet) NumIntervals() int {
 
 func (c *CanonicalSet) Min() int64 {
 	if len(c.intervalSet) == 0 {
-		log.Fatal("cannot take min from empty interval set")
+		log.Panic("cannot take min from empty interval set")
 	}
 	return c.intervalSet[0].Start
 }
