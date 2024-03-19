@@ -163,14 +163,6 @@ func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
 	}
 }
 
-func (c *CanonicalSet) getIntervalSetUnion() *interval.CanonicalSet {
-	res := interval.NewCanonicalSet()
-	for k := range c.layers {
-		res.Union(k)
-	}
-	return res
-}
-
 // ContainedIn returns true ic other contained in c
 func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
 	if c == other {
@@ -179,13 +171,11 @@ func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
 	if c.dimensions != other.dimensions {
 		return false, errors.New("ContainedIn mismatch between num of dimensions for input args")
 	}
-	if c.dimensions == 1 {
-		if len(c.layers) != 1 || len(other.layers) != 1 {
-			return false, errors.New("unexpected object of dimension size 1")
+	if c.dimensions == 0 {
+		if len(c.layers) != 0 || len(other.layers) != 0 {
+			return false, errors.New("unexpected non-empty object of dimension size 0")
 		}
-		cInterval := c.getIntervalSetUnion()
-		otherInterval := other.getIntervalSetUnion()
-		return cInterval.ContainedIn(otherInterval), nil
+		return true, nil
 	}
 
 	isSubsetCount := 0
