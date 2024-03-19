@@ -36,7 +36,7 @@ func TestOps(t *testing.T) {
 	require.Equal(t, union, ipb1)
 
 	intersect2 := minus.Intersect(intersect)
-	require.True(t, intersect2.Empty())
+	require.True(t, intersect2.IsEmpty())
 }
 
 func TestConversions(t *testing.T) {

@@ -3,7 +3,6 @@
 package interval
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"slices"
@@ -15,7 +14,7 @@ type CanonicalSet struct {
 	intervalSet []Interval
 }
 
-func NewCanonicalIntervalSet() *CanonicalSet {
+func NewCanonicalSet() *CanonicalSet {
 	return &CanonicalSet{
 		intervalSet: []Interval{},
 	}
@@ -36,7 +35,7 @@ func (c *CanonicalSet) Min() int64 {
 	return c.intervalSet[0].Start
 }
 
-// IsEmpty returns true if the  CanonicalSet is empty
+// IsEmpty returns true if the CanonicalSet is empty
 func (c *CanonicalSet) IsEmpty() bool {
 	return len(c.intervalSet) == 0
 }
@@ -115,8 +114,8 @@ func (c *CanonicalSet) Union(other *CanonicalSet) *CanonicalSet {
 	if c == other {
 		return res
 	}
-	for _, interval := range other.intervalSet {
-		res.AddInterval(interval)
+	for _, v := range other.intervalSet {
+		res.AddInterval(v)
 	}
 	return res
 }
@@ -127,11 +126,10 @@ func (c *CanonicalSet) Copy() *CanonicalSet {
 }
 
 func (c *CanonicalSet) Contains(n int64) bool {
-	i := CreateSetFromInterval(n, n)
-	return i.ContainedIn(c)
+	return New(n, n).ToSet().ContainedIn(c)
 }
 
-// ContainedIn returns true of the current interval.CanonicalSet is contained in the input interval.CanonicalSet
+// ContainedIn returns true of the current CanonicalSet is contained in the input CanonicalSet
 func (c *CanonicalSet) ContainedIn(other *CanonicalSet) bool {
 	if c == other {
 		return true
@@ -155,17 +153,19 @@ func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
 	if c == other {
 		return c.Copy()
 	}
-	newIntervalSet := []Interval{}
+	res := NewCanonicalSet()
 	for _, interval := range c.intervalSet {
 		for _, otherInterval := range other.intervalSet {
-			newIntervalSet = append(newIntervalSet, interval.intersection(otherInterval)...)
+			for _, span := range interval.intersection(otherInterval) {
+				res.AddInterval(span)
+			}
 		}
 	}
-	c.intervalSet = newIntervalSet
+	return res
 }
 
-// Overlaps returns true if current CanonicalSet overlaps with input CanonicalSet
-func (c *CanonicalSet) Overlaps(other *CanonicalSet) bool {
+// Overlap returns true if current CanonicalSet overlaps with input CanonicalSet
+func (c *CanonicalSet) Overlap(other *CanonicalSet) bool {
 	if c == other {
 		return !c.IsEmpty()
 	}
@@ -179,11 +179,13 @@ func (c *CanonicalSet) Overlaps(other *CanonicalSet) bool {
 	return false
 }
 
-// Subtract updates current CanonicalSet with subtraction result of input CanonicalSet
-func (c *CanonicalSet) Subtract(other *CanonicalSet) {
+// Subtract returns the subtraction result of input CanonicalSet
+func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
+	res := c.Copy()
 	for _, i := range other.intervalSet {
-		c.AddHole(i)
+		res.AddHole(i)
 	}
+	return res
 }
 
 func (c *CanonicalSet) IsSingleNumber() bool {
@@ -191,22 +193,6 @@ func (c *CanonicalSet) IsSingleNumber() bool {
 		return true
 	}
 	return false
-}
-// Split returns a set of canonical set objects, each with a single interval
-func (c *CanonicalSet) Split() []*CanonicalSet {
-	res := make([]*CanonicalSet, len(c.intervalSet))
-	for index, ipr := range c.intervalSet {
-		res[index] = CreateSetFromInterval(ipr.Start, ipr.End)
-	}
-	return res
-}
-
-func (c *CanonicalSet) Intervals() []Interval {
-	return slices.Clone(c.intervalSet)
-}
-
-func (c *CanonicalSet) NumIntervals() int {
-	return len(c.intervalSet)
 }
 
 func (c *CanonicalSet) Elements() []int64 {
@@ -219,6 +205,6 @@ func (c *CanonicalSet) Elements() []int64 {
 	return res
 }
 
-func CreateSetFromInterval(start, end int64) *CanonicalSet {
-	return &CanonicalSet{intervalSet: []Interval{{Start: start, End: end}}}
+func NewSetFromInterval(span Interval) *CanonicalSet {
+	return &CanonicalSet{intervalSet: []Interval{span}}
 }

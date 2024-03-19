@@ -57,15 +57,15 @@ var dimensionsList = []Dimension{
 func entireDimension(dim Dimension) *interval.CanonicalSet {
 	switch dim {
 	case protocol:
-		return interval.CreateSetFromInterval(minProtocol, maxProtocol)
+		return interval.New(minProtocol, maxProtocol).ToSet()
 	case srcPort:
-		return interval.CreateSetFromInterval(MinPort, MaxPort)
+		return interval.New(MinPort, MaxPort).ToSet()
 	case dstPort:
-		return interval.CreateSetFromInterval(MinPort, MaxPort)
+		return interval.New(MinPort, MaxPort).ToSet()
 	case icmpType:
-		return interval.CreateSetFromInterval(MinICMPtype, MaxICMPtype)
+		return interval.New(MinICMPtype, MaxICMPtype).ToSet()
 	case icmpCode:
-		return interval.CreateSetFromInterval(MinICMPcode, MaxICMPcode)
+		return interval.New(MinICMPcode, MaxICMPcode).ToSet()
 	}
 	return nil
 }

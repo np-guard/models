@@ -166,7 +166,7 @@ func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
 }
 
 func (c *CanonicalSet) getIntervalSetUnion() *interval.CanonicalSet {
-	res := interval.NewCanonicalIntervalSet()
+	res := interval.NewCanonicalSet()
 	for k := range c.layers {
 		res = res.Union(k)
 	}
@@ -301,13 +301,13 @@ func FromCube(cube []*interval.CanonicalSet) *CanonicalSet {
 	return res
 }
 
-// cube returns a new hypercube.CanonicalSet created from a single input cube
+// Cube returns a new CanonicalSet created from a single input cube
 // the input cube is given as an ordered list of integer values, where each two values
 // represent the range (start,end) for a dimension value
 func Cube(values ...int64) *CanonicalSet {
 	cube := []*interval.CanonicalSet{}
 	for i := 0; i < len(values); i += 2 {
-		cube = append(cube, interval.CreateSetFromInterval(values[i], values[i+1]))
+		cube = append(cube, interval.New(values[i], values[i+1]).ToSet())
 	}
 	return FromCube(cube)
 }

@@ -20,6 +20,10 @@ func (i Interval) Equal(x Interval) bool {
 	return i.Start == x.Start && i.End == x.End
 }
 
+func New(start, end int64) Interval {
+	return Interval{Start: start, End: end}
+}
+
 func (i Interval) Size() int64 {
 	return i.End - i.Start + 1
 }
@@ -57,4 +61,8 @@ func (i Interval) intersection(other Interval) []Interval {
 		return []Interval{}
 	}
 	return []Interval{{Start: maxStart, End: minEnd}}
+}
+
+func (i Interval) ToSet() *CanonicalSet {
+	return NewSetFromInterval(i)
 }
