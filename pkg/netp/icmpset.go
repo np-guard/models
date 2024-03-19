@@ -3,7 +3,7 @@
 package netp
 
 import (
-	"math"
+	"github.com/np-guard/models/pkg/interval"
 )
 
 const (
@@ -13,6 +13,7 @@ const (
 	newEcho                   = 17
 	newEchoReply              = 18
 	newSourceQuench           = 19
+	last                      = 19
 )
 
 func mapToNew(t, code int) int {
@@ -35,7 +36,8 @@ func mapToNew(t, code int) int {
 }
 
 //lint:ignore U1000 should be used in the future
-func mapToOld(newCode int) (t, code int) {
+func mapToOld(newCode int) (ICMP, error) {
+	t := newCode
 	switch {
 	case newCode < newRedirect:
 		t = newDestinationUnreachable
@@ -49,11 +51,9 @@ func mapToOld(newCode int) (t, code int) {
 		t = EchoReply
 	case newCode == newSourceQuench:
 		t = SourceQuench
-	default:
-		t = newCode
 	}
-	code = newCode - t
-	return
+	code := newCode - t
+	return NewICMP(&ICMPTypeCode{Type: t, Code: &code})
 }
 
 type ICMPSet uint32
@@ -66,19 +66,72 @@ func (s ICMPSet) Union(other ICMPSet) ICMPSet {
 	return s | other
 }
 
+func (s ICMPSet) Contains(i int) bool {
+	return ((1 << i) & s) != 0
+}
+
+func (s ICMPSet) IntervalSet() *interval.CanonicalSet {
+	res := interval.NewCanonicalSet()
+	for i := 0; i <= last; i++ {
+		if s.Contains(i) {
+			res.AddInterval(interval.New(int64(i), int64(i)))
+		}
+	}
+	return res
+}
+
+func (s ICMPSet) collect(old int) []ICMP {
+	res := []ICMP{}
+	for code := 0; code <= maxCodes[old]; code++ {
+		if s.Contains(mapToNew(old, code)) {
+			res = append(res, ICMP{&ICMPTypeCode{Type: old, Code: &code}})
+		}
+	}
+	if len(res) == maxCodes[old]+1 {
+		res = []ICMP{{&ICMPTypeCode{Type: old, Code: nil}}}
+	}
+	return res
+}
+
+func (s ICMPSet) ICMPList() []ICMP {
+	if ICMPSet(all).IsSubset(s) {
+		return []ICMP{{nil}}
+	}
+	res := []ICMP{}
+	for t := range maxCodes {
+		res = append(res, s.collect(t)...)
+	}
+	return res
+}
+
+func fromIndex(i int) ICMPSet {
+	return 1 << i
+}
+
 const (
 	allDestinationUnreachable = 0b00000000000000111111
 	allRedirect               = 0b00000000001111000000
 	allTimeExceeded           = 0b00000000110000000000
 	allOther                  = 0b11111111000000000000
+	all                       = allDestinationUnreachable | allRedirect | allTimeExceeded | allOther
 )
 
 func FromICMP(t ICMP) ICMPSet {
 	if t.typeCode == nil {
-		return allDestinationUnreachable | allRedirect | allTimeExceeded | allOther
+		return all
 	}
-	if t.typeCode == nil {
-		return math.MaxUint32
+	return fromIndex(mapToNew(t.typeCode.Type, *t.typeCode.Code))
+}
+
+func FromIntervalSet(intervalSet *interval.CanonicalSet) ICMPSet {
+	if intervalSet.IsEmpty() {
+		return 0
 	}
-	return 1 << mapToNew(t.typeCode.Type, *t.typeCode.Code)
+	var res ICMPSet
+	for i := 0; i <= last; i++ {
+		if intervalSet.Contains(int64(i)) {
+			res |= res.Union(fromIndex(i))
+		}
+	}
+	return res
 }
