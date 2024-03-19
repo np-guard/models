@@ -39,7 +39,7 @@ type IPBlock struct {
 // New returns a new IPBlock object
 func New() *IPBlock {
 	return &IPBlock{
-		ipRange: interval.NewCanonicalIntervalSet(),
+		ipRange: interval.NewCanonicalSet(),
 	}
 }
 
@@ -111,7 +111,7 @@ func (b *IPBlock) Union(c *IPBlock) *IPBlock {
 }
 
 // Empty returns true if this IPBlock is empty
-func (b *IPBlock) Empty() bool {
+func (b *IPBlock) IsEmpty() bool {
 	return b.ipRange.IsEmpty()
 }
 
@@ -137,7 +137,7 @@ func (b *IPBlock) Split() []*IPBlock {
 	res := make([]*IPBlock, b.ipRange.NumIntervals())
 	for index, span := range b.ipRange.Intervals() {
 		res[index] = &IPBlock{
-			ipRange: interval.FromInterval(span.Start, span.End),
+			ipRange: span.ToSet(),
 		}
 	}
 	return res
@@ -181,7 +181,7 @@ func DisjointIPBlocks(set1, set2 []*IPBlock) []*IPBlock {
 func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 	toAdd := []*IPBlock{}
 	for idx, ipb := range ipbList {
-		if !ipb.ipRange.Overlaps(ipbNew.ipRange) {
+		if !ipb.ipRange.Overlap(ipbNew.ipRange) {
 			continue
 		}
 		intersection := ipb.Intersect(ipbNew)
@@ -190,7 +190,7 @@ func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 			toAdd = append(toAdd, intersection)
 			ipbList[idx] = ipbList[idx].Subtract(intersection)
 		}
-		if ipbNew.Empty() {
+		if ipbNew.IsEmpty() {
 			break
 		}
 	}
@@ -206,7 +206,7 @@ func FromCidr(cidr string) (*IPBlock, error) {
 		return nil, err
 	}
 	return &IPBlock{
-		ipRange: interval.FromInterval(span.Start, span.End),
+		ipRange: span.ToSet(),
 	}, nil
 }
 
@@ -243,7 +243,7 @@ func FromCidrList(cidrsList []string) (*IPBlock, error) {
 
 // Except creates a new IP block that excludes the specified CIDRs from the current IP block
 func (b *IPBlock) Except(exceptions ...string) (*IPBlock, error) {
-	holes := interval.NewCanonicalIntervalSet()
+	holes := interval.NewCanonicalSet()
 	for i := range exceptions {
 		intervalHole, err := cidrToInterval(exceptions[i])
 		if err != nil {
@@ -369,7 +369,7 @@ func FromIPRangeStr(ipRangeStr string) (*IPBlock, error) {
 	startIPNum := startIP.ipRange.Min()
 	endIPNum := endIP.ipRange.Min()
 	res := &IPBlock{
-		ipRange: interval.FromInterval(startIPNum, endIPNum),
+		ipRange: interval.New(startIPNum, endIPNum).ToSet(),
 	}
 	return res, nil
 }

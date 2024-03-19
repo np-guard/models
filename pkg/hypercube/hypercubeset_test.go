@@ -15,7 +15,7 @@ import (
 func cube(values ...int64) *hypercube.CanonicalSet {
 	cube := []*interval.CanonicalSet{}
 	for i := 0; i < len(values); i += 2 {
-		cube = append(cube, interval.FromInterval(values[i], values[i+1]))
+		cube = append(cube, interval.New(values[i], values[i+1]).ToSet())
 	}
 	return hypercube.FromCube(cube)
 }
@@ -117,6 +117,13 @@ func TestContainedIn(t *testing.T) {
 	checkContained(t, b, a, true)
 	b = b.Union(cube(10, 200, 210, 280))
 	checkContained(t, b, a, false)
+}
+
+func TestContainedIn1(t *testing.T) {
+	checkContained(t, cube(1, 3), cube(2, 4), false)
+	checkContained(t, cube(2, 4), cube(1, 3), false)
+	checkContained(t, cube(1, 3), cube(1, 4), true)
+	checkContained(t, cube(1, 4), cube(1, 3), false)
 }
 
 func TestContainedIn2(t *testing.T) {

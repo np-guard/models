@@ -8,6 +8,10 @@ type Interval struct {
 	End   int64
 }
 
+func New(start, end int64) Interval {
+	return Interval{Start: start, End: end}
+}
+
 // String returns a String representation of Interval object
 func (i Interval) String() string {
 	return fmt.Sprintf("[%v-%v]", i.Start, i.End)
@@ -51,4 +55,8 @@ func (i Interval) intersection(other Interval) []Interval {
 		return []Interval{}
 	}
 	return []Interval{{Start: maxStart, End: minEnd}}
+}
+
+func (i Interval) ToSet() *CanonicalSet {
+	return NewSetFromInterval(i)
 }
