@@ -10,6 +10,10 @@ type Interval struct {
 	End   int64
 }
 
+func New(start, end int64) Interval {
+	return Interval{Start: start, End: end}
+}
+
 // String returns a String representation of Interval object
 func (i Interval) String() string {
 	return fmt.Sprintf("[%v-%v]", i.Start, i.End)
@@ -18,10 +22,6 @@ func (i Interval) String() string {
 // Equal returns true if current Interval obj is equal to the input Interval
 func (i Interval) Equal(x Interval) bool {
 	return i.Start == x.Start && i.End == x.End
-}
-
-func New(start, end int64) Interval {
-	return Interval{Start: start, End: end}
 }
 
 func (i Interval) Size() int64 {

@@ -114,6 +114,12 @@ func TestBadPath(t *testing.T) {
 	_, err := ipblock.FromCidr("not-a-cidr")
 	require.NotNil(t, err)
 
+	_, err = ipblock.FromCidr("2.5.7.9/24")
+	require.Nil(t, err)
+
+	_, err = ipblock.New().ExceptCidrs("5.6.7.8/20", "not-a-cidr")
+	require.NotNil(t, err)
+
 	_, err = ipblock.FromCidrList([]string{"1.2.3.4/20", "not-a-cidr"})
 	require.NotNil(t, err)
 

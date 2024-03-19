@@ -197,12 +197,12 @@ func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 
 // FromCidr returns a new IPBlock object from input CIDR string
 func FromCidr(cidr string) (*IPBlock, error) {
-	ipRange, err := cidrToIPRange(cidr)
+	span, err := cidrToIPRange(cidr)
 	if err != nil {
 		return nil, err
 	}
 	return &IPBlock{
-		ipRange: ipRange.ToSet(),
+		ipRange: span.ToSet(),
 	}, nil
 }
 
@@ -226,15 +226,15 @@ func FromCidrOrAddress(s string) (*IPBlock, error) {
 
 // FromCidrList returns IPBlock object from multiple CIDRs given as list of strings
 func FromCidrList(cidrsList []string) (*IPBlock, error) {
-	ipRange := interval.NewCanonicalSet()
+	ipRange := New()
 	for _, cidr := range cidrsList {
 		block, err := FromCidr(cidr)
 		if err != nil {
 			return nil, err
 		}
-		ipRange = ipRange.Union(block.ipRange)
+		ipRange = ipRange.Union(block)
 	}
-	return &IPBlock{ipRange: ipRange}, nil
+	return ipRange, nil
 }
 
 // ExceptCidrs returns a new IPBlock with all cidr ranges removed
