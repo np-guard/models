@@ -119,6 +119,13 @@ func TestContainedIn(t *testing.T) {
 	checkContained(t, b, a, false)
 }
 
+func TestContainedIn1(t *testing.T) {
+	checkContained(t, cube(1, 3), cube(2, 4), false)
+	checkContained(t, cube(2, 4), cube(1, 3), false)
+	checkContained(t, cube(1, 3), cube(1, 4), true)
+	checkContained(t, cube(1, 4), cube(1, 3), false)
+}
+
 func TestContainedIn2(t *testing.T) {
 	c := union(
 		cube(1, 100, 200, 300),
