@@ -289,7 +289,7 @@ func getCubeAsTCPItems(cube []*interval.CanonicalSet, protocol spec.TcpUdpProtoc
 	if !srcPorts.Equal(entireDimension(srcPort)) {
 		// iterate the interval in the interval-set
 		for _, interval := range srcPorts.Intervals() {
-			tcpRes := spec.TcpUdp{Protocol: protocol, MinSourcePort: int(interval.Start), MaxSourcePort: int(interval.End)}
+			tcpRes := spec.TcpUdp{Protocol: protocol, MinSourcePort: int(interval.Start()), MaxSourcePort: int(interval.End())}
 			tcpItemsTemp = append(tcpItemsTemp, tcpRes)
 		}
 	} else {
@@ -305,8 +305,8 @@ func getCubeAsTCPItems(cube []*interval.CanonicalSet, protocol spec.TcpUdpProtoc
 					Protocol:           protocol,
 					MinSourcePort:      tcpItemTemp.MinSourcePort,
 					MaxSourcePort:      tcpItemTemp.MaxSourcePort,
-					MinDestinationPort: int(interval.Start),
-					MaxDestinationPort: int(interval.End),
+					MinDestinationPort: int(interval.Start()),
+					MaxDestinationPort: int(interval.End()),
 				}
 				tcpItemsFinal = append(tcpItemsFinal, tcpRes)
 			}
