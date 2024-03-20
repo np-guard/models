@@ -69,7 +69,7 @@ func (c *Set) connTCPWithStatefulness(secondDirectionConn *Set) *Set {
 // It assumes the input connection object is only within TCP protocol.
 // For TCP the src and dst ports on relevant cubes are being switched.
 func (c *Set) switchSrcDstPortsOnTCP() *Set {
-	if c.allowAll || c.IsEmpty() {
+	if c.IsAll() || c.IsEmpty() {
 		return c.Copy()
 	}
 	res := None()
