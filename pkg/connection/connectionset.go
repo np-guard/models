@@ -10,6 +10,7 @@ import (
 	"github.com/np-guard/models/pkg/hypercube"
 	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/spec"
 )
 
 const (
@@ -288,105 +289,112 @@ func (c *Set) String() string {
 	return strings.Join(resStrings, "; ")
 }
 
-func getCubeAsTCPorUDPItems(cube []*interval.CanonicalSet, isTCP bool) []netp.Protocol {
-	tcpItemsTemp := []netp.Protocol{}
+func getCubeAsTCPItems(cube []*interval.CanonicalSet, protocol spec.TcpUdpProtocol) []spec.TcpUdp {
+	tcpItemsTemp := []spec.TcpUdp{}
+	tcpItemsFinal := []spec.TcpUdp{}
 	// consider src ports
 	srcPorts := cube[srcPort]
-	if srcPorts.Equal(entireDimension(srcPort)) {
-		tcpItemsTemp = append(tcpItemsTemp, netp.TCPUDP{IsTCP: isTCP})
-	} else {
-		// iterate the intervals in the interval-set
-		for _, portRange := range srcPorts.Intervals() {
-			tcpRes := netp.TCPUDP{
-				IsTCP: isTCP,
-				PortRangePair: netp.PortRangePair{
-					SrcPort: portRange,
-					DstPort: interval.Interval{Start: netp.MinPort, End: netp.MaxPort},
-				},
-			}
+	if !srcPorts.Equal(entireDimension(srcPort)) {
+		// iterate the interval in the interval-set
+		for _, interval := range srcPorts.Intervals() {
+			tcpRes := spec.TcpUdp{Protocol: protocol, MinSourcePort: int(interval.Start), MaxSourcePort: int(interval.End)}
 			tcpItemsTemp = append(tcpItemsTemp, tcpRes)
 		}
+	} else {
+		tcpItemsTemp = append(tcpItemsTemp, spec.TcpUdp{Protocol: protocol})
 	}
 	// consider dst ports
 	dstPorts := cube[dstPort]
-	if dstPorts.Equal(entireDimension(dstPort)) {
-		return tcpItemsTemp
-	}
-	tcpItemsFinal := []netp.Protocol{}
-	for _, portRange := range dstPorts.Intervals() {
-		for _, tcpItemTemp := range tcpItemsTemp {
-			item, _ := tcpItemTemp.(netp.TCPUDP)
-			tcpItemsFinal = append(tcpItemsFinal, netp.TCPUDP{
-				IsTCP: isTCP,
-				PortRangePair: netp.PortRangePair{
-					SrcPort: item.PortRangePair.SrcPort,
-					DstPort: portRange,
-				},
-			})
+	if !dstPorts.Equal(entireDimension(dstPort)) {
+		// iterate the interval in the interval-set
+		for _, interval := range dstPorts.Intervals() {
+			for _, tcpItemTemp := range tcpItemsTemp {
+				tcpRes := spec.TcpUdp{
+					Protocol:           protocol,
+					MinSourcePort:      tcpItemTemp.MinSourcePort,
+					MaxSourcePort:      tcpItemTemp.MaxSourcePort,
+					MinDestinationPort: int(interval.Start),
+					MaxDestinationPort: int(interval.End),
+				}
+				tcpItemsFinal = append(tcpItemsFinal, tcpRes)
+			}
 		}
+	} else {
+		tcpItemsFinal = tcpItemsTemp
 	}
 	return tcpItemsFinal
 }
 
-func getCubeAsICMPItems(cube []*interval.CanonicalSet) []netp.Protocol {
+func getCubeAsICMPItems(cube []*interval.CanonicalSet) []spec.Icmp {
 	icmpTypes := cube[icmpType]
 	icmpCodes := cube[icmpCode]
-	if icmpCodes.Equal(entireDimension(icmpCode)) {
-		if icmpTypes.Equal(entireDimension(icmpType)) {
-			return []netp.Protocol{netp.ICMP{}}
+	allTypes := icmpTypes.Equal(entireDimension(icmpType))
+	allCodes := icmpCodes.Equal(entireDimension(icmpCode))
+	switch {
+	case allTypes && allCodes:
+		return []spec.Icmp{{Protocol: spec.IcmpProtocolICMP}}
+	case allTypes:
+		// This does not really make sense: not all types can have all codes
+		res := []spec.Icmp{}
+		for _, code64 := range icmpCodes.Elements() {
+			code := int(code64)
+			res = append(res, spec.Icmp{Protocol: spec.IcmpProtocolICMP, Code: &code})
 		}
-		res := []netp.Protocol{}
-		for _, t := range icmpTypes.Elements() {
-			icmp, err := netp.NewICMP(&netp.ICMPTypeCode{Type: int(t)})
-			if err != nil {
-				log.Panic(err)
+		return res
+	case allCodes:
+		res := []spec.Icmp{}
+		for _, type64 := range icmpTypes.Elements() {
+			t := int(type64)
+			res = append(res, spec.Icmp{Protocol: spec.IcmpProtocolICMP, Type: &t})
+		}
+		return res
+	default:
+		res := []spec.Icmp{}
+		// iterate both codes and types
+		for _, type64 := range icmpTypes.Elements() {
+			t := int(type64)
+			for _, code64 := range icmpCodes.Elements() {
+				code := int(code64)
+				res = append(res, spec.Icmp{Protocol: spec.IcmpProtocolICMP, Type: &t, Code: &code})
 			}
-			res = append(res, icmp)
 		}
 		return res
 	}
-
-	// iterate both codes and types
-	res := []netp.Protocol{}
-	for _, t := range icmpTypes.Elements() {
-		codes := icmpCodes.Elements()
-		for i := range codes {
-			// TODO: merge when all codes for certain type exist
-			c := int(codes[i])
-			icmp, err := netp.NewICMP(&netp.ICMPTypeCode{Type: int(t), Code: &c})
-			if err != nil {
-				log.Panic(err)
-			}
-			res = append(res, icmp)
-		}
-	}
-	return res
 }
 
-type Details []netp.Protocol
+type Details spec.ProtocolList
 
 func ToJSON(c *Set) Details {
 	if c == nil {
 		return nil // one of the connections in connectionDiff can be empty
 	}
 	if c.IsAll() {
-		return []netp.Protocol{netp.AnyProtocol{}}
+		return Details(spec.ProtocolList{spec.AnyProtocol{Protocol: spec.AnyProtocolProtocolANY}})
 	}
-	var res []netp.Protocol
+	res := spec.ProtocolList{}
 
 	cubes := c.connectionProperties.GetCubesList()
 	for _, cube := range cubes {
 		protocols := cube[protocol]
 		if protocols.Contains(TCPCode) {
-			res = append(res, getCubeAsTCPorUDPItems(cube, true)...)
+			tcpItems := getCubeAsTCPItems(cube, spec.TcpUdpProtocolTCP)
+			for _, item := range tcpItems {
+				res = append(res, item)
+			}
 		}
 		if protocols.Contains(UDPCode) {
-			res = append(res, getCubeAsTCPorUDPItems(cube, false)...)
+			udpItems := getCubeAsTCPItems(cube, spec.TcpUdpProtocolUDP)
+			for _, item := range udpItems {
+				res = append(res, item)
+			}
 		}
 		if protocols.Contains(ICMPCode) {
-			res = append(res, getCubeAsICMPItems(cube)...)
+			icmpItems := getCubeAsICMPItems(cube)
+			for _, item := range icmpItems {
+				res = append(res, item)
+			}
 		}
 	}
 
-	return res
+	return Details(res)
 }
