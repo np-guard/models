@@ -162,30 +162,26 @@ func ProtocolStringToCode(protocol netp.ProtocolString) int64 {
 	return 0
 }
 
-func (c *Set) addConnection(protocol netp.ProtocolString,
+func cube(protocolString netp.ProtocolString,
 	srcMinP, srcMaxP, dstMinP, dstMaxP,
-	icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) {
-	code := ProtocolStringToCode(protocol)
-	cube := hypercube.Cube(code, code,
-		srcMinP, srcMaxP, dstMinP, dstMaxP,
-		icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
-	c.connectionProperties = c.connectionProperties.Union(cube)
+	icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) *Set {
+	protocol := ProtocolStringToCode(protocolString)
+	return &Set{
+		connectionProperties: hypercube.Cube(protocol, protocol,
+			srcMinP, srcMaxP, dstMinP, dstMaxP,
+			icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)}
 }
 
 func TCPorUDPConnection(protocol netp.ProtocolString, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *Set {
-	c := None()
-	c.addConnection(protocol,
+	return cube(protocol,
 		srcMinP, srcMaxP, dstMinP, dstMaxP,
 		MinICMPType, MaxICMPType, MinICMPCode, MaxICMPCode)
-	return c
 }
 
 func ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) *Set {
-	c := None()
-	c.addConnection(netp.ProtocolStringICMP,
+	return cube(netp.ProtocolStringICMP,
 		MinPort, MaxPort, MinPort, MaxPort,
 		icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
-	return c
 }
 
 func (c *Set) Equal(other *Set) bool {
