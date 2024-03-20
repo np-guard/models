@@ -24,8 +24,8 @@ func newUDPConn(t *testing.T, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *connect
 func newICMPconn(t *testing.T) *connection.Set {
 	t.Helper()
 	return connection.ICMPConnection(
-		connection.MinICMPtype, connection.MaxICMPtype,
-		connection.MinICMPcode, connection.MaxICMPcode)
+		connection.MinICMPType, connection.MaxICMPType,
+		connection.MinICMPCode, connection.MaxICMPCode)
 }
 
 func newTCPUDPSet(t *testing.T, p netp.ProtocolString) *connection.Set {
@@ -50,7 +50,7 @@ type statefulnessTest struct {
 
 func (tt statefulnessTest) runTest(t *testing.T) {
 	t.Helper()
-	statefulConn := tt.srcToDst.ConnectionWithStatefulness(tt.dstToSrc)
+	statefulConn := tt.srcToDst.WithStatefulness(tt.dstToSrc)
 	require.Equal(t, tt.expectedIsStateful, tt.srcToDst.IsStateful)
 	require.True(t, tt.expectedStatefulConn.Equal(statefulConn))
 }

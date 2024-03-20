@@ -35,13 +35,13 @@ func newTCPSet() *Set {
 	return TCPorUDPConnection(netp.ProtocolStringTCP, MinPort, MaxPort, MinPort, MaxPort)
 }
 
-// ConnectionWithStatefulness updates `conn` object with `IsStateful` property, based on input `secondDirectionConn`.
+// WithStatefulness updates `conn` object with `IsStateful` property, based on input `secondDirectionConn`.
 // `conn` represents a src-to-dst connection, and `secondDirectionConn` represents dst-to-src connection.
 // The property `IsStateful` of `conn` is set as `StatefulFalse` if there is at least some subset within TCP from `conn`
 // which is not stateful (such that the response direction for this subset is not enabled).
 // This function also returns a connection object with the exact subset of the stateful part (within TCP)
 // from the entire connection `conn`, and with the original connections on other protocols.
-func (conn *Set) ConnectionWithStatefulness(secondDirectionConn *Set) *Set {
+func (conn *Set) WithStatefulness(secondDirectionConn *Set) *Set {
 	connTCP := conn.Intersect(newTCPSet())
 	if connTCP.IsEmpty() {
 		conn.IsStateful = StatefulTrue

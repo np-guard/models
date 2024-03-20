@@ -16,10 +16,10 @@ const (
 	TCPCode           = 0
 	UDPCode           = 1
 	ICMPCode          = 2
-	MinICMPtype int64 = 0
-	MaxICMPtype int64 = netp.InformationReply
-	MinICMPcode int64 = 0
-	MaxICMPcode int64 = 5
+	MinICMPType int64 = 0
+	MaxICMPType int64 = netp.InformationReply
+	MinICMPCode int64 = 0
+	MaxICMPCode int64 = 5
 	minProtocol int64 = 0
 	maxProtocol int64 = 2
 	MinPort           = 1
@@ -63,9 +63,9 @@ func entireDimension(dim Dimension) *interval.CanonicalSet {
 	case dstPort:
 		return interval.New(MinPort, MaxPort).ToSet()
 	case icmpType:
-		return interval.New(MinICMPtype, MaxICMPtype).ToSet()
+		return interval.New(MinICMPType, MaxICMPType).ToSet()
 	case icmpCode:
-		return interval.New(MinICMPcode, MaxICMPcode).ToSet()
+		return interval.New(MinICMPCode, MaxICMPCode).ToSet()
 	}
 	return nil
 }
@@ -91,6 +91,8 @@ func newSet(all bool) *Set {
 func All() *Set {
 	return newSet(true)
 }
+
+var all = All()
 
 func None() *Set {
 	return newSet(false)
@@ -215,7 +217,7 @@ func TCPorUDPConnection(protocol netp.ProtocolString, srcMinP, srcMaxP, dstMinP,
 	conn := None()
 	conn.addConnection(protocol,
 		srcMinP, srcMaxP, dstMinP, dstMaxP,
-		MinICMPtype, MaxICMPtype, MinICMPcode, MaxICMPcode)
+		MinICMPType, MaxICMPType, MinICMPCode, MaxICMPCode)
 	return conn
 }
 
@@ -415,7 +417,7 @@ func getCubeAsICMPItems(cube []*interval.CanonicalSet) []netp.Protocol {
 
 type Details []netp.Protocol
 
-func ConnToJSONRep(c *Set) Details {
+func ToJSON(c *Set) Details {
 	if c == nil {
 		return nil // one of the connections in connectionDiff can be empty
 	}
