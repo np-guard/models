@@ -79,13 +79,13 @@ func getDimensionDomainsList() []*interval.CanonicalSet {
 }
 
 type Set struct {
-	AllowAll             bool
+	allowAll             bool
 	connectionProperties *hypercube.CanonicalSet
 	IsStateful           StatefulState
 }
 
 func newSet(all bool) *Set {
-	return &Set{AllowAll: all, connectionProperties: hypercube.NewCanonicalSet(numDimensions)}
+	return &Set{allowAll: all, connectionProperties: hypercube.NewCanonicalSet(numDimensions)}
 }
 
 func All() *Set {
@@ -98,44 +98,48 @@ func None() *Set {
 	return newSet(false)
 }
 
-func (conn *Set) Copy() *Set {
+func (c *Set) AllowAll() bool {
+	return c.allowAll
+}
+
+func (c *Set) Copy() *Set {
 	return &Set{
-		AllowAll:             conn.AllowAll,
-		connectionProperties: conn.connectionProperties.Copy(),
-		IsStateful:           conn.IsStateful,
+		allowAll:             c.allowAll,
+		connectionProperties: c.connectionProperties.Copy(),
+		IsStateful:           c.IsStateful,
 	}
 }
 
-func (conn *Set) Intersect(other *Set) *Set {
-	if other.AllowAll {
-		return conn.Copy()
+func (c *Set) Intersect(other *Set) *Set {
+	if other.allowAll {
+		return c.Copy()
 	}
-	if conn.AllowAll {
+	if c.allowAll {
 		return other.Copy()
 	}
-	return &Set{AllowAll: false, connectionProperties: conn.connectionProperties.Intersect(other.connectionProperties)}
+	return &Set{allowAll: false, connectionProperties: c.connectionProperties.Intersect(other.connectionProperties)}
 }
 
-func (conn *Set) IsEmpty() bool {
-	if conn.AllowAll {
+func (c *Set) IsEmpty() bool {
+	if c.allowAll {
 		return false
 	}
-	return conn.connectionProperties.IsEmpty()
+	return c.connectionProperties.IsEmpty()
 }
 
-func (conn *Set) Union(other *Set) *Set {
-	if conn.AllowAll || other.AllowAll {
+func (c *Set) Union(other *Set) *Set {
+	if c.allowAll || other.allowAll {
 		return All()
 	}
 	if other.IsEmpty() {
-		return conn.Copy()
+		return c.Copy()
 	}
-	if conn.IsEmpty() {
+	if c.IsEmpty() {
 		return other.Copy()
 	}
 	res := &Set{
-		AllowAll:             false,
-		connectionProperties: conn.connectionProperties.Union(other.connectionProperties),
+		allowAll:             false,
+		connectionProperties: c.connectionProperties.Union(other.connectionProperties),
 	}
 	res.canonicalize()
 	return res
@@ -148,34 +152,34 @@ func getAllPropertiesObject() *hypercube.CanonicalSet {
 // Subtract
 // ToDo: Subtract seems to ignore IsStateful (see https://github.com/np-guard/vpc-network-config-analyzer/issues/199):
 //  1. is the delta connection stateful
-//  2. connectionProperties is identical but conn stateful while other is not
+//  2. connectionProperties is identical but c stateful while other is not
 //     the 2nd item can be computed here, with enhancement to relevant structure
 //     the 1st can not since we do not know where exactly the statefulness came from
-func (conn *Set) Subtract(other *Set) *Set {
-	if conn.IsEmpty() || other.AllowAll {
+func (c *Set) Subtract(other *Set) *Set {
+	if c.IsEmpty() || other.allowAll {
 		return None()
 	}
 	if other.IsEmpty() {
-		return conn.Copy()
+		return c.Copy()
 	}
 	var connProperties *hypercube.CanonicalSet
-	if conn.AllowAll {
+	if c.allowAll {
 		connProperties = getAllPropertiesObject()
 	} else {
-		connProperties = conn.connectionProperties
+		connProperties = c.connectionProperties
 	}
-	return &Set{AllowAll: false, connectionProperties: connProperties.Subtract(other.connectionProperties)}
+	return &Set{allowAll: false, connectionProperties: connProperties.Subtract(other.connectionProperties)}
 }
 
-// ContainedIn returns true if conn is subset of other
-func (conn *Set) ContainedIn(other *Set) bool {
-	if other.AllowAll {
+// ContainedIn returns true if c is subset of other
+func (c *Set) ContainedIn(other *Set) bool {
+	if other.allowAll {
 		return true
 	}
-	if conn.AllowAll {
+	if c.allowAll {
 		return false
 	}
-	res, err := conn.connectionProperties.ContainedIn(other.connectionProperties)
+	res, err := c.connectionProperties.ContainedIn(other.connectionProperties)
 	if err != nil {
 		log.Fatalf("invalid connection set. %e", err)
 	}
@@ -195,48 +199,48 @@ func ProtocolStringToCode(protocol netp.ProtocolString) int64 {
 	return 0
 }
 
-func (conn *Set) addConnection(protocol netp.ProtocolString,
+func (c *Set) addConnection(protocol netp.ProtocolString,
 	srcMinP, srcMaxP, dstMinP, dstMaxP,
 	icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) {
 	code := ProtocolStringToCode(protocol)
 	cube := hypercube.Cube(code, code,
 		srcMinP, srcMaxP, dstMinP, dstMaxP,
 		icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
-	conn.connectionProperties = conn.connectionProperties.Union(cube)
-	conn.canonicalize()
+	c.connectionProperties = c.connectionProperties.Union(cube)
+	c.canonicalize()
 }
 
-func (conn *Set) canonicalize() {
-	if !conn.AllowAll && conn.connectionProperties.Equal(getAllPropertiesObject()) {
-		conn.AllowAll = true
-		conn.connectionProperties = hypercube.NewCanonicalSet(numDimensions)
+func (c *Set) canonicalize() {
+	if !c.allowAll && c.connectionProperties.Equal(getAllPropertiesObject()) {
+		c.allowAll = true
+		c.connectionProperties = hypercube.NewCanonicalSet(numDimensions)
 	}
 }
 
 func TCPorUDPConnection(protocol netp.ProtocolString, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *Set {
-	conn := None()
-	conn.addConnection(protocol,
+	c := None()
+	c.addConnection(protocol,
 		srcMinP, srcMaxP, dstMinP, dstMaxP,
 		MinICMPType, MaxICMPType, MinICMPCode, MaxICMPCode)
-	return conn
+	return c
 }
 
 func ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) *Set {
-	conn := None()
-	conn.addConnection(netp.ProtocolStringICMP,
+	c := None()
+	c.addConnection(netp.ProtocolStringICMP,
 		MinPort, MaxPort, MinPort, MaxPort,
 		icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
-	return conn
+	return c
 }
 
-func (conn *Set) Equal(other *Set) bool {
-	if conn.AllowAll != other.AllowAll {
+func (c *Set) Equal(other *Set) bool {
+	if c.allowAll != other.allowAll {
 		return false
 	}
-	if conn.AllowAll {
+	if c.allowAll {
 		return true
 	}
-	return conn.connectionProperties.Equal(other.connectionProperties)
+	return c.connectionProperties.Equal(other.connectionProperties)
 }
 
 func protocolStringFromCode(protocolCode int64) netp.ProtocolString {
@@ -323,15 +327,15 @@ func getConnsCubeStr(cube []*interval.CanonicalSet) string {
 }
 
 // String returns a string representation of a Set object
-func (conn *Set) String() string {
-	if conn.AllowAll {
+func (c *Set) String() string {
+	if c.allowAll {
 		return AllConnections
-	} else if conn.IsEmpty() {
+	} else if c.IsEmpty() {
 		return NoConnections
 	}
 	resStrings := []string{}
 	// get cubes and cube str per each cube
-	cubes := conn.connectionProperties.GetCubesList()
+	cubes := c.connectionProperties.GetCubesList()
 	for _, cube := range cubes {
 		resStrings = append(resStrings, getConnsCubeStr(cube))
 	}
@@ -421,7 +425,7 @@ func ToJSON(c *Set) Details {
 	if c == nil {
 		return nil // one of the connections in connectionDiff can be empty
 	}
-	if c.AllowAll {
+	if c.allowAll {
 		return []netp.Protocol{netp.AnyProtocol{}}
 	}
 	var res []netp.Protocol

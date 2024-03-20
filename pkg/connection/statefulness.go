@@ -24,43 +24,43 @@ const (
 )
 
 // EnhancedString returns a connection string with possibly added asterisk for stateless connection
-func (conn *Set) EnhancedString() string {
-	if conn.IsStateful == StatefulFalse {
-		return conn.String() + " *"
+func (c *Set) EnhancedString() string {
+	if c.IsStateful == StatefulFalse {
+		return c.String() + " *"
 	}
-	return conn.String()
+	return c.String()
 }
 
 func newTCPSet() *Set {
 	return TCPorUDPConnection(netp.ProtocolStringTCP, MinPort, MaxPort, MinPort, MaxPort)
 }
 
-// WithStatefulness updates `conn` object with `IsStateful` property, based on input `secondDirectionConn`.
-// `conn` represents a src-to-dst connection, and `secondDirectionConn` represents dst-to-src connection.
-// The property `IsStateful` of `conn` is set as `StatefulFalse` if there is at least some subset within TCP from `conn`
+// WithStatefulness updates `c` object with `IsStateful` property, based on input `secondDirectionConn`.
+// `c` represents a src-to-dst connection, and `secondDirectionConn` represents dst-to-src connection.
+// The property `IsStateful` of `c` is set as `StatefulFalse` if there is at least some subset within TCP from `c`
 // which is not stateful (such that the response direction for this subset is not enabled).
 // This function also returns a connection object with the exact subset of the stateful part (within TCP)
-// from the entire connection `conn`, and with the original connections on other protocols.
-func (conn *Set) WithStatefulness(secondDirectionConn *Set) *Set {
-	connTCP := conn.Intersect(newTCPSet())
+// from the entire connection `c`, and with the original connections on other protocols.
+func (c *Set) WithStatefulness(secondDirectionConn *Set) *Set {
+	connTCP := c.Intersect(newTCPSet())
 	if connTCP.IsEmpty() {
-		conn.IsStateful = StatefulTrue
-		return conn
+		c.IsStateful = StatefulTrue
+		return c
 	}
 	statefulCombinedConnTCP := connTCP.connTCPWithStatefulness(secondDirectionConn.Intersect(newTCPSet()))
-	conn.IsStateful = connTCP.IsStateful
-	return conn.Subtract(connTCP).Union(statefulCombinedConnTCP)
+	c.IsStateful = connTCP.IsStateful
+	return c.Subtract(connTCP).Union(statefulCombinedConnTCP)
 }
 
-// connTCPWithStatefulness assumes that both `conn` and `secondDirectionConn` are within TCP.
-// it assigns IsStateful a value within `conn`, and returns the subset from `conn` which is stateful.
-func (conn *Set) connTCPWithStatefulness(secondDirectionConn *Set) *Set {
+// connTCPWithStatefulness assumes that both `c` and `secondDirectionConn` are within TCP.
+// it assigns IsStateful a value within `c`, and returns the subset from `c` which is stateful.
+func (c *Set) connTCPWithStatefulness(secondDirectionConn *Set) *Set {
 	// flip src/dst ports before intersection
-	statefulCombinedConn := conn.Intersect(secondDirectionConn.switchSrcDstPortsOnTCP())
-	if conn.Equal(statefulCombinedConn) {
-		conn.IsStateful = StatefulTrue
+	statefulCombinedConn := c.Intersect(secondDirectionConn.switchSrcDstPortsOnTCP())
+	if c.Equal(statefulCombinedConn) {
+		c.IsStateful = StatefulTrue
 	} else {
-		conn.IsStateful = StatefulFalse
+		c.IsStateful = StatefulFalse
 	}
 	return statefulCombinedConn
 }
@@ -68,12 +68,12 @@ func (conn *Set) connTCPWithStatefulness(secondDirectionConn *Set) *Set {
 // switchSrcDstPortsOnTCP returns a new Set object, built from the input Set object.
 // It assumes the input connection object is only within TCP protocol.
 // For TCP the src and dst ports on relevant cubes are being switched.
-func (conn *Set) switchSrcDstPortsOnTCP() *Set {
-	if conn.AllowAll || conn.IsEmpty() {
-		return conn.Copy()
+func (c *Set) switchSrcDstPortsOnTCP() *Set {
+	if c.allowAll || c.IsEmpty() {
+		return c.Copy()
 	}
 	res := None()
-	for _, cube := range conn.connectionProperties.GetCubesList() {
+	for _, cube := range c.connectionProperties.GetCubesList() {
 		// assuming cube[protocol] contains TCP only
 		// no need to switch if src equals dst
 		if !cube[srcPort].Equal(cube[dstPort]) {
