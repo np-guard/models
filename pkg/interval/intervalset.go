@@ -3,7 +3,6 @@
 package interval
 
 import (
-	"fmt"
 	"log"
 	"slices"
 	"sort"
@@ -101,12 +100,7 @@ func (c *CanonicalSet) String() string {
 	}
 	res := ""
 	for _, interval := range c.intervalSet {
-		if interval.Start() != interval.End() {
-			res += fmt.Sprintf("%v-%v", interval.Start(), interval.End())
-		} else {
-			res += fmt.Sprintf("%v", interval.Start())
-		}
-		res += ","
+		res += interval.ShortString() + ","
 	}
 	return res[:len(res)-1]
 }

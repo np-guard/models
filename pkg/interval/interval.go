@@ -33,6 +33,18 @@ func (i Interval) String() string {
 	return fmt.Sprintf("[%v-%v]", i.start, i.end)
 }
 
+// ShortString returns a compacted String representation of Interval object:
+// "v" instead of "v-v", without braces
+func (i Interval) ShortString() string {
+	if i.IsEmpty() {
+		return ""
+	}
+	if i.start == i.end {
+		return fmt.Sprintf("%v", i.start)
+	}
+	return fmt.Sprintf("%v-%v", i.start, i.end)
+}
+
 // IsEmpty returns true if the interval is empty, false otherwise.
 // An interval is considered empty if its start is greater than its end.
 func (i Interval) IsEmpty() bool {
