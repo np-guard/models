@@ -98,6 +98,10 @@ func (c *Set) IsAll() bool {
 	return c.Equal(all)
 }
 
+func (c *Set) Equal(other *Set) bool {
+	return c.connectionProperties.Equal(other.connectionProperties)
+}
+
 func (c *Set) Copy() *Set {
 	return &Set{
 		connectionProperties: c.connectionProperties.Copy(),
@@ -150,7 +154,7 @@ func (c *Set) ContainedIn(other *Set) bool {
 	return res
 }
 
-func ProtocolStringToCode(protocol netp.ProtocolString) int64 {
+func protocolStringToCode(protocol netp.ProtocolString) int64 {
 	switch protocol {
 	case netp.ProtocolStringTCP:
 		return TCPCode
@@ -166,7 +170,7 @@ func ProtocolStringToCode(protocol netp.ProtocolString) int64 {
 func cube(protocolString netp.ProtocolString,
 	srcMinP, srcMaxP, dstMinP, dstMaxP,
 	icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) *Set {
-	protocol := ProtocolStringToCode(protocolString)
+	protocol := protocolStringToCode(protocolString)
 	return &Set{
 		connectionProperties: hypercube.Cube(protocol, protocol,
 			srcMinP, srcMaxP, dstMinP, dstMaxP,
@@ -185,10 +189,6 @@ func ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) *S
 		icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
 }
 
-func (c *Set) Equal(other *Set) bool {
-	return c.connectionProperties.Equal(other.connectionProperties)
-}
-
 func protocolStringFromCode(protocolCode int64) netp.ProtocolString {
 	switch protocolCode {
 	case TCPCode:
@@ -202,7 +202,8 @@ func protocolStringFromCode(protocolCode int64) netp.ProtocolString {
 	return ""
 }
 
-func getDimensionString(dimValue *interval.CanonicalSet, dim Dimension) string {
+func getDimensionString(cube []*interval.CanonicalSet, dim Dimension) string {
+	dimValue := cube[dim]
 	if dimValue.Equal(entireDimension(dim)) {
 		// avoid adding dimension str on full dimension values
 		return ""
@@ -215,6 +216,8 @@ func getDimensionString(dimValue *interval.CanonicalSet, dim Dimension) string {
 				pList = append(pList, string(protocolStringFromCode(code)))
 			}
 		}
+		// sort by string values to avoid dependence on internal encoding
+		sort.Strings(pList)
 		return "protocol: " + strings.Join(pList, ",")
 	case srcPort:
 		return "src-ports: " + dimValue.String()
@@ -228,48 +231,37 @@ func getDimensionString(dimValue *interval.CanonicalSet, dim Dimension) string {
 	return ""
 }
 
-func filterEmptyPropertiesStr(inputList []string) []string {
+func joinNonEmpty(inputList ...string) string {
 	res := []string{}
 	for _, propertyStr := range inputList {
 		if propertyStr != "" {
 			res = append(res, propertyStr)
 		}
 	}
-	return res
-}
-
-func getICMPbasedCubeStr(protocolsValues, icmpTypeValues, icmpCodeValues *interval.CanonicalSet) string {
-	strList := []string{
-		getDimensionString(protocolsValues, protocol),
-		getDimensionString(icmpTypeValues, icmpType),
-		getDimensionString(icmpCodeValues, icmpCode),
-	}
-	return strings.Join(filterEmptyPropertiesStr(strList), propertySeparator)
-}
-
-func getPortBasedCubeStr(protocolsValues, srcPortsValues, dstPortsValues *interval.CanonicalSet) string {
-	strList := []string{
-		getDimensionString(protocolsValues, protocol),
-		getDimensionString(srcPortsValues, srcPort),
-		getDimensionString(dstPortsValues, dstPort),
-	}
-	return strings.Join(filterEmptyPropertiesStr(strList), propertySeparator)
-}
-
-func getMixedProtocolsCubeStr(protocols *interval.CanonicalSet) string {
-	// TODO: make sure other dimension values are full
-	return getDimensionString(protocols, protocol)
+	return strings.Join(res, propertySeparator)
 }
 
 func getConnsCubeStr(cube []*interval.CanonicalSet) string {
 	protocols := cube[protocol]
-	if (protocols.Contains(TCPCode) || protocols.Contains(UDPCode)) && !protocols.Contains(ICMPCode) {
-		return getPortBasedCubeStr(protocols, cube[srcPort], cube[dstPort])
+	tcpOrUDP := protocols.Contains(TCPCode) || protocols.Contains(UDPCode)
+	icmp := protocols.Contains(ICMPCode)
+	switch {
+	case tcpOrUDP && !icmp:
+		return joinNonEmpty(
+			getDimensionString(cube, protocol),
+			getDimensionString(cube, srcPort),
+			getDimensionString(cube, dstPort),
+		)
+	case icmp && !tcpOrUDP:
+		return joinNonEmpty(
+			getDimensionString(cube, protocol),
+			getDimensionString(cube, icmpType),
+			getDimensionString(cube, icmpCode),
+		)
+	default:
+		// TODO: make sure other dimension values are full
+		return getDimensionString(cube, protocol)
 	}
-	if protocols.Contains(ICMPCode) && !(protocols.Contains(TCPCode) || protocols.Contains(UDPCode)) {
-		return getICMPbasedCubeStr(protocols, cube[icmpType], cube[icmpCode])
-	}
-	return getMixedProtocolsCubeStr(protocols)
 }
 
 // String returns a string representation of a Set object

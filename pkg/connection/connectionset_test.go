@@ -33,7 +33,7 @@ func TestBasicSetTCP(t *testing.T) {
 	require.Equal(t, "protocol: TCP", e.String())
 
 	c := connection.All().Subtract(e)
-	require.Equal(t, "protocol: UDP,ICMP", c.String())
+	require.Equal(t, "protocol: ICMP,UDP", c.String())
 
 	c = c.Union(e)
 	require.Equal(t, "All Connections", c.String())
