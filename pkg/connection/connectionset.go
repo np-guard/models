@@ -358,7 +358,7 @@ type Details spec.ProtocolList
 
 func ToJSON(c *Set) Details {
 	if c == nil {
-		return nil // one of the connections in connectionDiff can be empty
+		return nil
 	}
 	if c.IsAll() {
 		return Details(spec.ProtocolList{spec.AnyProtocol{Protocol: spec.AnyProtocolProtocolANY}})
