@@ -369,3 +369,88 @@ func TestOr2(t *testing.T) {
 	)
 	require.True(t, expected.Equal(a))
 }
+
+// Assisted by WCA for GP
+// Latest GenAI contribution: granite-20B-code-instruct-v2 model
+// TestSwapDimensions tests the SwapDimensions method of the CanonicalSet type.
+func TestSwapDimensions(t *testing.T) {
+	tests := []struct {
+		name     string
+		c        *hypercube.CanonicalSet
+		dim1     int
+		dim2     int
+		expected *hypercube.CanonicalSet
+	}{
+		{
+			name:     "empty set",
+			c:        hypercube.NewCanonicalSet(2),
+			dim1:     0,
+			dim2:     1,
+			expected: hypercube.NewCanonicalSet(2),
+		},
+		{
+			name:     "0,0 of 1",
+			c:        hypercube.Cube(1, 2),
+			dim1:     0,
+			dim2:     0,
+			expected: hypercube.Cube(1, 2),
+		},
+		{
+			name:     "0,1 of 2",
+			c:        hypercube.Cube(1, 2, 3, 4),
+			dim1:     0,
+			dim2:     1,
+			expected: hypercube.Cube(3, 4, 1, 2),
+		},
+		{
+			name:     "0,1 of 2, no-op",
+			c:        hypercube.Cube(1, 2, 1, 2),
+			dim1:     0,
+			dim2:     1,
+			expected: hypercube.Cube(1, 2, 1, 2),
+		},
+		{
+			name:     "0,1 of 3",
+			c:        hypercube.Cube(1, 2, 3, 4, 5, 6),
+			dim1:     0,
+			dim2:     1,
+			expected: hypercube.Cube(3, 4, 1, 2, 5, 6),
+		},
+		{
+			name:     "1,2 of 3",
+			c:        hypercube.Cube(1, 2, 3, 4, 5, 6),
+			dim1:     1,
+			dim2:     2,
+			expected: hypercube.Cube(1, 2, 5, 6, 3, 4),
+		},
+		{
+			name:     "0,2 of 3",
+			c:        hypercube.Cube(1, 2, 3, 4, 5, 6),
+			dim1:     0,
+			dim2:     2,
+			expected: hypercube.Cube(5, 6, 3, 4, 1, 2),
+		},
+		{
+			name: "0,1 of 2, non-cube",
+			c: union(
+				hypercube.Cube(1, 3, 7, 20),
+				hypercube.Cube(20, 23, 7, 20),
+			),
+			dim1: 0,
+			dim2: 1,
+			expected: union(
+				hypercube.Cube(7, 20, 1, 3),
+				hypercube.Cube(7, 20, 20, 23),
+			),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := tt.c.SwapDimensions(tt.dim1, tt.dim2)
+			require.True(t, tt.expected != actual)
+			require.True(t, tt.expected.Equal(actual))
+		})
+	}
+	require.Panics(t, func() { hypercube.Cube(1, 2).SwapDimensions(0, 1) })
+	require.Panics(t, func() { hypercube.Cube(1, 2).SwapDimensions(-1, 0) })
+}

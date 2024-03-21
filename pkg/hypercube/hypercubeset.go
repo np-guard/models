@@ -4,6 +4,7 @@ package hypercube
 
 import (
 	"errors"
+	"log"
 	"slices"
 	"sort"
 	"strings"
@@ -254,8 +255,11 @@ func (c *CanonicalSet) GetCubesList() [][]*interval.CanonicalSet {
 // SwapDimensions returns a new CanonicalSet object, built from the input CanonicalSet object,
 // with dimensions dim1 and dim2 swapped
 func (c *CanonicalSet) SwapDimensions(dim1, dim2 int) *CanonicalSet {
-	if c.IsEmpty() {
+	if c.IsEmpty() || dim1 == dim2 {
 		return c.Copy()
+	}
+	if min(dim1, dim2) < 0 || max(dim1, dim2) >= c.dimensions {
+		log.Panicf("invalid dimensions: %d, %d", dim1, dim2)
 	}
 	res := NewCanonicalSet(c.dimensions)
 	for _, cube := range c.GetCubesList() {
