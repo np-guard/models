@@ -5,7 +5,6 @@ package connection
 import (
 	"slices"
 
-	"github.com/np-guard/models/pkg/hypercube"
 	"github.com/np-guard/models/pkg/netp"
 )
 
@@ -69,19 +68,11 @@ func (c *Set) connTCPWithStatefulness(secondDirectionConn *Set) *Set {
 // It assumes the input connection object is only within TCP protocol.
 // For TCP the src and dst ports on relevant cubes are being switched.
 func (c *Set) switchSrcDstPortsOnTCP() *Set {
-	if c.IsAll() || c.IsEmpty() {
+	if c.IsAll() {
 		return c.Copy()
 	}
-	res := None()
-	for _, cube := range c.connectionProperties.GetCubesList() {
-		// assuming cube[protocol] contains TCP only
-		// no need to switch if src equals dst
-		if !cube[srcPort].Equal(cube[dstPort]) {
-			// Shallow clone should be enough, since we do shallow swap:
-			cube = slices.Clone(cube)
-			cube[srcPort], cube[dstPort] = cube[dstPort], cube[srcPort]
-		}
-		res.connectionProperties = res.connectionProperties.Union(hypercube.FromCube(cube))
+	newConn := c.connectionProperties.SwapDimensions(slices.Index(dimensionsList, srcPort), slices.Index(dimensionsList, dstPort))
+	return &Set{
+		connectionProperties: newConn,
 	}
-	return res
 }

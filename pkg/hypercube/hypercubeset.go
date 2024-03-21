@@ -4,6 +4,7 @@ package hypercube
 
 import (
 	"errors"
+	"slices"
 	"sort"
 	"strings"
 
@@ -246,6 +247,24 @@ func (c *CanonicalSet) GetCubesList() [][]*interval.CanonicalSet {
 			cube = append(cube, subList...)
 			res = append(res, cube)
 		}
+	}
+	return res
+}
+
+// SwapDimensions returns a new CanonicalSet object, built from the input CanonicalSet object,
+// with dimensions dim1 and dim2 swapped
+func (c *CanonicalSet) SwapDimensions(dim1, dim2 int) *CanonicalSet {
+	if c.IsEmpty() {
+		return c.Copy()
+	}
+	res := NewCanonicalSet(c.dimensions)
+	for _, cube := range c.GetCubesList() {
+		if !cube[dim1].Equal(cube[dim2]) {
+			// Shallow clone should be enough, since we do shallow swap:
+			cube = slices.Clone(cube)
+			cube[dim1], cube[dim2] = cube[dim2], cube[dim1]
+		}
+		res = res.Union(FromCube(cube))
 	}
 	return res
 }
