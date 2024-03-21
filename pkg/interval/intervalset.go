@@ -181,6 +181,9 @@ func (c *CanonicalSet) Overlap(other *CanonicalSet) bool {
 
 // Subtract returns the subtraction result of input CanonicalSet
 func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
+	if c == other {
+		return NewCanonicalSet()
+	}
 	res := c.Copy()
 	for _, i := range other.intervalSet {
 		res.AddHole(i)
@@ -195,11 +198,16 @@ func (c *CanonicalSet) IsSingleNumber() bool {
 	return false
 }
 
+// Elements returns a slice with all the numbers contained in the set.
+// USE WITH CARE. It can easily run out of memory for large sets.
 func (c *CanonicalSet) Elements() []int64 {
-	res := []int64{}
+	// allocate memory up front, to fail early
+	res := make([]int64, c.CalculateSize())
+	i := 0
 	for _, interval := range c.intervalSet {
-		for i := interval.Start; i <= interval.End; i++ {
-			res = append(res, i)
+		for v := interval.Start; v <= interval.End; v++ {
+			res[i] = v
+			i++
 		}
 	}
 	return res

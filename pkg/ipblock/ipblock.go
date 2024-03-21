@@ -168,7 +168,7 @@ func DisjointIPBlocks(set1, set2 []*IPBlock) []*IPBlock {
 	}
 
 	if len(res) == 0 {
-		res = append(res, GetCidrAll())
+		res = []*IPBlock{GetCidrAll()}
 	}
 	return res
 }
