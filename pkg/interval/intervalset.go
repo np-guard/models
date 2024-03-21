@@ -1,3 +1,5 @@
+// Copyright 2020- IBM Inc. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
 package interval
 
 import (
@@ -7,9 +9,9 @@ import (
 	"sort"
 )
 
-// CanonicalSet is a canonical representation of a set of Interval objects
+// CanonicalSet is a set of int64 integers, implemented using an ordered slice of non-overlapping, non-touching interval
 type CanonicalSet struct {
-	intervalSet []Interval // sorted list of non-overlapping intervals
+	intervalSet []Interval
 }
 
 func NewCanonicalSet() *CanonicalSet {
@@ -33,9 +35,17 @@ func (c *CanonicalSet) Min() int64 {
 	return c.intervalSet[0].Start
 }
 
-// IsEmpty returns true if the  CanonicalSet is empty
+// IsEmpty returns true if the CanonicalSet is empty
 func (c *CanonicalSet) IsEmpty() bool {
 	return len(c.intervalSet) == 0
+}
+
+func (c *CanonicalSet) CalculateSize() int64 {
+	var res int64 = 0
+	for _, r := range c.intervalSet {
+		res += r.Size()
+	}
+	return res
 }
 
 // Equal returns true if the CanonicalSet equals the input CanonicalSet
@@ -81,10 +91,6 @@ func (c *CanonicalSet) AddHole(hole Interval) {
 	c.intervalSet = newIntervalSet
 }
 
-func getNumAsStr(num int64) string {
-	return fmt.Sprintf("%v", num)
-}
-
 // String returns a string representation of the current CanonicalSet object
 func (c *CanonicalSet) String() string {
 	if c.IsEmpty() {
@@ -92,9 +98,10 @@ func (c *CanonicalSet) String() string {
 	}
 	res := ""
 	for _, interval := range c.intervalSet {
-		res += getNumAsStr(interval.Start)
 		if interval.Start != interval.End {
-			res += "-" + getNumAsStr(interval.End)
+			res += fmt.Sprintf("%v-%v", interval.Start, interval.End)
+		} else {
+			res += fmt.Sprintf("%v", interval.Start)
 		}
 		res += ","
 	}
@@ -119,8 +126,7 @@ func (c *CanonicalSet) Copy() *CanonicalSet {
 }
 
 func (c *CanonicalSet) Contains(n int64) bool {
-	i := NewSetFromInterval(New(n, n))
-	return i.ContainedIn(c)
+	return New(n, n).ToSet().ContainedIn(c)
 }
 
 // ContainedIn returns true of the current CanonicalSet is contained in the input CanonicalSet
@@ -178,24 +184,33 @@ func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
 	if c == other {
 		return NewCanonicalSet()
 	}
-	res := slices.Clone(c.intervalSet)
-	for _, hole := range other.intervalSet {
-		newIntervalSet := []Interval{}
-		for _, interval := range res {
-			newIntervalSet = append(newIntervalSet, interval.subtract(hole)...)
-		}
-		res = newIntervalSet
+	res := c.Copy()
+	for _, i := range other.intervalSet {
+		res.AddHole(i)
 	}
-	return &CanonicalSet{
-		intervalSet: res,
-	}
+	return res
 }
 
 func (c *CanonicalSet) IsSingleNumber() bool {
-	if len(c.intervalSet) == 1 && c.intervalSet[0].Start == c.intervalSet[0].End {
+	if len(c.intervalSet) == 1 && c.intervalSet[0].Size() == 1 {
 		return true
 	}
 	return false
+}
+
+// Elements returns a slice with all the numbers contained in the set.
+// USE WITH CARE. It can easily run out of memory for large sets.
+func (c *CanonicalSet) Elements() []int64 {
+	// allocate memory up front, to fail early
+	res := make([]int64, c.CalculateSize())
+	i := 0
+	for _, interval := range c.intervalSet {
+		for v := interval.Start; v <= interval.End; v++ {
+			res[i] = v
+			i++
+		}
+	}
+	return res
 }
 
 func NewSetFromInterval(span Interval) *CanonicalSet {

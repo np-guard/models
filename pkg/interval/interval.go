@@ -1,3 +1,5 @@
+// Copyright 2020- IBM Inc. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
 package interval
 
 import "fmt"
@@ -20,6 +22,10 @@ func (i Interval) String() string {
 // Equal returns true if current Interval obj is equal to the input Interval
 func (i Interval) Equal(x Interval) bool {
 	return i.Start == x.Start && i.End == x.End
+}
+
+func (i Interval) Size() int64 {
+	return i.End - i.Start + 1
 }
 
 func (i Interval) overlaps(other Interval) bool {

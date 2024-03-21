@@ -1,7 +1,11 @@
+// Copyright 2020- IBM Inc. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
 package hypercube
 
 import (
 	"errors"
+	"log"
+	"slices"
 	"sort"
 	"strings"
 
@@ -163,7 +167,7 @@ func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
 	}
 }
 
-// ContainedIn returns true ic other contained in c
+// ContainedIn returns true if c is subset of other
 func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
 	if c == other {
 		return true, nil
@@ -179,8 +183,7 @@ func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
 	}
 
 	isSubsetCount := 0
-	for k, v := range c.layers {
-		currentLayer := k.Copy()
+	for currentLayer, v := range c.layers {
 		for otherKey, otherVal := range other.layers {
 			commonKey := currentLayer.Intersect(otherKey)
 			remaining := currentLayer.Subtract(commonKey)
@@ -249,6 +252,27 @@ func (c *CanonicalSet) GetCubesList() [][]*interval.CanonicalSet {
 	return res
 }
 
+// SwapDimensions returns a new CanonicalSet object, built from the input CanonicalSet object,
+// with dimensions dim1 and dim2 swapped
+func (c *CanonicalSet) SwapDimensions(dim1, dim2 int) *CanonicalSet {
+	if c.IsEmpty() || dim1 == dim2 {
+		return c.Copy()
+	}
+	if min(dim1, dim2) < 0 || max(dim1, dim2) >= c.dimensions {
+		log.Panicf("invalid dimensions: %d, %d", dim1, dim2)
+	}
+	res := NewCanonicalSet(c.dimensions)
+	for _, cube := range c.GetCubesList() {
+		if !cube[dim1].Equal(cube[dim2]) {
+			// Shallow clone should be enough, since we do shallow swap:
+			cube = slices.Clone(cube)
+			cube[dim1], cube[dim2] = cube[dim2], cube[dim1]
+		}
+		res = res.Union(FromCube(cube))
+	}
+	return res
+}
+
 func getElementsUnionPerLayer(layers map[*interval.CanonicalSet]*CanonicalSet) map[*interval.CanonicalSet]*CanonicalSet {
 	type pair struct {
 		hc *CanonicalSet            // hypercube set object
@@ -288,4 +312,15 @@ func FromCube(cube []*interval.CanonicalSet) *CanonicalSet {
 	res := NewCanonicalSet(len(cube))
 	res.layers[cube[0].Copy()] = FromCube(cube[1:])
 	return res
+}
+
+// Cube returns a new CanonicalSet created from a single input cube
+// the input cube is given as an ordered list of integer values, where each two values
+// represent the range (start,end) for a dimension value
+func Cube(values ...int64) *CanonicalSet {
+	cube := []*interval.CanonicalSet{}
+	for i := 0; i < len(values); i += 2 {
+		cube = append(cube, interval.New(values[i], values[i+1]).ToSet())
+	}
+	return FromCube(cube)
 }
