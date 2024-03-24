@@ -8,9 +8,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/models/pkg/hypercube"
+	"github.com/np-guard/models/pkg/interval"
 )
 
-func union(set *hypercube.CanonicalSet, sets ...*hypercube.CanonicalSet) *hypercube.CanonicalSet {
+func union(set *hypercube.CanonicalSet[*interval.CanonicalSet],
+	sets ...*hypercube.CanonicalSet[*interval.CanonicalSet]) *hypercube.CanonicalSet[*interval.CanonicalSet] {
 	for _, c := range sets {
 		set = set.Union(c)
 	}
@@ -94,7 +96,7 @@ func TestNew(t *testing.T) {
 	require.Equal(t, expectedStr, a.String())
 }
 
-func checkContained(t *testing.T, a, b *hypercube.CanonicalSet, expected bool) {
+func checkContained(t *testing.T, a, b *hypercube.CanonicalSet[*interval.CanonicalSet], expected bool) {
 	t.Helper()
 	contained, err := a.ContainedIn(b)
 	require.Nil(t, err)
@@ -217,6 +219,7 @@ func TestBasicAddCube(t *testing.T) {
 
 func TestFourHoles(t *testing.T) {
 	a := hypercube.Cube(1, 2, 1, 2)
+	require.Equal(t, "[(1-2),(1-2)]", a.String())
 	require.Equal(t, "[(1),(2)]; [(2),(1-2)]", a.Subtract(hypercube.Cube(1, 1, 1, 1)).String())
 	require.Equal(t, "[(1),(1)]; [(2),(1-2)]", a.Subtract(hypercube.Cube(1, 1, 2, 2)).String())
 	require.Equal(t, "[(1),(1-2)]; [(2),(2)]", a.Subtract(hypercube.Cube(2, 2, 1, 1)).String())
@@ -371,7 +374,8 @@ func TestOr2(t *testing.T) {
 }
 
 func TestSwapDimensions(t *testing.T) {
-	require.True(t, hypercube.NewCanonicalSet(2).SwapDimensions(0, 1).Equal(hypercube.NewCanonicalSet(2)))
+	s := hypercube.NewCanonicalSet[*interval.CanonicalSet](2)
+	require.True(t, s.SwapDimensions(0, 1).Equal(s))
 
 	require.True(t, hypercube.Cube(1, 2).SwapDimensions(0, 0).Equal(hypercube.Cube(1, 2)))
 

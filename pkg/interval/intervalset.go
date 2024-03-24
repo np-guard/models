@@ -19,6 +19,10 @@ func NewCanonicalSet() *CanonicalSet {
 	}
 }
 
+func (c *CanonicalSet) Hash() int {
+	return len(c.intervalSet)
+}
+
 func (c *CanonicalSet) Intervals() []Interval {
 	return slices.Clone(c.intervalSet)
 }

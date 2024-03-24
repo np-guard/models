@@ -72,12 +72,12 @@ func entireDimension(dim Dimension) *interval.CanonicalSet {
 }
 
 type Set struct {
-	connectionProperties *hypercube.CanonicalSet
+	connectionProperties *hypercube.CanonicalSet[*interval.CanonicalSet]
 	IsStateful           StatefulState
 }
 
 func None() *Set {
-	return &Set{connectionProperties: hypercube.NewCanonicalSet(len(dimensionsList))}
+	return &Set{connectionProperties: hypercube.NewCanonicalSet[*interval.CanonicalSet](len(dimensionsList))}
 }
 
 func All() *Set {

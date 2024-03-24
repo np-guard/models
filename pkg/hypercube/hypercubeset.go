@@ -4,6 +4,7 @@ package hypercube
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"slices"
 	"sort"
@@ -12,163 +13,185 @@ import (
 	"github.com/np-guard/models/pkg/interval"
 )
 
-// CanonicalSet is a canonical representation for set of n-dimensional cubes, from integer intervals
-type CanonicalSet struct {
-	layers     map[*interval.CanonicalSet]*CanonicalSet
+type SetOps[S any] interface {
+	IsEmpty() bool
+	ContainedIn(S) bool
+	Intersect(S) S
+	Union(S) S
+	Subtract(S) S
+	fmt.Stringer
+}
+
+type HashableSet[S any] interface {
+	Hashable[S]
+	SetOps[S]
+}
+
+// CanonicalSet is a canonical representation for set of n-dimensional cubes
+type CanonicalSet[T HashableSet[T]] struct {
+	layers     Map[T, *CanonicalSet[T]]
 	dimensions int
 }
 
 // NewCanonicalSet returns a new empty CanonicalSet with n dimensions
-func NewCanonicalSet(n int) *CanonicalSet {
-	return &CanonicalSet{
-		layers:     map[*interval.CanonicalSet]*CanonicalSet{},
+func NewCanonicalSet[T HashableSet[T]](n int) *CanonicalSet[T] {
+	return &CanonicalSet[T]{
+		layers:     NewMap[T, *CanonicalSet[T]](),
 		dimensions: n,
 	}
 }
 
 // Equal return true if c equals other (same canonical form)
-func (c *CanonicalSet) Equal(other *CanonicalSet) bool {
+func (c *CanonicalSet[T]) Equal(other *CanonicalSet[T]) bool {
 	if c == other {
 		return true
 	}
 	if c.dimensions != other.dimensions {
 		return false
 	}
-	if len(c.layers) != len(other.layers) {
-		return false
+	return c.layers.Equal(&other.layers)
+}
+
+const (
+	hashX = 3
+	hashY = 5
+)
+
+func (c *CanonicalSet[T]) Hash() int {
+	if c.dimensions == 0 {
+		return 1
 	}
-	if len(c.layers) == 0 {
-		return true
+	res := hashX
+	for _, p := range c.layers.Pairs() {
+		res ^= hashY*p.Value.dimensions + (p.Key.Hash() << 1) ^ p.Value.Hash()
 	}
-	mapByString := map[string]*CanonicalSet{}
-	for k, v := range c.layers {
-		mapByString[k.String()] = v
-	}
-	for k, v := range other.layers {
-		if w, ok := mapByString[k.String()]; !ok || !v.Equal(w) {
-			return false
-		}
-	}
-	return true
+	return res
 }
 
 // Union returns a new CanonicalSet object that results from union of c with other
-func (c *CanonicalSet) Union(other *CanonicalSet) *CanonicalSet {
+func (c *CanonicalSet[T]) Union(other *CanonicalSet[T]) *CanonicalSet[T] {
 	if c == other {
 		return c.Copy()
 	}
 	if c.dimensions != other.dimensions {
 		return nil
 	}
-	remainingFromOther := map[*interval.CanonicalSet]*interval.CanonicalSet{}
-	for otherKey := range other.layers {
-		remainingFromOther[otherKey] = otherKey.Copy()
+	if c.IsEmpty() {
+		return other.Copy()
 	}
-	layers := map[*interval.CanonicalSet]*CanonicalSet{}
-	for k, v := range c.layers {
-		remainingFromSelf := k.Copy()
-		for otherKey, otherVal := range other.layers {
-			commonElem := k.Intersect(otherKey)
+	if other.IsEmpty() {
+		return c.Copy()
+	}
+	res := NewCanonicalSet[T](c.dimensions)
+	remainingFromOther := NewMap[T, T]()
+	for _, k := range other.layers.Keys() {
+		remainingFromOther.Insert(k, k.Copy())
+	}
+	for _, pair := range c.layers.Pairs() {
+		remainingFromSelf := pair.Key.Copy()
+		for _, otherPair := range other.layers.Pairs() {
+			commonElem := pair.Key.Intersect(otherPair.Key)
 			if commonElem.IsEmpty() {
 				continue
 			}
-			remainingFromOther[otherKey] = remainingFromOther[otherKey].Subtract(commonElem)
-			remainingFromSelf = remainingFromSelf.Subtract(commonElem)
-			newSubElem := NewCanonicalSet(0)
-			if c.dimensions != 1 {
-				newSubElem = v.Union(otherVal)
+			if v, ok := remainingFromOther.At(otherPair.Key); ok {
+				remainingFromOther.Insert(otherPair.Key, v.Subtract(commonElem))
 			}
-			layers[commonElem] = newSubElem
+			remainingFromSelf = remainingFromSelf.Subtract(commonElem)
+			if c.dimensions == 1 {
+				res.layers.Insert(commonElem, NewCanonicalSet[T](0))
+				continue
+			}
+			newSubElem := pair.Value.Union(otherPair.Value)
+			res.layers.Insert(commonElem, newSubElem)
 		}
 		if !remainingFromSelf.IsEmpty() {
-			layers[remainingFromSelf] = v.Copy()
+			res.layers.Insert(remainingFromSelf, pair.Value.Copy())
 		}
 	}
-	for k, v := range remainingFromOther {
-		if !v.IsEmpty() {
-			layers[v] = other.layers[k].Copy()
+	for _, pair := range remainingFromOther.Pairs() {
+		if !pair.Value.IsEmpty() {
+			if otherValue, ok := other.layers.At(pair.Key); ok {
+				res.layers.Insert(pair.Value, otherValue.Copy())
+			}
 		}
 	}
-	return &CanonicalSet{
-		layers:     getElementsUnionPerLayer(layers),
-		dimensions: c.dimensions,
-	}
+	res.canonicalize()
+	return res
 }
 
 // IsEmpty returns true if c is empty
-func (c *CanonicalSet) IsEmpty() bool {
-	return len(c.layers) == 0
+func (c *CanonicalSet[T]) IsEmpty() bool {
+	return c.layers.IsEmpty()
 }
 
 // Intersect returns a new CanonicalSet object that results from intersection of c with other
-func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
+func (c *CanonicalSet[T]) Intersect(other *CanonicalSet[T]) *CanonicalSet[T] {
 	if c == other {
 		return c.Copy()
 	}
 	if c.dimensions != other.dimensions {
 		return nil
 	}
-
-	layers := map[*interval.CanonicalSet]*CanonicalSet{}
-	for k, v := range c.layers {
-		for otherKey, otherVal := range other.layers {
-			commonELem := k.Intersect(otherKey)
+	res := NewCanonicalSet[T](c.dimensions)
+	for _, pair := range c.layers.Pairs() {
+		for _, otherPair := range other.layers.Pairs() {
+			commonELem := pair.Key.Intersect(otherPair.Key)
 			if commonELem.IsEmpty() {
 				continue
 			}
 			if c.dimensions == 1 {
-				layers[commonELem] = NewCanonicalSet(0)
+				res.layers.Insert(commonELem, NewCanonicalSet[T](0))
 				continue
 			}
-			newSubElem := v.Intersect(otherVal)
+			newSubElem := pair.Value.Intersect(otherPair.Value)
 			if !newSubElem.IsEmpty() {
-				layers[commonELem] = newSubElem
+				res.layers.Insert(commonELem, newSubElem)
 			}
 		}
 	}
-	return &CanonicalSet{
-		layers:     getElementsUnionPerLayer(layers),
-		dimensions: c.dimensions,
-	}
+	res.canonicalize()
+	return res
 }
 
 // Subtract returns a new CanonicalSet object that results from subtraction other from c
-func (c *CanonicalSet) Subtract(other *CanonicalSet) *CanonicalSet {
+func (c *CanonicalSet[T]) Subtract(other *CanonicalSet[T]) *CanonicalSet[T] {
 	if c == other {
-		return NewCanonicalSet(c.dimensions)
+		return NewCanonicalSet[T](c.dimensions)
 	}
 	if c.dimensions != other.dimensions {
 		return nil
 	}
-	layers := map[*interval.CanonicalSet]*CanonicalSet{}
-	for k, v := range c.layers {
-		remainingFromSelf := k.Copy()
-		for otherKey, otherVal := range other.layers {
-			commonElem := k.Intersect(otherKey)
-			if commonElem.IsEmpty() {
+	if other.IsEmpty() {
+		return c.Copy()
+	}
+	res := NewCanonicalSet[T](c.dimensions)
+	for _, pair := range c.layers.Pairs() {
+		remainingFromSelf := pair.Key.Copy()
+		for _, otherPair := range other.layers.Pairs() {
+			commonELem := pair.Key.Intersect(otherPair.Key)
+			if commonELem.IsEmpty() {
 				continue
 			}
-			remainingFromSelf = remainingFromSelf.Subtract(commonElem)
+			remainingFromSelf = remainingFromSelf.Subtract(commonELem)
 			if c.dimensions == 1 {
 				continue
 			}
-			newSubElem := v.Subtract(otherVal)
+			newSubElem := pair.Value.Subtract(otherPair.Value)
 			if !newSubElem.IsEmpty() {
-				layers[commonElem] = newSubElem
+				res.layers.Insert(commonELem, newSubElem)
 			}
 		}
 		if !remainingFromSelf.IsEmpty() {
-			layers[remainingFromSelf] = v.Copy()
+			res.layers.Insert(remainingFromSelf, pair.Value.Copy())
 		}
 	}
-	return &CanonicalSet{
-		layers:     getElementsUnionPerLayer(layers),
-		dimensions: c.dimensions,
-	}
+	res.canonicalize()
+	return res
 }
 
-// ContainedIn returns true if c is subset of other
-func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
+// ContainedIn returns true if c contained in other
+func (c *CanonicalSet[T]) ContainedIn(other *CanonicalSet[T]) (bool, error) {
 	if c == other {
 		return true, nil
 	}
@@ -176,44 +199,44 @@ func (c *CanonicalSet) ContainedIn(other *CanonicalSet) (bool, error) {
 		return false, errors.New("ContainedIn mismatch between num of dimensions for input args")
 	}
 	if c.dimensions == 0 {
-		if len(c.layers) != 0 || len(other.layers) != 0 {
-			return false, errors.New("unexpected non-empty object of dimension size 0")
-		}
 		return true, nil
 	}
 
-	isSubsetCount := 0
-	for currentLayer, v := range c.layers {
-		for otherKey, otherVal := range other.layers {
-			commonKey := currentLayer.Intersect(otherKey)
-			remaining := currentLayer.Subtract(commonKey)
-			if !commonKey.IsEmpty() {
-				subContainment, err := v.ContainedIn(otherVal)
-				if !subContainment || err != nil {
-					return subContainment, err
-				}
-				if !remaining.IsEmpty() {
-					currentLayer = remaining
-				} else {
-					isSubsetCount += 1
-					break
-				}
+	subsetCount := 0
+	for _, pair := range c.layers.Pairs() {
+		LeftoverKey := pair.Key.Copy()
+		for _, otherPair := range other.layers.Pairs() {
+			commonKey := otherPair.Key.Intersect(LeftoverKey)
+			if commonKey.IsEmpty() {
+				continue
+			}
+			subContainment, err := pair.Value.ContainedIn(otherPair.Value)
+			if err != nil {
+				return false, err
+			}
+			if !subContainment {
+				return false, nil
+			}
+			LeftoverKey = LeftoverKey.Subtract(commonKey)
+			if LeftoverKey.IsEmpty() {
+				subsetCount += 1
+				break
 			}
 		}
 	}
-	return isSubsetCount == len(c.layers), nil
+	return subsetCount == c.layers.Size(), nil
 }
 
 // Copy returns a new CanonicalSet object, copied from c
-func (c *CanonicalSet) Copy() *CanonicalSet {
-	res := NewCanonicalSet(c.dimensions)
-	for k, v := range c.layers {
-		res.layers[k.Copy()] = v.Copy()
+func (c *CanonicalSet[T]) Copy() *CanonicalSet[T] {
+	res := NewCanonicalSet[T](c.dimensions)
+	for _, p := range c.layers.Pairs() {
+		res.layers.Insert(p.Key, p.Value.Copy())
 	}
 	return res
 }
 
-func getCubeStr(cube []*interval.CanonicalSet) string {
+func getCubeStr[T HashableSet[T]](cube []T) string {
 	strList := []string{}
 	for _, v := range cube {
 		strList = append(strList, "("+v.String()+")")
@@ -222,7 +245,7 @@ func getCubeStr(cube []*interval.CanonicalSet) string {
 }
 
 // String returns a string representation of c
-func (c *CanonicalSet) String() string {
+func (c *CanonicalSet[T]) String() string {
 	cubesList := c.GetCubesList()
 	strList := []string{}
 	for _, cube := range cubesList {
@@ -233,18 +256,18 @@ func (c *CanonicalSet) String() string {
 }
 
 // GetCubesList returns the list of cubes in c, each cube as a slice of CanonicalSet
-func (c *CanonicalSet) GetCubesList() [][]*interval.CanonicalSet {
-	res := [][]*interval.CanonicalSet{}
+func (c *CanonicalSet[T]) GetCubesList() [][]T {
+	res := [][]T{}
 	if c.dimensions == 1 {
-		for k := range c.layers {
-			res = append(res, []*interval.CanonicalSet{k})
+		for _, k := range c.layers.Keys() {
+			res = append(res, []T{k})
 		}
 		return res
 	}
-	for k, v := range c.layers {
-		subRes := v.GetCubesList()
+	for _, pair := range c.layers.Pairs() {
+		subRes := pair.Value.GetCubesList()
 		for _, subList := range subRes {
-			cube := []*interval.CanonicalSet{k}
+			cube := []T{pair.Key}
 			cube = append(cube, subList...)
 			res = append(res, cube)
 		}
@@ -254,14 +277,14 @@ func (c *CanonicalSet) GetCubesList() [][]*interval.CanonicalSet {
 
 // SwapDimensions returns a new CanonicalSet object, built from the input CanonicalSet object,
 // with dimensions dim1 and dim2 swapped
-func (c *CanonicalSet) SwapDimensions(dim1, dim2 int) *CanonicalSet {
+func (c *CanonicalSet[T]) SwapDimensions(dim1, dim2 int) *CanonicalSet[T] {
 	if c.IsEmpty() || dim1 == dim2 {
 		return c.Copy()
 	}
 	if min(dim1, dim2) < 0 || max(dim1, dim2) >= c.dimensions {
 		log.Panicf("invalid dimensions: %d, %d", dim1, dim2)
 	}
-	res := NewCanonicalSet(c.dimensions)
+	res := NewCanonicalSet[T](c.dimensions)
 	for _, cube := range c.GetCubesList() {
 		if !cube[dim1].Equal(cube[dim2]) {
 			// Shallow clone should be enough, since we do shallow swap:
@@ -273,54 +296,45 @@ func (c *CanonicalSet) SwapDimensions(dim1, dim2 int) *CanonicalSet {
 	return res
 }
 
-func getElementsUnionPerLayer(layers map[*interval.CanonicalSet]*CanonicalSet) map[*interval.CanonicalSet]*CanonicalSet {
-	type pair struct {
-		hc *CanonicalSet            // hypercube set object
-		is []*interval.CanonicalSet // interval-set list
-	}
-	equivClasses := map[string]*pair{}
-	for k, v := range layers {
-		if _, ok := equivClasses[v.String()]; ok {
-			equivClasses[v.String()].is = append(equivClasses[v.String()].is, k)
-		} else {
-			equivClasses[v.String()] = &pair{hc: v, is: []*interval.CanonicalSet{k}}
+func (c *CanonicalSet[T]) canonicalize() {
+	newLayers := NewMap[T, *CanonicalSet[T]]()
+	for _, p := range InverseMap(&c.layers).Pairs() {
+		items := p.Value.Items()
+		if len(items) == 0 {
+			continue
 		}
-	}
-	newLayers := map[*interval.CanonicalSet]*CanonicalSet{}
-	for _, p := range equivClasses {
-		newVal := p.hc
-		newKey := p.is[0]
-		for i := 1; i < len(p.is); i += 1 {
-			newKey = newKey.Union(p.is[i])
+		newKey := items[0]
+		for _, v := range items[1:] {
+			newKey = newKey.Union(v)
 		}
-		newLayers[newKey] = newVal
+		newLayers.Insert(newKey, p.Key)
 	}
-	return newLayers
+	c.layers = newLayers
 }
 
 // FromCube returns a new CanonicalSet created from a single input cube
 // the input cube is a slice of CanonicalSet, treated as ordered list of dimension values
-func FromCube(cube []*interval.CanonicalSet) *CanonicalSet {
+func FromCube[T HashableSet[T]](cube []T) *CanonicalSet[T] {
 	if len(cube) == 0 {
 		return nil
 	}
 	if len(cube) == 1 {
-		res := NewCanonicalSet(1)
-		res.layers[cube[0].Copy()] = NewCanonicalSet(0)
+		res := NewCanonicalSet[T](1)
+		res.layers.Insert(cube[0], NewCanonicalSet[T](0))
 		return res
 	}
-	res := NewCanonicalSet(len(cube))
-	res.layers[cube[0].Copy()] = FromCube(cube[1:])
+	res := NewCanonicalSet[T](len(cube))
+	res.layers.Insert(cube[0], FromCube[T](cube[1:]))
 	return res
 }
 
-// Cube returns a new CanonicalSet created from a single input cube
+// Cube returns a new hypercube.CanonicalSet created from a single input cube
 // the input cube is given as an ordered list of integer values, where each two values
 // represent the range (start,end) for a dimension value
-func Cube(values ...int64) *CanonicalSet {
+func Cube(values ...int64) *CanonicalSet[*interval.CanonicalSet] {
 	cube := []*interval.CanonicalSet{}
 	for i := 0; i < len(values); i += 2 {
-		cube = append(cube, interval.New(values[i], values[i+1]).ToSet())
+		cube = append(cube, interval.NewSetFromInterval(interval.New(values[i], values[i+1])))
 	}
 	return FromCube(cube)
 }
