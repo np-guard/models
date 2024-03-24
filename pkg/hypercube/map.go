@@ -2,27 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 package hypercube
 
-type Comparable[T any] interface {
-	Equal(T) bool
-}
-
-type Hashable[T any] interface {
-	Comparable[T]
-	Copy() T
-	Hash() int
-}
-
 type Pair[K, V any] struct {
 	Key   K
 	Value V
 }
 
-type Map[K Hashable[K], V Comparable[V]] struct {
+type Map[K Hashable[K], V Copyable[V]] struct {
 	m map[int][]Pair[K, V]
 }
 
-func NewMap[K Hashable[K], V Comparable[V]]() Map[K, V] {
-	return Map[K, V]{m: map[int][]Pair[K, V]{}}
+func NewMap[K Hashable[K], V Copyable[V]]() *Map[K, V] {
+	return &Map[K, V]{m: map[int][]Pair[K, V]{}}
 }
 
 func (m *Map[K, V]) Insert(k K, v V) {
@@ -38,6 +28,14 @@ func (m *Map[K, V]) Insert(k K, v V) {
 		}
 	}
 	m.m[k.Hash()] = append(Pairs, Pair[K, V]{Key: k.Copy(), Value: v})
+}
+
+func (m *Map[K, V]) Copy() *Map[K, V] {
+	res := NewMap[K, V]()
+	for _, p := range m.Pairs() {
+		res.Insert(p.Key.Copy(), p.Value.Copy())
+	}
+	return res
 }
 
 func (m *Map[K, V]) At(k K) (res V, ok bool) {

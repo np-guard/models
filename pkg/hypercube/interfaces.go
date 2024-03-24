@@ -1,0 +1,26 @@
+// Copyright 2020- IBM Inc. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+package hypercube
+
+type Comparable[T any] interface {
+	Equal(T) bool
+}
+
+type Copyable[T any] interface {
+	Equal(T) bool
+	Copy() T
+}
+
+type Hashable[T any] interface {
+	Copyable[T]
+	Hash() int
+}
+
+type Set[Self any] interface {
+	Hashable[Self]
+	IsEmpty() bool
+	ContainedIn(Self) bool
+	Intersect(Self) Self
+	Union(Self) Self
+	Subtract(Self) Self
+}

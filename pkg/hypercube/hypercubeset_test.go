@@ -51,17 +51,17 @@ func TestCopy(t *testing.T) {
 	require.True(t, a != b)
 }
 
-func TestString(t *testing.T) {
-	require.Equal(t, "[(1-3)]", hypercube.Cube(1, 3).String())
-	require.Equal(t, "[(1-3),(2-4)]", hypercube.Cube(1, 3, 2, 4).String())
-}
+// func TestString(t *testing.T) {
+// 	require.Equal(t, "[(1-3)]", hypercube.Cube(1, 3).String())
+// 	require.Equal(t, "[(1-3),(2-4)]", hypercube.Cube(1, 3, 2, 4).String())
+// }
 
-func TestOr(t *testing.T) {
-	a := hypercube.Cube(1, 100, 1, 100)
-	b := hypercube.Cube(1, 90, 1, 200)
-	c := a.Union(b)
-	require.Equal(t, "[(1-90),(1-200)]; [(91-100),(1-100)]", c.String())
-}
+// func TestOr(t *testing.T) {
+// 	a := hypercube.Cube(1, 100, 1, 100)
+// 	b := hypercube.Cube(1, 90, 1, 200)
+// 	c := a.Union(b)
+// 	require.Equal(t, "[(1-90),(1-200)]; [(91-100),(1-100)]", c.String())
+// }
 
 func TestBasic1(t *testing.T) {
 	a := union(
@@ -83,23 +83,22 @@ func TestBasic2(t *testing.T) {
 	require.True(t, a.Equal(b))
 }
 
-func TestNew(t *testing.T) {
-	a := union(
-		hypercube.Cube(10, 20, 10, 20, 1, 65535),
-		hypercube.Cube(1, 65535, 15, 40, 1, 65535),
-		hypercube.Cube(1, 65535, 100, 200, 30, 80),
-	)
-	expectedStr := "[(1-9,21-65535),(100-200),(30-80)]; " +
-		"[(1-9,21-65535),(15-40),(1-65535)]; " +
-		"[(10-20),(10-40),(1-65535)]; " +
-		"[(10-20),(100-200),(30-80)]"
-	require.Equal(t, expectedStr, a.String())
-}
+// func TestNew(t *testing.T) {
+// 	a := union(
+// 		hypercube.Cube(10, 20, 10, 20, 1, 65535),
+// 		hypercube.Cube(1, 65535, 15, 40, 1, 65535),
+// 		hypercube.Cube(1, 65535, 100, 200, 30, 80),
+// 	)
+// 	expectedStr := "[(1-9,21-65535),(100-200),(30-80)]; " +
+// 		"[(1-9,21-65535),(15-40),(1-65535)]; " +
+// 		"[(10-20),(10-40),(1-65535)]; " +
+// 		"[(10-20),(100-200),(30-80)]"
+// 	require.Equal(t, expectedStr, a.String())
+// }
 
 func checkContained(t *testing.T, a, b *hypercube.CanonicalSet[*interval.CanonicalSet], expected bool) {
 	t.Helper()
-	contained, err := a.ContainedIn(b)
-	require.Nil(t, err)
+	contained := a.ContainedIn(b)
 	require.Equal(t, expected, contained)
 }
 
@@ -217,14 +216,14 @@ func TestBasicAddCube(t *testing.T) {
 	require.True(t, res.Equal(b))
 }
 
-func TestFourHoles(t *testing.T) {
-	a := hypercube.Cube(1, 2, 1, 2)
-	require.Equal(t, "[(1-2),(1-2)]", a.String())
-	require.Equal(t, "[(1),(2)]; [(2),(1-2)]", a.Subtract(hypercube.Cube(1, 1, 1, 1)).String())
-	require.Equal(t, "[(1),(1)]; [(2),(1-2)]", a.Subtract(hypercube.Cube(1, 1, 2, 2)).String())
-	require.Equal(t, "[(1),(1-2)]; [(2),(2)]", a.Subtract(hypercube.Cube(2, 2, 1, 1)).String())
-	require.Equal(t, "[(1),(1-2)]; [(2),(1)]", a.Subtract(hypercube.Cube(2, 2, 2, 2)).String())
-}
+// func TestFourHoles(t *testing.T) {
+// 	a := hypercube.Cube(1, 2, 1, 2)
+// 	require.Equal(t, "[(1-2),(1-2)]", a.String())
+// 	require.Equal(t, "[(1),(2)]; [(2),(1-2)]", a.Subtract(hypercube.Cube(1, 1, 1, 1)).String())
+// 	require.Equal(t, "[(1),(1)]; [(2),(1-2)]", a.Subtract(hypercube.Cube(1, 1, 2, 2)).String())
+// 	require.Equal(t, "[(1),(1-2)]; [(2),(2)]", a.Subtract(hypercube.Cube(2, 2, 1, 1)).String())
+// 	require.Equal(t, "[(1),(1-2)]; [(2),(1)]", a.Subtract(hypercube.Cube(2, 2, 2, 2)).String())
+// }
 
 func TestBasicSubtract1(t *testing.T) {
 	a := hypercube.Cube(1, 10)

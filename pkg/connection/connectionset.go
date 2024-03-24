@@ -85,7 +85,7 @@ func All() *Set {
 	for i := range dimensionsList {
 		all[i] = entireDimension(dimensionsList[i])
 	}
-	return &Set{connectionProperties: hypercube.FromCube(all)}
+	return &Set{connectionProperties: hypercube.FromPath[*interval.CanonicalSet](all)}
 }
 
 var all = All()
@@ -143,11 +143,7 @@ func (c *Set) Subtract(other *Set) *Set {
 
 // ContainedIn returns true if c is subset of other
 func (c *Set) ContainedIn(other *Set) bool {
-	res, err := c.connectionProperties.ContainedIn(other.connectionProperties)
-	if err != nil {
-		log.Panicf("invalid connection set. %e", err)
-	}
-	return res
+	return c.connectionProperties.ContainedIn(other.connectionProperties)
 }
 
 func protocolStringToCode(protocol netp.ProtocolString) int64 {
@@ -269,7 +265,7 @@ func (c *Set) String() string {
 	}
 	// get cubes and cube str per each cube
 	resStrings := []string{}
-	for _, cube := range c.connectionProperties.GetCubesList() {
+	for _, cube := range c.connectionProperties.Paths() {
 		resStrings = append(resStrings, getConnsCubeStr(cube))
 	}
 
@@ -365,7 +361,7 @@ func ToJSON(c *Set) Details {
 	}
 	res := spec.ProtocolList{}
 
-	cubes := c.connectionProperties.GetCubesList()
+	cubes := c.connectionProperties.Paths()
 	for _, cube := range cubes {
 		protocols := cubeAt(cube, protocol)
 		if protocols.Contains(TCPCode) {
