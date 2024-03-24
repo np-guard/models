@@ -1,6 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-package hypercube
+package ds
 
 type IMap[S Set[S], V Set[V]] struct {
 	m *Map[S, V]
@@ -8,6 +8,12 @@ type IMap[S Set[S], V Set[V]] struct {
 
 func NewIMap[S Set[S], V Set[V]]() *IMap[S, V] {
 	return &IMap[S, V]{m: NewMap[S, V]()}
+}
+
+func IPath[S Set[S], V Set[V]](s S, v V) *IMap[S, V] {
+	m := NewIMap[S, V]()
+	m.Insert(s, v)
+	return m
 }
 
 func (m *IMap[S, V]) Insert(s S, v V) {
@@ -158,6 +164,16 @@ func (m *IMap[S, V]) Values() []V {
 
 func (m *IMap[S, V]) Equal(other *IMap[S, V]) bool {
 	return m.m.Equal(other.m)
+}
+
+const rrr = 5
+
+func (c *IMap[S, V]) Hash() int {
+	res := rrr
+	for _, p := range c.Pairs() {
+		res ^= (p.Key.Hash() << 1) ^ p.Value.Hash()
+	}
+	return res
 }
 
 func (m *IMap[S, V]) IsEmpty() bool {

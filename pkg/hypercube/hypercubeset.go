@@ -6,19 +6,20 @@ import (
 	"log"
 	"slices"
 
+	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/interval"
 )
 
 // CanonicalSet is a canonical representation for set of n-dimensional cubes
-type CanonicalSet[S Set[S]] struct {
-	layers     *IMap[S, *CanonicalSet[S]]
+type CanonicalSet[S ds.Set[S]] struct {
+	layers     *ds.IMap[S, *CanonicalSet[S]]
 	dimensions int
 }
 
 // NewCanonicalSet returns a new empty CanonicalSet with n dimensions
-func NewCanonicalSet[S Set[S]](n int) *CanonicalSet[S] {
+func NewCanonicalSet[S ds.Set[S]](n int) *CanonicalSet[S] {
 	return &CanonicalSet[S]{
-		layers:     NewIMap[S, *CanonicalSet[S]](),
+		layers:     ds.NewIMap[S, *CanonicalSet[S]](),
 		dimensions: n,
 	}
 }
@@ -148,7 +149,7 @@ func (c *CanonicalSet[S]) SwapDimensions(dim1, dim2 int) *CanonicalSet[S] {
 
 // FromPath returns a new CanonicalSet created from a single input path
 // the input cube is a slice of CanonicalSet, treated as ordered list of dimension values
-func FromPath[T Hashable[T], S Set[S]](path []S) *CanonicalSet[S] {
+func FromPath[S ds.Set[S]](path []S) *CanonicalSet[S] {
 	if len(path) == 0 {
 		return nil
 	}
@@ -158,7 +159,7 @@ func FromPath[T Hashable[T], S Set[S]](path []S) *CanonicalSet[S] {
 		return res
 	}
 	res := NewCanonicalSet[S](len(path))
-	res.layers.Insert(path[0], FromPath[T](path[1:]))
+	res.layers.Insert(path[0], FromPath(path[1:]))
 	return res
 }
 

@@ -1,6 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-package hypercube
+package ds
 
 type MultiPair[K Hashable[K], V Hashable[V]] struct {
 	Key   K
