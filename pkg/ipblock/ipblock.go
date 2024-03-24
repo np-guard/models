@@ -52,8 +52,8 @@ func (b *IPBlock) ToIPRanges() string {
 
 // toIPRange returns a string of the ip range of a single interval
 func toIPRange(i interval.Interval) string {
-	startIP := intToIP4(i.Start)
-	endIP := intToIP4(i.End)
+	startIP := intToIP4(i.Start())
+	endIP := intToIP4(i.End())
 	return rangeIPstr(startIP, endIP)
 }
 
@@ -314,8 +314,8 @@ func (b *IPBlock) ToIPAddressString() string {
 }
 
 func intervalToCidrList(ipRange interval.Interval) []string {
-	start := ipRange.Start
-	end := ipRange.End
+	start := ipRange.Start()
+	end := ipRange.End()
 	res := []string{}
 	for end >= start {
 		maxSize := maxIPv4Bits

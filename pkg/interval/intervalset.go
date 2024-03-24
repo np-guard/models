@@ -3,7 +3,6 @@
 package interval
 
 import (
-	"fmt"
 	"log"
 	"slices"
 	"sort"
@@ -32,7 +31,7 @@ func (c *CanonicalSet) Min() int64 {
 	if len(c.intervalSet) == 0 {
 		log.Panic("cannot take min from empty interval set")
 	}
-	return c.intervalSet[0].Start
+	return c.intervalSet[0].Start()
 }
 
 // IsEmpty returns true if the CanonicalSet is empty
@@ -66,18 +65,21 @@ func (c *CanonicalSet) Equal(other *CanonicalSet) bool {
 
 // AddInterval adds a new interval range to the set
 func (c *CanonicalSet) AddInterval(v Interval) {
+	if v.IsEmpty() {
+		return
+	}
 	set := c.intervalSet
 	left := sort.Search(len(set), func(i int) bool {
-		return set[i].End >= v.Start-1
+		return set[i].End() >= v.Start()-1
 	})
-	if left < len(set) && set[left].Start <= v.End {
-		v.Start = min(v.Start, set[left].Start)
+	if left < len(set) && set[left].Start() <= v.End() {
+		v = New(min(v.Start(), set[left].Start()), v.End())
 	}
 	right := sort.Search(len(set), func(j int) bool {
-		return set[j].Start > v.End+1
+		return set[j].Start() > v.End()+1
 	})
-	if right > 0 && set[right-1].End >= v.Start {
-		v.End = max(v.End, set[right-1].End)
+	if right > 0 && set[right-1].End() >= v.Start() {
+		v = New(v.Start(), max(v.End(), set[right-1].End()))
 	}
 	c.intervalSet = slices.Replace(c.intervalSet, left, right, v)
 }
@@ -98,12 +100,7 @@ func (c *CanonicalSet) String() string {
 	}
 	res := ""
 	for _, interval := range c.intervalSet {
-		if interval.Start != interval.End {
-			res += fmt.Sprintf("%v-%v", interval.Start, interval.End)
-		} else {
-			res += fmt.Sprintf("%v", interval.Start)
-		}
-		res += ","
+		res += interval.ShortString() + ","
 	}
 	return res[:len(res)-1]
 }
@@ -137,9 +134,9 @@ func (c *CanonicalSet) ContainedIn(other *CanonicalSet) bool {
 	larger := other.intervalSet
 	for _, target := range c.intervalSet {
 		left := sort.Search(len(larger), func(i int) bool {
-			return larger[i].End >= target.End
+			return larger[i].End() >= target.End()
 		})
-		if left == len(larger) || larger[left].Start > target.Start {
+		if left == len(larger) || larger[left].Start() > target.Start() {
 			return false
 		}
 		// Optimization
@@ -154,11 +151,9 @@ func (c *CanonicalSet) Intersect(other *CanonicalSet) *CanonicalSet {
 		return c.Copy()
 	}
 	res := NewCanonicalSet()
-	for _, interval := range c.intervalSet {
-		for _, otherInterval := range other.intervalSet {
-			for _, span := range interval.intersection(otherInterval) {
-				res.AddInterval(span)
-			}
+	for _, left := range c.intervalSet {
+		for _, right := range other.intervalSet {
+			res.AddInterval(left.intersect(right))
 		}
 	}
 	return res
@@ -171,7 +166,7 @@ func (c *CanonicalSet) Overlap(other *CanonicalSet) bool {
 	}
 	for _, selfInterval := range c.intervalSet {
 		for _, otherInterval := range other.intervalSet {
-			if selfInterval.overlaps(otherInterval) {
+			if selfInterval.overlap(otherInterval) {
 				return true
 			}
 		}
@@ -205,7 +200,7 @@ func (c *CanonicalSet) Elements() []int64 {
 	res := make([]int64, c.CalculateSize())
 	i := 0
 	for _, interval := range c.intervalSet {
-		for v := interval.Start; v <= interval.End; v++ {
+		for v := interval.Start(); v <= interval.End(); v++ {
 			res[i] = v
 			i++
 		}
