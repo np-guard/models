@@ -11,7 +11,7 @@ import (
 type ICMPSet = interval.CanonicalSet
 
 type MixedSet struct {
-	transport *TcpUdpSet
+	transport *TCPUDPSet
 	icmp      *ICMPSet
 }
 
