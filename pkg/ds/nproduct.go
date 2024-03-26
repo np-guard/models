@@ -7,7 +7,7 @@ import (
 	"slices"
 )
 
-// NProduct is unbounded product
+// NProduct is a dynamically-bounded product of sets
 type NProduct[S Set[S]] struct {
 	product    *Product[S, *NProduct[S]]
 	dimensions int

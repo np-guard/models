@@ -2,23 +2,24 @@
 // SPDX-License-Identifier: Apache-2.0
 package ds
 
-// Fix: handle empty cases (usually nil values)
 type Disjoint[L Set[L], R Set[R]] struct {
 	left  L
 	right R
 }
 
-func NewDisjoint[L Set[L], R Set[R]]() *Disjoint[L, R] {
-	return &Disjoint[L, R]{}
+func NewDisjoint[L Set[L], R Set[R]](left L, right R) *Disjoint[L, R] {
+	return &Disjoint[L, R]{left: left.Copy(), right: right.Copy()}
 }
 
-func NewLeft[L Set[L], R Set[R]](left L) *Disjoint[L, R] {
-	return &Disjoint[L, R]{left: left}
-}
-
-func NewRight[L Set[L], R Set[R]](right R) *Disjoint[L, R] {
-	return &Disjoint[L, R]{right: right}
-}
+// Fix: handle empty cases (usually nil values)
+// Does not work: yields nil values for the other
+// func NewLeft[L Set[L], R Set[R]](left L) *Disjoint[L, R] {
+// 	return &Disjoint[L, R]{left: left}
+// }
+//
+// func NewRight[L Set[L], R Set[R]](right R) *Disjoint[L, R] {
+// 	return &Disjoint[L, R]{right: right}
+// }
 
 func (c *Disjoint[L, R]) Equal(other *Disjoint[L, R]) bool {
 	return c.left.Equal(other.left) && c.right.Equal(other.right)
@@ -27,6 +28,7 @@ func (c *Disjoint[L, R]) Equal(other *Disjoint[L, R]) bool {
 func (c *Disjoint[L, R]) Hash() int {
 	return c.left.Hash() ^ c.right.Hash()
 }
+
 func (c *Disjoint[L, R]) Copy() *Disjoint[L, R] {
 	return &Disjoint[L, R]{
 		left:  c.left.Copy(),

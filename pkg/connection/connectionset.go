@@ -73,7 +73,6 @@ func entireDimension(dim Dimension) *interval.CanonicalSet {
 
 type Set struct {
 	connectionProperties *ds.NProduct[*interval.CanonicalSet]
-	IsStateful           StatefulState
 }
 
 func None() *Set {
@@ -101,7 +100,6 @@ func (c *Set) Equal(other *Set) bool {
 func (c *Set) Copy() *Set {
 	return &Set{
 		connectionProperties: c.connectionProperties.Copy(),
-		IsStateful:           c.IsStateful,
 	}
 }
 

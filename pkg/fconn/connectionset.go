@@ -8,10 +8,9 @@ import (
 )
 
 type AddressSet = interval.CanonicalSet
-type ICMPSet = interval.CanonicalSet
 
 type ConnectionSet struct {
-	props *ds.TripleSet[*AddressSet, *AddressSet, *ds.Disjoint[*TCPUDPSet, *ICMPSet]]
+	props *ds.TripleSet[*AddressSet, *AddressSet, *TransportSet]
 }
 
 func (c *ConnectionSet) Equal(other *ConnectionSet) bool {

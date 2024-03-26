@@ -16,7 +16,7 @@ type ICMPTypeCode struct {
 }
 
 type ICMP struct {
-	typeCode *ICMPTypeCode
+	TypeCode *ICMPTypeCode
 }
 
 func NewICMP(typeCode *ICMPTypeCode) (ICMP, error) {
@@ -24,28 +24,28 @@ func NewICMP(typeCode *ICMPTypeCode) (ICMP, error) {
 	if err != nil {
 		return ICMP{}, err
 	}
-	return ICMP{typeCode: typeCode}, nil
+	return ICMP{TypeCode: typeCode}, nil
 }
 
 func (t ICMP) ICMPTypeCode() *ICMPTypeCode {
-	if t.typeCode == nil {
+	if t.TypeCode == nil {
 		return nil
 	}
-	if t.typeCode.Code == nil {
-		return t.typeCode
+	if t.TypeCode.Code == nil {
+		return t.TypeCode
 	}
 	// avoid aliasing and mutation by someone else
-	code := *t.typeCode.Code
-	return &ICMPTypeCode{Type: t.typeCode.Type, Code: &code}
+	code := *t.TypeCode.Code
+	return &ICMPTypeCode{Type: t.TypeCode.Type, Code: &code}
 }
 
 func (t ICMP) InverseDirection() Protocol {
-	if t.typeCode == nil {
+	if t.TypeCode == nil {
 		return nil
 	}
 
-	if invType := inverseICMPType(t.typeCode.Type); invType != undefinedICMP {
-		return ICMP{typeCode: &ICMPTypeCode{Type: invType, Code: t.typeCode.Code}}
+	if invType := inverseICMPType(t.TypeCode.Type); invType != undefinedICMP {
+		return ICMP{TypeCode: &ICMPTypeCode{Type: invType, Code: t.TypeCode.Code}}
 	}
 	return nil
 }
@@ -96,7 +96,7 @@ func inverseICMPType(t int) int {
 }
 
 //nolint:revive // magic numbers are fine here
-var maxCodes = map[int]int{
+var MaxCodes = map[int]int{
 	EchoReply:              0,
 	DestinationUnreachable: 5,
 	SourceQuench:           0,
@@ -114,7 +114,7 @@ func ValidateICMP(typeCode *ICMPTypeCode) error {
 	if typeCode == nil {
 		return nil
 	}
-	maxCode, ok := maxCodes[typeCode.Type]
+	maxCode, ok := MaxCodes[typeCode.Type]
 	if !ok {
 		return fmt.Errorf("invalid ICMP type %v", typeCode.Type)
 	}

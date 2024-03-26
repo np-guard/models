@@ -8,6 +8,7 @@ type MultiPair[K Hashable[K], V Hashable[V]] struct {
 	Value HashSet[V]
 }
 
+// MultiMap is a mapping from keys to sets of values
 type MultiMap[K Hashable[K], V Hashable[V]] struct {
 	m map[int][]MultiPair[K, V]
 }

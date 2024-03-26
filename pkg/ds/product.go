@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 package ds
 
+// Product is a cartesian product of two sets
+// The implementation represents the sets succinctly, merging keys with equivalent values to a single key
 type Product[K Set[K], V Set[V]] struct {
 	m *HashMap[K, V]
 }
@@ -10,7 +12,7 @@ func NewProduct[K Set[K], V Set[V]]() *Product[K, V] {
 	return &Product[K, V]{m: NewMap[K, V]()}
 }
 
-func PartitionPair[K Set[K], V Set[V]](k K, v V) *Product[K, V] {
+func CartesianPair[K Set[K], V Set[V]](k K, v V) *Product[K, V] {
 	m := NewProduct[K, V]()
 	m.Insert(k, v)
 	return m
@@ -39,7 +41,7 @@ func (m *Product[K, V]) Union(other *Product[K, V]) *Product[K, V] {
 	}
 	res := NewProduct[K, V]()
 	for _, pair := range m.Partitions() {
-		LeftoverKey := pair.Key.Copy()
+		LeftoverKey := pair.Key // copy will happen upon insertion
 		for _, otherPair := range other.Partitions() {
 			commonElem := pair.Key.Intersect(otherPair.Key)
 			if commonElem.IsEmpty() {
@@ -99,7 +101,7 @@ func (m *Product[K, V]) Subtract(other *Product[K, V]) *Product[K, V] {
 	}
 	res := NewProduct[K, V]()
 	for _, pair := range m.Partitions() {
-		LeftoverKey := pair.Key.Copy()
+		LeftoverKey := pair.Key // copy will happen upon insertion
 		for _, otherPair := range other.Partitions() {
 			commonELem := pair.Key.Intersect(otherPair.Key)
 			if commonELem.IsEmpty() {
