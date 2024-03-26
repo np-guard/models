@@ -7,10 +7,10 @@ import (
 	"github.com/np-guard/models/pkg/interval"
 )
 
-type AddressSet interval.CanonicalSet
+type AddressSet = interval.CanonicalSet
 
 type ConnectionSet struct {
-	props *ds.TripleSet[*interval.CanonicalSet, *interval.CanonicalSet, *MixedSet]
+	props *ds.TripleSet[*AddressSet, *AddressSet, *MixedSet]
 }
 
 func (c *ConnectionSet) Equal(other *ConnectionSet) bool {
@@ -51,7 +51,7 @@ func (c *ConnectionSet) Union(other *ConnectionSet) *ConnectionSet {
 //     the 1st can not since we do not know where exactly the statefulness came from
 func (c *ConnectionSet) Subtract(other *ConnectionSet) *ConnectionSet {
 	if c.IsEmpty() {
-		return &ConnectionSet{props: ds.NewTripleSet[*interval.CanonicalSet, *interval.CanonicalSet, *MixedSet]()}
+		return &ConnectionSet{props: ds.NewTripleSet[*AddressSet, *AddressSet, *MixedSet]()}
 	}
 	if other.IsEmpty() {
 		return c.Copy()

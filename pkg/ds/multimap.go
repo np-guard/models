@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package ds
 
+// MultiPair is an element of a multimap: a pair of (key, set[Value])
 type MultiPair[K Hashable[K], V Hashable[V]] struct {
 	Key   K
 	Value HashSet[V]
@@ -18,18 +19,18 @@ func NewMultiMap[K Hashable[K], V Hashable[V]]() MultiMap[K, V] {
 func (m *MultiMap[K, V]) Insert(k K, v V) {
 	vs := NewHashSet[V]()
 	vs.Insert(v)
-	Pairs := m.m[k.Hash()]
-	if Pairs == nil {
+	pairs := m.m[k.Hash()]
+	if pairs == nil {
 		m.m[k.Hash()] = []MultiPair[K, V]{{Key: k.Copy(), Value: vs}}
 		return
 	}
-	for i := range Pairs {
-		if Pairs[i].Key.Equal(k) {
-			Pairs[i].Value.Insert(v)
+	for i := range pairs {
+		if pairs[i].Key.Equal(k) {
+			pairs[i].Value.Insert(v)
 			return
 		}
 	}
-	m.m[k.Hash()] = append(Pairs, MultiPair[K, V]{Key: k.Copy(), Value: vs})
+	m.m[k.Hash()] = append(pairs, MultiPair[K, V]{Key: k.Copy(), Value: vs})
 }
 
 func (m *MultiMap[K, V]) At(k K) HashSet[V] {
@@ -96,7 +97,7 @@ func (m *MultiMap[K, V]) Size() int {
 	return res
 }
 
-func InverseMap[K Hashable[K], V Hashable[V]](m *Map[K, V]) *MultiMap[V, K] {
+func InverseMap[K Hashable[K], V Hashable[V]](m *HashMap[K, V]) *MultiMap[V, K] {
 	inverse := NewMultiMap[V, K]()
 	for _, p := range m.Pairs() {
 		inverse.Insert(p.Value, p.Key)

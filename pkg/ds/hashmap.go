@@ -7,16 +7,16 @@ type Pair[K, V any] struct {
 	Value V
 }
 
-type Map[K Hashable[K], V Copyable[V]] struct {
+type HashMap[K Hashable[K], V Comparable[V]] struct {
 	m map[int][]Pair[K, V]
 }
 
-func NewMap[K Hashable[K], V Copyable[V]]() *Map[K, V] {
-	return &Map[K, V]{m: map[int][]Pair[K, V]{}}
+func NewMap[K Hashable[K], V Comparable[V]]() *HashMap[K, V] {
+	return &HashMap[K, V]{m: map[int][]Pair[K, V]{}}
 }
 
 // Insert mapping from a copy of k to a copy of v
-func (m *Map[K, V]) Insert(k K, v V) {
+func (m *HashMap[K, V]) Insert(k K, v V) {
 	Pairs := m.m[k.Hash()]
 	if Pairs == nil {
 		m.m[k.Hash()] = []Pair[K, V]{{Key: k.Copy(), Value: v.Copy()}}
@@ -31,7 +31,7 @@ func (m *Map[K, V]) Insert(k K, v V) {
 	m.m[k.Hash()] = append(Pairs, Pair[K, V]{Key: k.Copy(), Value: v.Copy()})
 }
 
-func (m *Map[K, V]) Copy() *Map[K, V] {
+func (m *HashMap[K, V]) Copy() *HashMap[K, V] {
 	res := NewMap[K, V]()
 	for _, p := range m.Pairs() {
 		res.Insert(p.Key.Copy(), p.Value.Copy())
@@ -39,7 +39,7 @@ func (m *Map[K, V]) Copy() *Map[K, V] {
 	return res
 }
 
-func (m *Map[K, V]) At(k K) (res V, ok bool) {
+func (m *HashMap[K, V]) At(k K) (res V, ok bool) {
 	Pairs := m.m[k.Hash()]
 	for i := range Pairs {
 		if Pairs[i].Key.Equal(k) {
@@ -49,7 +49,7 @@ func (m *Map[K, V]) At(k K) (res V, ok bool) {
 	return res, false
 }
 
-func (m *Map[K, V]) Pairs() []Pair[K, V] {
+func (m *HashMap[K, V]) Pairs() []Pair[K, V] {
 	res := []Pair[K, V]{}
 	for _, v := range m.m {
 		res = append(res, v...)
@@ -57,7 +57,7 @@ func (m *Map[K, V]) Pairs() []Pair[K, V] {
 	return res
 }
 
-func (m *Map[K, V]) Keys() []K {
+func (m *HashMap[K, V]) Keys() []K {
 	res := []K{}
 	for _, p := range m.Pairs() {
 		res = append(res, p.Key)
@@ -65,7 +65,7 @@ func (m *Map[K, V]) Keys() []K {
 	return res
 }
 
-func (m *Map[K, V]) Values() []V {
+func (m *HashMap[K, V]) Values() []V {
 	res := []V{}
 	for _, p := range m.Pairs() {
 		res = append(res, p.Value)
@@ -73,7 +73,7 @@ func (m *Map[K, V]) Values() []V {
 	return res
 }
 
-func (m *Map[K, V]) Equal(other *Map[K, V]) bool {
+func (m *HashMap[K, V]) Equal(other *HashMap[K, V]) bool {
 	me := m.Pairs()
 	he := other.Pairs()
 outer:
@@ -91,11 +91,11 @@ outer:
 	return true
 }
 
-func (m *Map[K, V]) IsEmpty() bool {
+func (m *HashMap[K, V]) IsEmpty() bool {
 	return len(m.m) == 0
 }
 
-func (m *Map[K, V]) Size() int {
+func (m *HashMap[K, V]) Size() int {
 	res := 0
 	for _, v := range m.m {
 		res += len(v)

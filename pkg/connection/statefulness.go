@@ -71,8 +71,10 @@ func (c *Set) switchSrcDstPortsOnTCP() *Set {
 	if c.IsAll() {
 		return c.Copy()
 	}
-	newConn := c.connectionProperties.SwapDimensions(slices.Index(dimensionsList, srcPort), slices.Index(dimensionsList, dstPort))
 	return &Set{
-		connectionProperties: newConn,
+		connectionProperties: c.connectionProperties.Swap(
+			slices.Index(dimensionsList, srcPort),
+			slices.Index(dimensionsList, dstPort),
+		),
 	}
 }

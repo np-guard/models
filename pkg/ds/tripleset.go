@@ -7,7 +7,7 @@ type TripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]] struct {
 }
 
 func NewTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]]() *TripleSet[S1, S2, S3] {
-	return &TripleSet[S1, S2, S3]{m: NewIMap[S1, *Product[S2, S3]]()}
+	return &TripleSet[S1, S2, S3]{m: NewProduct[S1, *Product[S2, S3]]()}
 }
 
 func Path[S1 Set[S1], S2 Set[S2], S3 Set[S3]](s1 S1, s2 S2, s3 S3) *TripleSet[S1, S2, S3] {
@@ -79,6 +79,32 @@ func (c *TripleSet[S1, S2, S3]) Triples() []Triple[S1, S2, S3] {
 				S3: inner.Value.Copy(),
 			})
 		}
+	}
+	return res
+}
+
+// Swap returns a new Product object, built from the input Product object,
+// with left and right swapped
+func (c *TripleSet[S1, S2, S3]) Swap23() *TripleSet[S1, S3, S2] {
+	res := NewTripleSet[S1, S3, S2]()
+	for _, triple := range c.Triples() {
+		res = res.Union(Path(triple.S1, triple.S3, triple.S2))
+	}
+	return res
+}
+
+func (c *TripleSet[S1, S2, S3]) Swap12() *TripleSet[S2, S1, S3] {
+	res := NewTripleSet[S2, S1, S3]()
+	for _, triple := range c.Triples() {
+		res = res.Union(Path(triple.S2, triple.S1, triple.S3))
+	}
+	return res
+}
+
+func (c *TripleSet[S1, S2, S3]) Swap13() *TripleSet[S3, S2, S1] {
+	res := NewTripleSet[S3, S2, S1]()
+	for _, triple := range c.Triples() {
+		res = res.Union(Path(triple.S3, triple.S2, triple.S1))
 	}
 	return res
 }

@@ -8,11 +8,11 @@ import (
 	"github.com/np-guard/models/pkg/interval"
 )
 
-type ICMPSet interval.CanonicalSet
+type ICMPSet = interval.CanonicalSet
 
 type MixedSet struct {
-	transport *Set
-	icmp      *interval.CanonicalSet
+	transport *TcpUdpSet
+	icmp      *ICMPSet
 }
 
 func (c *MixedSet) Equal(other *MixedSet) bool {

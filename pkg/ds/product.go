@@ -3,15 +3,15 @@
 package ds
 
 type Product[K Set[K], V Set[V]] struct {
-	m *Map[K, V]
+	m *HashMap[K, V]
 }
 
-func NewIMap[K Set[K], V Set[V]]() *Product[K, V] {
+func NewProduct[K Set[K], V Set[V]]() *Product[K, V] {
 	return &Product[K, V]{m: NewMap[K, V]()}
 }
 
 func IPath[K Set[K], V Set[V]](k K, v V) *Product[K, V] {
-	m := NewIMap[K, V]()
+	m := NewProduct[K, V]()
 	m.Insert(k, v)
 	return m
 }
@@ -33,11 +33,11 @@ func (m *Product[K, V]) Union(other *Product[K, V]) *Product[K, V] {
 	if other.IsEmpty() {
 		return m.Copy()
 	}
-	res := NewIMap[K, V]()
 	remainingFromOther := NewMap[K, K]()
 	for _, k := range other.Left() {
 		remainingFromOther.Insert(k, k)
 	}
+	res := NewProduct[K, V]()
 	for _, pair := range m.Pairs() {
 		LeftoverKey := pair.Key.Copy()
 		for _, otherPair := range other.Pairs() {
@@ -72,7 +72,7 @@ func (m *Product[K, V]) Intersect(other *Product[K, V]) *Product[K, V] {
 	if m == other {
 		return m.Copy()
 	}
-	res := NewIMap[K, V]()
+	res := NewProduct[K, V]()
 	for _, pair := range m.Pairs() {
 		for _, otherPair := range other.Pairs() {
 			commonELem := pair.Key.Intersect(otherPair.Key)
@@ -92,12 +92,12 @@ func (m *Product[K, V]) Intersect(other *Product[K, V]) *Product[K, V] {
 // Subtract returns a new Product object that results from subtraction other from m
 func (m *Product[K, V]) Subtract(other *Product[K, V]) *Product[K, V] {
 	if m == other {
-		return NewIMap[K, V]()
+		return NewProduct[K, V]()
 	}
 	if other.IsEmpty() {
 		return m.Copy()
 	}
-	res := NewIMap[K, V]()
+	res := NewProduct[K, V]()
 	for _, pair := range m.Pairs() {
 		LeftoverKey := pair.Key.Copy()
 		for _, otherPair := range other.Pairs() {
@@ -158,7 +158,7 @@ func (m *Product[K, V]) Left() []K {
 	return m.m.Keys()
 }
 
-func (m *Product[K, V]) Values() []V {
+func (m *Product[K, V]) Right() []V {
 	return m.m.Values()
 }
 
@@ -199,4 +199,17 @@ func (m *Product[K, V]) canonicalize() {
 		newM.Insert(newKey, p.Key)
 	}
 	m.m = newM
+}
+
+// Swap returns a new Product object, built from the input Product object,
+// with left and right swapped
+func (m *Product[K, V]) Swap() *Product[V, K] {
+	if m.IsEmpty() {
+		return NewProduct[V, K]()
+	}
+	res := NewProduct[V, K]()
+	for _, pair := range m.Pairs() {
+		res.Insert(pair.Value, pair.Key)
+	}
+	return res
 }

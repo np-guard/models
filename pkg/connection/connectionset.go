@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/models/pkg/hypercube"
+	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/spec"
@@ -72,12 +72,12 @@ func entireDimension(dim Dimension) *interval.CanonicalSet {
 }
 
 type Set struct {
-	connectionProperties *hypercube.CanonicalSet[*interval.CanonicalSet]
+	connectionProperties *ds.NProduct[*interval.CanonicalSet]
 	IsStateful           StatefulState
 }
 
 func None() *Set {
-	return &Set{connectionProperties: hypercube.NewCanonicalSet[*interval.CanonicalSet](len(dimensionsList))}
+	return &Set{connectionProperties: ds.NewCanonicalSet[*interval.CanonicalSet](len(dimensionsList))}
 }
 
 func All() *Set {
@@ -85,7 +85,7 @@ func All() *Set {
 	for i := range dimensionsList {
 		all[i] = entireDimension(dimensionsList[i])
 	}
-	return &Set{connectionProperties: hypercube.FromPath[*interval.CanonicalSet](all)}
+	return &Set{connectionProperties: ds.NProductFromPath(all)}
 }
 
 var all = All()
@@ -159,12 +159,23 @@ func protocolStringToCode(protocol netp.ProtocolString) int64 {
 	return 0
 }
 
+// makeCube returns a new hypercube.NProduct created from a single input cube
+// the input cube is given as an ordered list of integer values, where each two values
+// represent the range (start,end) for a dimension value
+func makeCube(values ...int64) *ds.NProduct[*interval.CanonicalSet] {
+	path := []*interval.CanonicalSet{}
+	for i := 0; i < len(values); i += 2 {
+		path = append(path, interval.NewSetFromInterval(interval.New(values[i], values[i+1])))
+	}
+	return ds.NProductFromPath(path)
+}
+
 func cube(protocolString netp.ProtocolString,
 	srcMinP, srcMaxP, dstMinP, dstMaxP,
 	icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) *Set {
 	protocol := protocolStringToCode(protocolString)
 	return &Set{
-		connectionProperties: hypercube.Cube(protocol, protocol,
+		connectionProperties: makeCube(protocol, protocol,
 			srcMinP, srcMaxP, dstMinP, dstMaxP,
 			icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)}
 }

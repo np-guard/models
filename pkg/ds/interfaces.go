@@ -4,15 +4,11 @@ package ds
 
 type Comparable[T any] interface {
 	Equal(T) bool
-}
-
-type Copyable[T any] interface {
-	Equal(T) bool
 	Copy() T
 }
 
 type Hashable[T any] interface {
-	Copyable[T]
+	Comparable[T]
 	Hash() int
 }
 

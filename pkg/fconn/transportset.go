@@ -39,42 +39,48 @@ const propertySeparator string = " "
 type PortSet = interval.CanonicalSet
 type ProtocolSet = interval.CanonicalSet
 
-type Set struct {
+type TcpUdpSet struct {
 	props *ds.TripleSet[*ProtocolSet, *PortSet, *PortSet]
 }
 
-func (c *Set) Equal(other *Set) bool {
+func (c *TcpUdpSet) Equal(other *TcpUdpSet) bool {
 	return c.props.Equal(other.props)
 }
 
-func (c *Set) Hash() int {
+func (c *TcpUdpSet) Hash() int {
 	return c.props.Hash()
 }
 
-func (c *Set) Copy() *Set {
-	return &Set{
+func (c *TcpUdpSet) Copy() *TcpUdpSet {
+	return &TcpUdpSet{
 		props: c.props.Copy(),
 	}
 }
 
-func (c *Set) Intersect(other *Set) *Set {
-	return &Set{props: c.props.Intersect(other.props)}
+func (c *TcpUdpSet) Intersect(other *TcpUdpSet) *TcpUdpSet {
+	return &TcpUdpSet{props: c.props.Intersect(other.props)}
 }
 
-func (c *Set) IsEmpty() bool {
+func (c *TcpUdpSet) IsEmpty() bool {
 	return c.props.IsEmpty()
 }
 
-func (c *Set) Union(other *Set) *Set {
+func (c *TcpUdpSet) Union(other *TcpUdpSet) *TcpUdpSet {
 	if other.IsEmpty() {
 		return c.Copy()
 	}
 	if c.IsEmpty() {
 		return other.Copy()
 	}
-	return &Set{
+	return &TcpUdpSet{
 		props: c.props.Union(other.props),
 	}
+}
+
+// SwapDimensions returns a new NProduct object, built from the input NProduct object,
+// with dimensions dim1 and dim2 swapped
+func (c *TcpUdpSet) SwapPorts() *TcpUdpSet {
+	return &TcpUdpSet{props: c.props.Swap23()}
 }
 
 // Subtract
@@ -83,30 +89,30 @@ func (c *Set) Union(other *Set) *Set {
 //  2. props is identical but c stateful while other is not
 //     the 2nd item can be computed here, with enhancement to relevant structure
 //     the 1st can not since we do not know where exactly the statefulness came from
-func (c *Set) Subtract(other *Set) *Set {
+func (c *TcpUdpSet) Subtract(other *TcpUdpSet) *TcpUdpSet {
 	if c.IsEmpty() {
 		return None()
 	}
 	if other.IsEmpty() {
 		return c.Copy()
 	}
-	return &Set{props: c.props.Subtract(other.props)}
+	return &TcpUdpSet{props: c.props.Subtract(other.props)}
 }
 
 // ContainedIn returns true if c is subset of other
-func (c *Set) ContainedIn(other *Set) bool {
+func (c *TcpUdpSet) ContainedIn(other *TcpUdpSet) bool {
 	return c.props.ContainedIn(other.props)
 }
 
-func None() *Set {
-	return &Set{props: ds.NewTripleSet[*PortSet, *PortSet, *PortSet]()}
+func None() *TcpUdpSet {
+	return &TcpUdpSet{props: ds.NewTripleSet[*PortSet, *PortSet, *PortSet]()}
 }
 
-func Path(protocol *ProtocolSet, srcPort, dstPort *PortSet) *Set {
-	return &Set{props: ds.Path(protocol, srcPort, dstPort)}
+func Path(protocol *ProtocolSet, srcPort, dstPort *PortSet) *TcpUdpSet {
+	return &TcpUdpSet{props: ds.Path(protocol, srcPort, dstPort)}
 }
 
-// dimensionsList is the ordered list of dimensions in the Set object
+// dimensionsList is the ordered list of dimensions in the TcpUdpSet object
 // this should be the only place where the order is hard-coded
 func entireDimension(dim Dimension) interval.Interval {
 	switch dim {
@@ -120,7 +126,7 @@ func entireDimension(dim Dimension) interval.Interval {
 	return interval.New(0, -1)
 }
 
-func All() *Set {
+func All() *TcpUdpSet {
 	return Path(
 		entireDimension(protocol).ToSet(),
 		entireDimension(dstPort).ToSet(),
@@ -130,7 +136,7 @@ func All() *Set {
 
 var all = All()
 
-func (c *Set) IsAll() bool {
+func (c *TcpUdpSet) IsAll() bool {
 	return c.Equal(all)
 }
 
@@ -145,7 +151,7 @@ func protocolStringToCode(protocol netp.ProtocolString) int64 {
 	return 0
 }
 
-func TCPorUDPConnection(protocolString netp.ProtocolString, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *Set {
+func TCPorUDPConnection(protocolString netp.ProtocolString, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *TcpUdpSet {
 	protocol := protocolStringToCode(protocolString)
 	return Path(
 		interval.New(protocol, protocol).ToSet(),
@@ -199,8 +205,8 @@ func joinNonEmpty(inputList ...string) string {
 	return strings.Join(res, propertySeparator)
 }
 
-// String returns a string representation of a Set object
-func (c *Set) String() string {
+// String returns a string representation of a TcpUdpSet object
+func (c *TcpUdpSet) String() string {
 	if c.IsEmpty() {
 		return NoConnections
 	} else if c.IsAll() {
