@@ -42,8 +42,19 @@ func (c *NProduct[S]) Hash() int {
 		return 1
 	}
 	res := hashX
-	for _, p := range c.product.Pairs() {
+	for _, p := range c.product.Partitions() {
 		res ^= hashY*p.Value.dimensions + (p.Key.Hash() << 1) ^ p.Value.Hash()
+	}
+	return res
+}
+
+func (c *NProduct[S]) Size() int {
+	res := 0
+	if c.dimensions == 0 {
+		return 1
+	}
+	for _, v := range c.product.Partitions() {
+		res += v.Key.Size() * v.Value.Size()
 	}
 	return res
 }
@@ -97,14 +108,14 @@ func (c *NProduct[S]) ContainedIn(other *NProduct[S]) bool {
 // Copy returns a new NProduct object, copied from c
 func (c *NProduct[S]) Copy() *NProduct[S] {
 	res := NewCanonicalSet[S](c.dimensions)
-	for _, p := range c.product.Pairs() {
+	for _, p := range c.product.Partitions() {
 		res.product.Insert(p.Key, p.Value.Copy())
 	}
 	return res
 }
 
-// GetCubesList returns the list of cubes in c, each cube as a slice of NProduct
-func (c *NProduct[S]) Paths() [][]S {
+// Partitions returns the list of maximal partitions in c, each partition as a slice of NProduct
+func (c *NProduct[S]) Partitions() [][]S {
 	res := [][]S{}
 	if c.dimensions == 1 {
 		for _, k := range c.product.Left() {
@@ -112,12 +123,12 @@ func (c *NProduct[S]) Paths() [][]S {
 		}
 		return res
 	}
-	for _, pair := range c.product.Pairs() {
-		subRes := pair.Value.Paths()
+	for _, pair := range c.product.Partitions() {
+		subRes := pair.Value.Partitions()
 		for _, subList := range subRes {
-			path := []S{pair.Key}
-			path = append(path, subList...)
-			res = append(res, path)
+			partition := []S{pair.Key}
+			partition = append(partition, subList...)
+			res = append(res, partition)
 		}
 	}
 	return res
@@ -133,29 +144,29 @@ func (c *NProduct[S]) Swap(dim1, dim2 int) *NProduct[S] {
 		log.Panicf("invalid dimensions: %d, %d", dim1, dim2)
 	}
 	res := NewCanonicalSet[S](c.dimensions)
-	for _, path := range c.Paths() {
+	for _, path := range c.Partitions() {
 		if !path[dim1].Equal(path[dim2]) {
 			// Shallow clone should be enough, since we do shallow swap:
 			path = slices.Clone(path)
 			path[dim1], path[dim2] = path[dim2], path[dim1]
 		}
-		res = res.Union(NProductFromPath(path))
+		res = res.Union(PartitionN(path))
 	}
 	return res
 }
 
-// NProductFromPath returns a new NProduct created from a single input path
-// the input cube is a slice of NProduct, treated as ordered list of dimension values
-func NProductFromPath[S Set[S]](path []S) *NProduct[S] {
-	if len(path) == 0 {
+// PartitionN returns a new NProduct created from a single input partition
+// the input partition is a slice of NProduct, treated as ordered list of dimension values
+func PartitionN[S Set[S]](partition []S) *NProduct[S] {
+	if len(partition) == 0 {
 		return nil
 	}
-	if len(path) == 1 {
+	if len(partition) == 1 {
 		res := NewCanonicalSet[S](1)
-		res.product.Insert(path[0], NewCanonicalSet[S](0))
+		res.product.Insert(partition[0], NewCanonicalSet[S](0))
 		return res
 	}
-	res := NewCanonicalSet[S](len(path))
-	res.product.Insert(path[0], NProductFromPath(path[1:]))
+	res := NewCanonicalSet[S](len(partition))
+	res.product.Insert(partition[0], PartitionN(partition[1:]))
 	return res
 }

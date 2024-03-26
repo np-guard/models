@@ -19,4 +19,5 @@ type Set[Self any] interface {
 	Intersect(Self) Self
 	Union(Self) Self
 	Subtract(Self) Self
+	Size() int
 }

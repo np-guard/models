@@ -77,6 +77,10 @@ func (c *TCPUDPSet) Union(other *TCPUDPSet) *TCPUDPSet {
 	}
 }
 
+func (c *TCPUDPSet) Size() int {
+	return c.props.Size()
+}
+
 // SwapDimensions returns a new NProduct object, built from the input NProduct object,
 // with dimensions dim1 and dim2 swapped
 func (c *TCPUDPSet) SwapPorts() *TCPUDPSet {
@@ -109,7 +113,7 @@ func None() *TCPUDPSet {
 }
 
 func Path(protocol *ProtocolSet, srcPort, dstPort *PortSet) *TCPUDPSet {
-	return &TCPUDPSet{props: ds.Path(protocol, srcPort, dstPort)}
+	return &TCPUDPSet{props: ds.PartitionTriple(protocol, srcPort, dstPort)}
 }
 
 // dimensionsList is the ordered list of dimensions in the TCPUDPSet object
@@ -214,7 +218,7 @@ func (c *TCPUDPSet) String() string {
 	}
 	// get cubes and cube str per each cube
 	resStrings := []string{}
-	for _, triple := range c.props.Triples() {
+	for _, triple := range c.props.Partitions() {
 		resStrings = append(resStrings, joinNonEmpty(
 			getDimensionString(triple.S1, protocol),
 			getDimensionString(triple.S2, srcPort),

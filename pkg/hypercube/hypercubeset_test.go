@@ -17,11 +17,11 @@ type Hypercube = hypercube.NProduct[*interval.CanonicalSet]
 // the input cube is given as an ordered list of integer values, where each two values
 // represent the range (start,end) for a dimension value
 func cube(values ...int64) *Hypercube {
-	path := []*interval.CanonicalSet{}
+	partition := []*interval.CanonicalSet{}
 	for i := 0; i < len(values); i += 2 {
-		path = append(path, interval.NewSetFromInterval(interval.New(values[i], values[i+1])))
+		partition = append(partition, interval.NewSetFromInterval(interval.New(values[i], values[i+1])))
 	}
-	return hypercube.NProductFromPath(path)
+	return hypercube.PartitionN(partition)
 }
 
 func union(set *Hypercube,

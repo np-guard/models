@@ -130,6 +130,14 @@ func (c *CanonicalSet) Contains(n int64) bool {
 	return New(n, n).ToSet().ContainedIn(c)
 }
 
+func (c *CanonicalSet) Size() int {
+	res := 0
+	for _, v := range c.intervalSet {
+		res += int(v.Size())
+	}
+	return res
+}
+
 // ContainedIn returns true of the current CanonicalSet is contained in the input CanonicalSet
 func (c *CanonicalSet) ContainedIn(other *CanonicalSet) bool {
 	if c == other {

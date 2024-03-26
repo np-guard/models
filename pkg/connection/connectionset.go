@@ -85,7 +85,7 @@ func All() *Set {
 	for i := range dimensionsList {
 		all[i] = entireDimension(dimensionsList[i])
 	}
-	return &Set{connectionProperties: ds.NProductFromPath(all)}
+	return &Set{connectionProperties: ds.PartitionN(all)}
 }
 
 var all = All()
@@ -167,7 +167,7 @@ func makeCube(values ...int64) *ds.NProduct[*interval.CanonicalSet] {
 	for i := 0; i < len(values); i += 2 {
 		path = append(path, interval.NewSetFromInterval(interval.New(values[i], values[i+1])))
 	}
-	return ds.NProductFromPath(path)
+	return ds.PartitionN(path)
 }
 
 func cube(protocolString netp.ProtocolString,
@@ -276,7 +276,7 @@ func (c *Set) String() string {
 	}
 	// get cubes and cube str per each cube
 	resStrings := []string{}
-	for _, cube := range c.connectionProperties.Paths() {
+	for _, cube := range c.connectionProperties.Partitions() {
 		resStrings = append(resStrings, getConnsCubeStr(cube))
 	}
 
@@ -372,7 +372,7 @@ func ToJSON(c *Set) Details {
 	}
 	res := spec.ProtocolList{}
 
-	cubes := c.connectionProperties.Paths()
+	cubes := c.connectionProperties.Partitions()
 	for _, cube := range cubes {
 		protocols := cubeAt(cube, protocol)
 		if protocols.Contains(TCPCode) {

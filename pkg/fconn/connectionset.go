@@ -8,9 +8,10 @@ import (
 )
 
 type AddressSet = interval.CanonicalSet
+type ICMPSet = interval.CanonicalSet
 
 type ConnectionSet struct {
-	props *ds.TripleSet[*AddressSet, *AddressSet, *MixedSet]
+	props *ds.TripleSet[*AddressSet, *AddressSet, *ds.Disjoint[*TCPUDPSet, *ICMPSet]]
 }
 
 func (c *ConnectionSet) Equal(other *ConnectionSet) bool {
@@ -51,7 +52,7 @@ func (c *ConnectionSet) Union(other *ConnectionSet) *ConnectionSet {
 //     the 1st can not since we do not know where exactly the statefulness came from
 func (c *ConnectionSet) Subtract(other *ConnectionSet) *ConnectionSet {
 	if c.IsEmpty() {
-		return &ConnectionSet{props: ds.NewTripleSet[*AddressSet, *AddressSet, *MixedSet]()}
+		return &ConnectionSet{props: ds.NewTripleSet[*AddressSet, *AddressSet, *ds.Disjoint[*TCPUDPSet, *ICMPSet]]()}
 	}
 	if other.IsEmpty() {
 		return c.Copy()

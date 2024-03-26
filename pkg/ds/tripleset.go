@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package ds
 
+// TripleSet is a right-associative 3-product of sets S1 x S2 x S3
 type TripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]] struct {
 	m *Product[S1, *Product[S2, S3]]
 }
@@ -10,8 +11,8 @@ func NewTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]]() *TripleSet[S1, S2, S3] {
 	return &TripleSet[S1, S2, S3]{m: NewProduct[S1, *Product[S2, S3]]()}
 }
 
-func Path[S1 Set[S1], S2 Set[S2], S3 Set[S3]](s1 S1, s2 S2, s3 S3) *TripleSet[S1, S2, S3] {
-	return &TripleSet[S1, S2, S3]{m: IPath(s1, IPath(s2, s3))}
+func PartitionTriple[S1 Set[S1], S2 Set[S2], S3 Set[S3]](s1 S1, s2 S2, s3 S3) *TripleSet[S1, S2, S3] {
+	return &TripleSet[S1, S2, S3]{m: PartitionPair(s1, PartitionPair(s2, s3))}
 }
 
 type Triple[S1 Set[S1], S2 Set[S2], S3 Set[S3]] struct {
@@ -69,9 +70,13 @@ func (c *TripleSet[S1, S2, S3]) ContainedIn(other *TripleSet[S1, S2, S3]) bool {
 	return c.m.ContainedIn(other.m)
 }
 
-func (c *TripleSet[S1, S2, S3]) Triples() []Triple[S1, S2, S3] {
+func (c *TripleSet[S1, S2, S3]) Size() int {
+	return c.m.Size()
+}
+
+func (c *TripleSet[S1, S2, S3]) Partitions() []Triple[S1, S2, S3] {
 	res := []Triple[S1, S2, S3]{}
-	for _, outer := range c.m.Pairs() {
+	for _, outer := range c.m.Partitions() {
 		for _, inner := range outer.Value.m.Pairs() {
 			res = append(res, Triple[S1, S2, S3]{
 				S1: outer.Key.Copy(),
@@ -87,24 +92,24 @@ func (c *TripleSet[S1, S2, S3]) Triples() []Triple[S1, S2, S3] {
 // with left and right swapped
 func (c *TripleSet[S1, S2, S3]) Swap23() *TripleSet[S1, S3, S2] {
 	res := NewTripleSet[S1, S3, S2]()
-	for _, triple := range c.Triples() {
-		res = res.Union(Path(triple.S1, triple.S3, triple.S2))
+	for _, triple := range c.Partitions() {
+		res = res.Union(PartitionTriple(triple.S1, triple.S3, triple.S2))
 	}
 	return res
 }
 
 func (c *TripleSet[S1, S2, S3]) Swap12() *TripleSet[S2, S1, S3] {
 	res := NewTripleSet[S2, S1, S3]()
-	for _, triple := range c.Triples() {
-		res = res.Union(Path(triple.S2, triple.S1, triple.S3))
+	for _, triple := range c.Partitions() {
+		res = res.Union(PartitionTriple(triple.S2, triple.S1, triple.S3))
 	}
 	return res
 }
 
 func (c *TripleSet[S1, S2, S3]) Swap13() *TripleSet[S3, S2, S1] {
 	res := NewTripleSet[S3, S2, S1]()
-	for _, triple := range c.Triples() {
-		res = res.Union(Path(triple.S3, triple.S2, triple.S1))
+	for _, triple := range c.Partitions() {
+		res = res.Union(PartitionTriple(triple.S3, triple.S2, triple.S1))
 	}
 	return res
 }
