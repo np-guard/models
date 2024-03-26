@@ -21,7 +21,7 @@ func cube(values ...int64) *Hypercube {
 	for i := 0; i < len(values); i += 2 {
 		partition = append(partition, interval.NewSetFromInterval(interval.New(values[i], values[i+1])))
 	}
-	return hypercube.PartitionN(partition)
+	return hypercube.CartesianN(partition)
 }
 
 func union(set *Hypercube,

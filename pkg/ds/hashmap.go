@@ -2,11 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package ds
 
-type Pair[K, V any] struct {
-	Key   K
-	Value V
-}
-
 type HashMap[K Hashable[K], V Comparable[V]] struct {
 	m map[int][]Pair[K, V]
 }

@@ -18,10 +18,70 @@ func CartesianPair[K Set[K], V Set[V]](k K, v V) *Product[K, V] {
 	return m
 }
 
+func (m *Product[K, V]) Left() []K {
+	return m.m.Keys()
+}
+
+func (m *Product[K, V]) Right() []V {
+	return m.m.Values()
+}
+
 // Insert mapping from a copy of k to a copy of v
 func (m *Product[K, V]) Insert(k K, v V) {
 	m.m.Insert(k, v)
 	m.canonicalize()
+}
+
+func (m *Product[K, V]) Equal(other *Product[K, V]) bool {
+	return m.m.Equal(other.m)
+}
+
+func (m *Product[K, V]) Copy() *Product[K, V] {
+	return &Product[K, V]{m: m.m.Copy()}
+}
+
+func (c *Product[K, V]) Hash() int {
+	const rrr = 5
+	res := rrr
+	for _, p := range c.Partitions() {
+		res ^= (p.Key.Hash() << 1) ^ p.Value.Hash()
+	}
+	return res
+}
+
+func (m *Product[K, V]) IsEmpty() bool {
+	return m.m.IsEmpty()
+}
+
+func (m *Product[K, V]) Size() int {
+	res := 0
+	for _, p := range m.m.Pairs() {
+		res += p.Key.Size() * p.Value.Size()
+	}
+	return res
+}
+
+// ContainedIn returns true if m contained in other
+func (m *Product[K, V]) ContainedIn(other *Product[K, V]) bool {
+	subsetCount := 0
+	for _, pair := range m.Partitions() {
+		LeftoverKey := pair.Key.Copy()
+		for _, otherPair := range other.Partitions() {
+			commonKey := otherPair.Key.Intersect(LeftoverKey)
+			if commonKey.IsEmpty() {
+				continue
+			}
+			if !pair.Value.ContainedIn(otherPair.Value) {
+				return false
+			}
+			LeftoverKey = LeftoverKey.Subtract(commonKey)
+			if LeftoverKey.IsEmpty() {
+				subsetCount += 1
+				break
+			}
+		}
+	}
+	return subsetCount == m.m.Size()
 }
 
 // Union returns a new Product object that results from union of m with other
@@ -60,7 +120,7 @@ func (m *Product[K, V]) Union(other *Product[K, V]) *Product[K, V] {
 	}
 	for _, pair := range remainingFromOther.Pairs() {
 		if !pair.Value.IsEmpty() {
-			if otherValue, ok := other.At(pair.Key); ok {
+			if otherValue, ok := other.m.At(pair.Key); ok {
 				res.Insert(pair.Value, otherValue)
 			}
 		}
@@ -121,75 +181,6 @@ func (m *Product[K, V]) Subtract(other *Product[K, V]) *Product[K, V] {
 	return res
 }
 
-// ContainedIn returns true if m contained in other
-func (m *Product[K, V]) ContainedIn(other *Product[K, V]) bool {
-	subsetCount := 0
-	for _, pair := range m.Partitions() {
-		LeftoverKey := pair.Key.Copy()
-		for _, otherPair := range other.Partitions() {
-			commonKey := otherPair.Key.Intersect(LeftoverKey)
-			if commonKey.IsEmpty() {
-				continue
-			}
-			if !pair.Value.ContainedIn(otherPair.Value) {
-				return false
-			}
-			LeftoverKey = LeftoverKey.Subtract(commonKey)
-			if LeftoverKey.IsEmpty() {
-				subsetCount += 1
-				break
-			}
-		}
-	}
-	return subsetCount == m.m.Size()
-}
-
-func (m *Product[K, V]) Copy() *Product[K, V] {
-	return &Product[K, V]{m: m.m.Copy()}
-}
-
-func (m *Product[K, V]) At(k K) (res V, ok bool) {
-	return m.m.At(k)
-}
-
-func (m *Product[K, V]) Partitions() []Pair[K, V] {
-	return m.m.Pairs()
-}
-
-func (m *Product[K, V]) Left() []K {
-	return m.m.Keys()
-}
-
-func (m *Product[K, V]) Right() []V {
-	return m.m.Values()
-}
-
-func (m *Product[K, V]) Equal(other *Product[K, V]) bool {
-	return m.m.Equal(other.m)
-}
-
-const rrr = 5
-
-func (c *Product[K, V]) Hash() int {
-	res := rrr
-	for _, p := range c.Partitions() {
-		res ^= (p.Key.Hash() << 1) ^ p.Value.Hash()
-	}
-	return res
-}
-
-func (m *Product[K, V]) IsEmpty() bool {
-	return m.m.IsEmpty()
-}
-
-func (m *Product[K, V]) Size() int {
-	res := 0
-	for _, p := range m.m.Pairs() {
-		res += p.Key.Size() * p.Value.Size()
-	}
-	return res
-}
-
 func (m *Product[K, V]) canonicalize() {
 	newM := NewMap[K, V]()
 	for _, p := range InverseMap(m.m).Pairs() {
@@ -204,6 +195,10 @@ func (m *Product[K, V]) canonicalize() {
 		newM.Insert(newKey, p.Key)
 	}
 	m.m = newM
+}
+
+func (m *Product[K, V]) Partitions() []Pair[K, V] {
+	return m.m.Pairs()
 }
 
 // Swap returns a new Product object, built from the input Product object,

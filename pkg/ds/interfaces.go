@@ -15,9 +15,9 @@ type Hashable[T any] interface {
 type Set[Self any] interface {
 	Hashable[Self]
 	IsEmpty() bool
-	ContainedIn(Self) bool
-	Intersect(Self) Self
-	Union(Self) Self
-	Subtract(Self) Self
 	Size() int
+	ContainedIn(Self) bool
+	Union(Self) Self
+	Intersect(Self) Self
+	Subtract(Self) Self
 }

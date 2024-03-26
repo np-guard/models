@@ -11,7 +11,14 @@ func NewDisjoint[L Set[L], R Set[R]](left L, right R) *Disjoint[L, R] {
 	return &Disjoint[L, R]{left: left.Copy(), right: right.Copy()}
 }
 
-// Fix: handle empty cases (usually nil values)
+func (c *Disjoint[L, R]) Left() L {
+	return c.left.Copy()
+}
+
+func (c *Disjoint[L, R]) Right() R {
+	return c.right.Copy()
+}
+
 // Does not work: yields nil values for the other
 // func NewLeft[L Set[L], R Set[R]](left L) *Disjoint[L, R] {
 // 	return &Disjoint[L, R]{left: left}
@@ -25,14 +32,34 @@ func (c *Disjoint[L, R]) Equal(other *Disjoint[L, R]) bool {
 	return c.left.Equal(other.left) && c.right.Equal(other.right)
 }
 
-func (c *Disjoint[L, R]) Hash() int {
-	return c.left.Hash() ^ c.right.Hash()
-}
-
 func (c *Disjoint[L, R]) Copy() *Disjoint[L, R] {
 	return &Disjoint[L, R]{
 		left:  c.left.Copy(),
 		right: c.right.Copy(),
+	}
+}
+
+func (c *Disjoint[L, R]) Hash() int {
+	return c.left.Hash() ^ c.right.Hash()
+}
+
+func (c *Disjoint[L, R]) IsEmpty() bool {
+	return c.left.IsEmpty() && c.right.IsEmpty()
+}
+
+func (c *Disjoint[L, R]) Size() int {
+	return c.left.Size() + c.right.Size()
+}
+
+// ContainedIn returns true if c is subset of other
+func (c *Disjoint[L, R]) ContainedIn(other *Disjoint[L, R]) bool {
+	return c.left.ContainedIn(other.left) && c.right.ContainedIn(other.right)
+}
+
+func (c *Disjoint[L, R]) Union(other *Disjoint[L, R]) *Disjoint[L, R] {
+	return &Disjoint[L, R]{
+		left:  c.left.Union(other.left),
+		right: c.right.Union(other.right),
 	}
 }
 
@@ -43,37 +70,9 @@ func (c *Disjoint[L, R]) Intersect(other *Disjoint[L, R]) *Disjoint[L, R] {
 	}
 }
 
-func (c *Disjoint[L, R]) IsEmpty() bool {
-	return c.left.IsEmpty() && c.right.IsEmpty()
-}
-
-func (c *Disjoint[L, R]) Union(other *Disjoint[L, R]) *Disjoint[L, R] {
-	return &Disjoint[L, R]{
-		left:  c.left.Union(other.left),
-		right: c.right.Union(other.right),
-	}
-}
-
 func (c *Disjoint[L, R]) Subtract(other *Disjoint[L, R]) *Disjoint[L, R] {
 	return &Disjoint[L, R]{
 		left:  c.left.Subtract(other.left),
 		right: c.right.Subtract(other.right),
 	}
-}
-
-// ContainedIn returns true if c is subset of other
-func (c *Disjoint[L, R]) ContainedIn(other *Disjoint[L, R]) bool {
-	return c.left.ContainedIn(other.left) && c.right.ContainedIn(other.right)
-}
-
-func (c *Disjoint[L, R]) Left() L {
-	return c.left.Copy()
-}
-
-func (c *Disjoint[L, R]) Right() R {
-	return c.right.Copy()
-}
-
-func (c *Disjoint[L, R]) Size() int {
-	return c.left.Size() + c.right.Size()
 }

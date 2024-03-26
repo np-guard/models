@@ -84,7 +84,7 @@ func All() *Set {
 	for i := range dimensionsList {
 		all[i] = entireDimension(dimensionsList[i])
 	}
-	return &Set{connectionProperties: ds.PartitionN(all)}
+	return &Set{connectionProperties: ds.CartesianN(all)}
 }
 
 var all = All()
@@ -165,7 +165,7 @@ func makeCube(values ...int64) *ds.NProduct[*interval.CanonicalSet] {
 	for i := 0; i < len(values); i += 2 {
 		path = append(path, interval.NewSetFromInterval(interval.New(values[i], values[i+1])))
 	}
-	return ds.PartitionN(path)
+	return ds.CartesianN(path)
 }
 
 func cube(protocolString netp.ProtocolString,
