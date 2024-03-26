@@ -3,11 +3,11 @@
 package ds
 
 type TripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]] struct {
-	m *IMap[S1, *IMap[S2, S3]]
+	m *Product[S1, *Product[S2, S3]]
 }
 
 func NewTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]]() *TripleSet[S1, S2, S3] {
-	return &TripleSet[S1, S2, S3]{m: NewIMap[S1, *IMap[S2, S3]]()}
+	return &TripleSet[S1, S2, S3]{m: NewIMap[S1, *Product[S2, S3]]()}
 }
 
 func Path[S1 Set[S1], S2 Set[S2], S3 Set[S3]](s1 S1, s2 S2, s3 S3) *TripleSet[S1, S2, S3] {

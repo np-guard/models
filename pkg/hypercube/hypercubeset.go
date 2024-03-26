@@ -12,7 +12,7 @@ import (
 
 // CanonicalSet is a canonical representation for set of n-dimensional cubes
 type CanonicalSet[S ds.Set[S]] struct {
-	layers     *ds.IMap[S, *CanonicalSet[S]]
+	layers     *ds.Product[S, *CanonicalSet[S]]
 	dimensions int
 }
 
@@ -110,7 +110,7 @@ func (c *CanonicalSet[S]) Copy() *CanonicalSet[S] {
 func (c *CanonicalSet[S]) Paths() [][]S {
 	res := [][]S{}
 	if c.dimensions == 1 {
-		for _, k := range c.layers.Keys() {
+		for _, k := range c.layers.Left() {
 			res = append(res, []S{k})
 		}
 		return res

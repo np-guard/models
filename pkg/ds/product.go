@@ -2,27 +2,28 @@
 // SPDX-License-Identifier: Apache-2.0
 package ds
 
-type IMap[S Set[S], V Set[V]] struct {
-	m *Map[S, V]
+type Product[K Set[K], V Set[V]] struct {
+	m *Map[K, V]
 }
 
-func NewIMap[S Set[S], V Set[V]]() *IMap[S, V] {
-	return &IMap[S, V]{m: NewMap[S, V]()}
+func NewIMap[K Set[K], V Set[V]]() *Product[K, V] {
+	return &Product[K, V]{m: NewMap[K, V]()}
 }
 
-func IPath[S Set[S], V Set[V]](s S, v V) *IMap[S, V] {
-	m := NewIMap[S, V]()
-	m.Insert(s, v)
+func IPath[K Set[K], V Set[V]](k K, v V) *Product[K, V] {
+	m := NewIMap[K, V]()
+	m.Insert(k, v)
 	return m
 }
 
-func (m *IMap[S, V]) Insert(s S, v V) {
-	m.m.Insert(s, v)
+// Insert mapping from a copy of k to a copy of v
+func (m *Product[K, V]) Insert(k K, v V) {
+	m.m.Insert(k, v)
 	m.canonicalize()
 }
 
-// Union returns a new IMap object that results from union of m with other
-func (m *IMap[S, V]) Union(other *IMap[S, V]) *IMap[S, V] {
+// Union returns a new Product object that results from union of m with other
+func (m *Product[K, V]) Union(other *Product[K, V]) *Product[K, V] {
 	if m == other {
 		return m.Copy()
 	}
@@ -32,13 +33,13 @@ func (m *IMap[S, V]) Union(other *IMap[S, V]) *IMap[S, V] {
 	if other.IsEmpty() {
 		return m.Copy()
 	}
-	res := NewIMap[S, V]()
-	remainingFromOther := NewMap[S, S]()
-	for _, k := range other.Keys() {
-		remainingFromOther.Insert(k, k.Copy())
+	res := NewIMap[K, V]()
+	remainingFromOther := NewMap[K, K]()
+	for _, k := range other.Left() {
+		remainingFromOther.Insert(k, k)
 	}
 	for _, pair := range m.Pairs() {
-		remainingFromSelf := pair.Key.Copy()
+		LeftoverKey := pair.Key.Copy()
 		for _, otherPair := range other.Pairs() {
 			commonElem := pair.Key.Intersect(otherPair.Key)
 			if commonElem.IsEmpty() {
@@ -47,18 +48,18 @@ func (m *IMap[S, V]) Union(other *IMap[S, V]) *IMap[S, V] {
 			if v, ok := remainingFromOther.At(otherPair.Key); ok {
 				remainingFromOther.Insert(otherPair.Key, v.Subtract(commonElem))
 			}
-			remainingFromSelf = remainingFromSelf.Subtract(commonElem)
+			LeftoverKey = LeftoverKey.Subtract(commonElem)
 			newSubElem := pair.Value.Union(otherPair.Value)
 			res.Insert(commonElem, newSubElem)
 		}
-		if !remainingFromSelf.IsEmpty() {
-			res.Insert(remainingFromSelf, pair.Value.Copy())
+		if !LeftoverKey.IsEmpty() {
+			res.Insert(LeftoverKey, pair.Value)
 		}
 	}
 	for _, pair := range remainingFromOther.Pairs() {
 		if !pair.Value.IsEmpty() {
 			if otherValue, ok := other.At(pair.Key); ok {
-				res.Insert(pair.Value, otherValue.Copy())
+				res.Insert(pair.Value, otherValue)
 			}
 		}
 	}
@@ -66,12 +67,12 @@ func (m *IMap[S, V]) Union(other *IMap[S, V]) *IMap[S, V] {
 	return res
 }
 
-// Intersect returns a new IMap object that results from intersection of m with other
-func (m *IMap[S, V]) Intersect(other *IMap[S, V]) *IMap[S, V] {
+// Intersect returns a new Product object that results from intersection of m with other
+func (m *Product[K, V]) Intersect(other *Product[K, V]) *Product[K, V] {
 	if m == other {
 		return m.Copy()
 	}
-	res := NewIMap[S, V]()
+	res := NewIMap[K, V]()
 	for _, pair := range m.Pairs() {
 		for _, otherPair := range other.Pairs() {
 			commonELem := pair.Key.Intersect(otherPair.Key)
@@ -88,30 +89,30 @@ func (m *IMap[S, V]) Intersect(other *IMap[S, V]) *IMap[S, V] {
 	return res
 }
 
-// Subtract returns a new IMap object that results from subtraction other from m
-func (m *IMap[S, V]) Subtract(other *IMap[S, V]) *IMap[S, V] {
+// Subtract returns a new Product object that results from subtraction other from m
+func (m *Product[K, V]) Subtract(other *Product[K, V]) *Product[K, V] {
 	if m == other {
-		return NewIMap[S, V]()
+		return NewIMap[K, V]()
 	}
 	if other.IsEmpty() {
 		return m.Copy()
 	}
-	res := NewIMap[S, V]()
+	res := NewIMap[K, V]()
 	for _, pair := range m.Pairs() {
-		remainingFromSelf := pair.Key.Copy()
+		LeftoverKey := pair.Key.Copy()
 		for _, otherPair := range other.Pairs() {
 			commonELem := pair.Key.Intersect(otherPair.Key)
 			if commonELem.IsEmpty() {
 				continue
 			}
-			remainingFromSelf = remainingFromSelf.Subtract(commonELem)
+			LeftoverKey = LeftoverKey.Subtract(commonELem)
 			newSubElem := pair.Value.Subtract(otherPair.Value)
 			if !newSubElem.IsEmpty() {
 				res.Insert(commonELem, newSubElem)
 			}
 		}
-		if !remainingFromSelf.IsEmpty() {
-			res.Insert(remainingFromSelf, pair.Value.Copy())
+		if !LeftoverKey.IsEmpty() {
+			res.Insert(LeftoverKey, pair.Value)
 		}
 	}
 	res.canonicalize()
@@ -119,7 +120,7 @@ func (m *IMap[S, V]) Subtract(other *IMap[S, V]) *IMap[S, V] {
 }
 
 // ContainedIn returns true if m contained in other
-func (m *IMap[S, V]) ContainedIn(other *IMap[S, V]) bool {
+func (m *Product[K, V]) ContainedIn(other *Product[K, V]) bool {
 	subsetCount := 0
 	for _, pair := range m.Pairs() {
 		LeftoverKey := pair.Key.Copy()
@@ -128,8 +129,7 @@ func (m *IMap[S, V]) ContainedIn(other *IMap[S, V]) bool {
 			if commonKey.IsEmpty() {
 				continue
 			}
-			subContainment := pair.Value.ContainedIn(otherPair.Value)
-			if !subContainment {
+			if !pair.Value.ContainedIn(otherPair.Value) {
 				return false
 			}
 			LeftoverKey = LeftoverKey.Subtract(commonKey)
@@ -142,33 +142,33 @@ func (m *IMap[S, V]) ContainedIn(other *IMap[S, V]) bool {
 	return subsetCount == m.Size()
 }
 
-func (m *IMap[S, V]) Copy() *IMap[S, V] {
-	return &IMap[S, V]{m: m.m.Copy()}
+func (m *Product[K, V]) Copy() *Product[K, V] {
+	return &Product[K, V]{m: m.m.Copy()}
 }
 
-func (m *IMap[S, V]) At(s S) (res V, ok bool) {
-	return m.m.At(s)
+func (m *Product[K, V]) At(k K) (res V, ok bool) {
+	return m.m.At(k)
 }
 
-func (m *IMap[S, V]) Pairs() []Pair[S, V] {
+func (m *Product[K, V]) Pairs() []Pair[K, V] {
 	return m.m.Pairs()
 }
 
-func (m *IMap[S, V]) Keys() []S {
+func (m *Product[K, V]) Left() []K {
 	return m.m.Keys()
 }
 
-func (m *IMap[S, V]) Values() []V {
+func (m *Product[K, V]) Values() []V {
 	return m.m.Values()
 }
 
-func (m *IMap[S, V]) Equal(other *IMap[S, V]) bool {
+func (m *Product[K, V]) Equal(other *Product[K, V]) bool {
 	return m.m.Equal(other.m)
 }
 
 const rrr = 5
 
-func (c *IMap[S, V]) Hash() int {
+func (c *Product[K, V]) Hash() int {
 	res := rrr
 	for _, p := range c.Pairs() {
 		res ^= (p.Key.Hash() << 1) ^ p.Value.Hash()
@@ -176,17 +176,17 @@ func (c *IMap[S, V]) Hash() int {
 	return res
 }
 
-func (m *IMap[S, V]) IsEmpty() bool {
+func (m *Product[K, V]) IsEmpty() bool {
 	return m.m.IsEmpty()
 }
 
-func (m *IMap[S, V]) Size() int {
+func (m *Product[K, V]) Size() int {
 	// maybe inappropriate
 	return m.m.Size()
 }
 
-func (m *IMap[S, V]) canonicalize() {
-	newM := NewMap[S, V]()
+func (m *Product[K, V]) canonicalize() {
+	newM := NewMap[K, V]()
 	for _, p := range InverseMap(m.m).Pairs() {
 		items := p.Value.Items()
 		if len(items) == 0 {

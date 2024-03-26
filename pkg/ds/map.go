@@ -15,19 +15,20 @@ func NewMap[K Hashable[K], V Copyable[V]]() *Map[K, V] {
 	return &Map[K, V]{m: map[int][]Pair[K, V]{}}
 }
 
+// Insert mapping from a copy of k to a copy of v
 func (m *Map[K, V]) Insert(k K, v V) {
 	Pairs := m.m[k.Hash()]
 	if Pairs == nil {
-		m.m[k.Hash()] = []Pair[K, V]{{Key: k.Copy(), Value: v}}
+		m.m[k.Hash()] = []Pair[K, V]{{Key: k.Copy(), Value: v.Copy()}}
 		return
 	}
 	for i := range Pairs {
 		if Pairs[i].Key.Equal(k) {
-			Pairs[i].Value = v
+			Pairs[i].Value = v.Copy()
 			return
 		}
 	}
-	m.m[k.Hash()] = append(Pairs, Pair[K, V]{Key: k.Copy(), Value: v})
+	m.m[k.Hash()] = append(Pairs, Pair[K, V]{Key: k.Copy(), Value: v.Copy()})
 }
 
 func (m *Map[K, V]) Copy() *Map[K, V] {
