@@ -20,10 +20,6 @@ const (
 	CidrAll = "0.0.0.0/0"
 
 	// internal const  below
-	ipByte         = 0xff
-	ipShift0       = 24
-	ipShift1       = 16
-	ipShift2       = 8
 	ipBase         = 10
 	ipMask         = 0xffffffff
 	maxIPv4Bits    = 32
