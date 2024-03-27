@@ -14,7 +14,9 @@ func NewProduct[K Set[K], V Set[V]]() *Product[K, V] {
 
 func CartesianPair[K Set[K], V Set[V]](k K, v V) *Product[K, V] {
 	m := NewProduct[K, V]()
-	m.Insert(k, v)
+	if !k.IsEmpty() && !v.IsEmpty() {
+		m.m.Insert(k, v)
+	}
 	return m
 }
 
@@ -24,12 +26,6 @@ func (m *Product[K, V]) Left() []K {
 
 func (m *Product[K, V]) Right() []V {
 	return m.m.Values()
-}
-
-// Insert mapping from a copy of k to a copy of v
-func (m *Product[K, V]) Insert(k K, v V) {
-	m.m.Insert(k, v)
-	m.canonicalize()
 }
 
 func (m *Product[K, V]) Equal(other *Product[K, V]) bool {
@@ -112,16 +108,16 @@ func (m *Product[K, V]) Union(other *Product[K, V]) *Product[K, V] {
 			}
 			LeftoverKey = LeftoverKey.Subtract(commonElem)
 			newSubElem := pair.Value.Union(otherPair.Value)
-			res.Insert(commonElem, newSubElem)
+			res.m.Insert(commonElem, newSubElem)
 		}
 		if !LeftoverKey.IsEmpty() {
-			res.Insert(LeftoverKey, pair.Value)
+			res.m.Insert(LeftoverKey, pair.Value)
 		}
 	}
 	for _, pair := range remainingFromOther.Pairs() {
 		if !pair.Value.IsEmpty() {
 			if otherValue, ok := other.m.At(pair.Key); ok {
-				res.Insert(pair.Value, otherValue)
+				res.m.Insert(pair.Value, otherValue)
 			}
 		}
 	}
@@ -143,7 +139,7 @@ func (m *Product[K, V]) Intersect(other *Product[K, V]) *Product[K, V] {
 			}
 			newSubElem := pair.Value.Intersect(otherPair.Value)
 			if !newSubElem.IsEmpty() {
-				res.Insert(commonELem, newSubElem)
+				res.m.Insert(commonELem, newSubElem)
 			}
 		}
 	}
@@ -170,11 +166,11 @@ func (m *Product[K, V]) Subtract(other *Product[K, V]) *Product[K, V] {
 			LeftoverKey = LeftoverKey.Subtract(commonELem)
 			newSubElem := pair.Value.Subtract(otherPair.Value)
 			if !newSubElem.IsEmpty() {
-				res.Insert(commonELem, newSubElem)
+				res.m.Insert(commonELem, newSubElem)
 			}
 		}
 		if !LeftoverKey.IsEmpty() {
-			res.Insert(LeftoverKey, pair.Value)
+			res.m.Insert(LeftoverKey, pair.Value)
 		}
 	}
 	res.canonicalize()
@@ -182,6 +178,11 @@ func (m *Product[K, V]) Subtract(other *Product[K, V]) *Product[K, V] {
 }
 
 func (m *Product[K, V]) canonicalize() {
+	for _, k := range m.m.Keys() {
+		if k.IsEmpty() {
+			m.m.Delete(k)
+		}
+	}
 	newM := NewMap[K, V]()
 	for _, p := range InverseMap(m.m).Pairs() {
 		items := p.Value.Items()
@@ -209,7 +210,8 @@ func (m *Product[K, V]) Swap() *Product[V, K] {
 	}
 	res := NewProduct[V, K]()
 	for _, pair := range m.Partitions() {
-		res.Insert(pair.Value, pair.Key)
+		res = res.Union(CartesianPair(pair.Value, pair.Key))
 	}
+	res.canonicalize()
 	return res
 }

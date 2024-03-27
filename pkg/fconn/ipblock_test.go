@@ -1,13 +1,13 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-package ipblock_test
+package fconn_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	ipblock "github.com/np-guard/models/pkg/fconn"
 )
 
 func TestOps(t *testing.T) {

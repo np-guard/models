@@ -1,6 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-package ipblock
+package fconn
 
 import (
 	"encoding/binary"
@@ -90,6 +90,14 @@ func (b *IPBlock) Equal(c *IPBlock) bool {
 		return true
 	}
 	return b.ipRange.Equal(c.ipRange)
+}
+
+func (b *IPBlock) Hash() int {
+	return b.ipRange.Hash()
+}
+
+func (b *IPBlock) Size() int {
+	return b.ipRange.Size()
 }
 
 // Subtract returns a new IPBlock from subtraction of input IPBlock from this IPBlock

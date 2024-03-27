@@ -11,6 +11,21 @@ func NewMap[K Hashable[K], V Comparable[V]]() *HashMap[K, V] {
 }
 
 // Insert mapping from a copy of k to a copy of v
+func (m *HashMap[K, V]) Delete(k K) {
+	Pairs := m.m[k.Hash()]
+	if Pairs == nil {
+		return
+	}
+	res := []Pair[K, V]{}
+	for i := range Pairs {
+		if !Pairs[i].Key.Equal(k) {
+			res = append(res, Pairs[i])
+		}
+	}
+	m.m[k.Hash()] = res
+}
+
+// Insert mapping from a copy of k to a copy of v
 func (m *HashMap[K, V]) Insert(k K, v V) {
 	Pairs := m.m[k.Hash()]
 	if Pairs == nil {

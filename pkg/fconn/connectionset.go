@@ -4,13 +4,27 @@ package fconn
 
 import (
 	"github.com/np-guard/models/pkg/ds"
-	"github.com/np-guard/models/pkg/interval"
+	"github.com/np-guard/models/pkg/netp"
 )
 
-type AddressSet = interval.CanonicalSet
+type TransportSet = ds.Disjoint[*TCPUDPSet, *ICMPSet]
+
+func NewTCPorUDPTransport(protocol netp.ProtocolString, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *TransportSet {
+	return ds.NewDisjoint(
+		NewTCPorUDPSet(protocol, srcMinP, srcMaxP, dstMinP, dstMaxP),
+		EmptyICMPSet(),
+	)
+}
+
+func NewICMPTransport(tc netp.ICMP) *TransportSet {
+	return ds.NewDisjoint(
+		EmptyTCPorUDPSet(),
+		NewICMPSet(tc),
+	)
+}
 
 type ConnectionSet struct {
-	props *ds.TripleSet[*AddressSet, *AddressSet, *TransportSet]
+	props *ds.TripleSet[*IPBlock, *IPBlock, *TransportSet]
 }
 
 func (c *ConnectionSet) Equal(other *ConnectionSet) bool {
@@ -51,7 +65,7 @@ func (c *ConnectionSet) Union(other *ConnectionSet) *ConnectionSet {
 //     the 1st can not since we do not know where exactly the statefulness came from
 func (c *ConnectionSet) Subtract(other *ConnectionSet) *ConnectionSet {
 	if c.IsEmpty() {
-		return &ConnectionSet{props: ds.NewTripleSet[*AddressSet, *AddressSet, *ds.Disjoint[*TCPUDPSet, *ICMPSet]]()}
+		return &ConnectionSet{props: ds.NewTripleSet[*IPBlock, *IPBlock, *ds.Disjoint[*TCPUDPSet, *ICMPSet]]()}
 	}
 	if other.IsEmpty() {
 		return c.Copy()
