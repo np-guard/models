@@ -61,8 +61,8 @@ func (m *Product[K, V]) Size() int {
 	return res
 }
 
-// ContainedIn returns true if m contained in other
-func (m *Product[K, V]) ContainedIn(other *Product[K, V]) bool {
+// IsSubset returns true if m contained in other
+func (m *Product[K, V]) IsSubset(other *Product[K, V]) bool {
 	subsetCount := 0
 	for _, pair := range m.Partitions() {
 		LeftoverKey := pair.Key.Copy()
@@ -71,7 +71,7 @@ func (m *Product[K, V]) ContainedIn(other *Product[K, V]) bool {
 			if commonKey.IsEmpty() {
 				continue
 			}
-			if !pair.Value.ContainedIn(otherPair.Value) {
+			if !pair.Value.IsSubset(otherPair.Value) {
 				return false
 			}
 			LeftoverKey = LeftoverKey.Subtract(commonKey)

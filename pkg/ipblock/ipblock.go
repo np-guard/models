@@ -66,12 +66,12 @@ func (b *IPBlock) toIPRangesList() []string {
 	return IPRanges
 }
 
-// ContainedIn checks if this IP block is contained within another IP block.
-func (b *IPBlock) ContainedIn(other *IPBlock) bool {
+// IsSubset checks if this IP block is contained within another IP block.
+func (b *IPBlock) IsSubset(other *IPBlock) bool {
 	if b == other {
 		return true
 	}
-	return b.ipRange.ContainedIn(other.ipRange)
+	return b.ipRange.IsSubset(other.ipRange)
 }
 
 // Intersect returns a new IPBlock from intersection of this IPBlock with input IPBlock

@@ -51,9 +51,9 @@ func (c *Disjoint[L, R]) Size() int {
 	return c.left.Size() + c.right.Size()
 }
 
-// ContainedIn returns true if c is subset of other
-func (c *Disjoint[L, R]) ContainedIn(other *Disjoint[L, R]) bool {
-	return c.left.ContainedIn(other.left) && c.right.ContainedIn(other.right)
+// IsSubset returns true if c is subset of other
+func (c *Disjoint[L, R]) IsSubset(other *Disjoint[L, R]) bool {
+	return c.left.IsSubset(other.left) && c.right.IsSubset(other.right)
 }
 
 func (c *Disjoint[L, R]) Union(other *Disjoint[L, R]) *Disjoint[L, R] {

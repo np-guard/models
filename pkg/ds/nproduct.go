@@ -13,8 +13,8 @@ type NProduct[S Set[S]] struct {
 	dimensions int
 }
 
-// NewCanonicalSet returns a new empty NProduct with n dimensions
-func NewCanonicalSet[S Set[S]](n int) *NProduct[S] {
+// NewNProduct returns a new empty NProduct with n dimensions
+func NewNProduct[S Set[S]](n int) *NProduct[S] {
 	return &NProduct[S]{
 		product:    NewProduct[S, *NProduct[S]](),
 		dimensions: n,
@@ -24,7 +24,7 @@ func NewCanonicalSet[S Set[S]](n int) *NProduct[S] {
 // CartesianN returns a new NProduct created from a single input partition
 // the input partition is a slice of NProduct, treated as ordered list of dimension values
 func CartesianN[S Set[S]](partition []S) *NProduct[S] {
-	res := NewCanonicalSet[S](len(partition))
+	res := NewNProduct[S](len(partition))
 	if len(partition) > 0 {
 		res.product.Insert(partition[0], CartesianN(partition[1:]))
 	}
@@ -44,7 +44,7 @@ func (c *NProduct[S]) Equal(other *NProduct[S]) bool {
 
 // Copy returns a new NProduct object, copied from c
 func (c *NProduct[S]) Copy() *NProduct[S] {
-	res := NewCanonicalSet[S](c.dimensions)
+	res := NewNProduct[S](c.dimensions)
 	for _, p := range c.product.Partitions() {
 		res.product.Insert(p.Key, p.Value)
 	}
@@ -83,12 +83,12 @@ func (c *NProduct[S]) Size() int {
 	return res
 }
 
-// ContainedIn returns true if c contained in other
-func (c *NProduct[S]) ContainedIn(other *NProduct[S]) bool {
+// IsSubset returns true if c contained in other
+func (c *NProduct[S]) IsSubset(other *NProduct[S]) bool {
 	if c.dimensions != other.dimensions {
 		log.Panic("dimensionality mismatch")
 	}
-	return c.product.ContainedIn(other.product)
+	return c.product.IsSubset(other.product)
 }
 
 func (c *NProduct[S]) withProduct(product *Product[S, *NProduct[S]]) *NProduct[S] {
@@ -123,7 +123,7 @@ func (c *NProduct[S]) Intersect(other *NProduct[S]) *NProduct[S] {
 // Subtract returns a new NProduct object that results from subtraction other from c
 func (c *NProduct[S]) Subtract(other *NProduct[S]) *NProduct[S] {
 	if c == other {
-		return NewCanonicalSet[S](c.dimensions)
+		return NewNProduct[S](c.dimensions)
 	}
 	if c.dimensions != other.dimensions {
 		return nil
@@ -156,7 +156,7 @@ func (c *NProduct[S]) Swap(dim1, dim2 int) *NProduct[S] {
 	if min(dim1, dim2) < 0 || max(dim1, dim2) >= c.dimensions {
 		log.Panicf("invalid dimensions: %d, %d", dim1, dim2)
 	}
-	res := NewCanonicalSet[S](c.dimensions)
+	res := NewNProduct[S](c.dimensions)
 	for _, path := range c.Partitions() {
 		if !path[dim1].Equal(path[dim2]) {
 			// Shallow clone should be enough, since we do shallow swap:

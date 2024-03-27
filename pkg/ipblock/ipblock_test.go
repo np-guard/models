@@ -17,8 +17,8 @@ func TestOps(t *testing.T) {
 	ipb2, err := ipblock.FromCidrOrAddress("1.2.3.4")
 	require.Nil(t, err)
 	require.NotNil(t, ipb2)
-	require.True(t, ipb2.ContainedIn(ipb1))
-	require.False(t, ipb1.ContainedIn(ipb2))
+	require.True(t, ipb2.IsSubset(ipb1))
+	require.False(t, ipb1.IsSubset(ipb2))
 
 	minus := ipb1.Subtract(ipb2)
 	require.Equal(t, "1.2.3.0-1.2.3.3, 1.2.3.5-1.2.3.255", minus.ToIPRanges())

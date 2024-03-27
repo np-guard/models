@@ -127,7 +127,7 @@ func (c *CanonicalSet) Copy() *CanonicalSet {
 }
 
 func (c *CanonicalSet) Contains(n int64) bool {
-	return New(n, n).ToSet().ContainedIn(c)
+	return New(n, n).ToSet().IsSubset(c)
 }
 
 func (c *CanonicalSet) Size() int {
@@ -138,8 +138,8 @@ func (c *CanonicalSet) Size() int {
 	return res
 }
 
-// ContainedIn returns true of the current CanonicalSet is contained in the input CanonicalSet
-func (c *CanonicalSet) ContainedIn(other *CanonicalSet) bool {
+// IsSubset returns true of the current CanonicalSet is contained in the input CanonicalSet
+func (c *CanonicalSet) IsSubset(other *CanonicalSet) bool {
 	if c == other {
 		return true
 	}

@@ -76,7 +76,7 @@ type Set struct {
 }
 
 func None() *Set {
-	return &Set{connectionProperties: ds.NewCanonicalSet[*interval.CanonicalSet](len(dimensionsList))}
+	return &Set{connectionProperties: ds.NewNProduct[*interval.CanonicalSet](len(dimensionsList))}
 }
 
 func All() *Set {
@@ -139,9 +139,9 @@ func (c *Set) Subtract(other *Set) *Set {
 	return &Set{connectionProperties: c.connectionProperties.Subtract(other.connectionProperties)}
 }
 
-// ContainedIn returns true if c is subset of other
-func (c *Set) ContainedIn(other *Set) bool {
-	return c.connectionProperties.ContainedIn(other.connectionProperties)
+// IsSubset returns true if c is subset of other
+func (c *Set) IsSubset(other *Set) bool {
+	return c.connectionProperties.IsSubset(other.connectionProperties)
 }
 
 func protocolStringToCode(protocol netp.ProtocolString) int64 {

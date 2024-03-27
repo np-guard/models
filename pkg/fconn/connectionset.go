@@ -59,7 +59,7 @@ func (c *ConnectionSet) Subtract(other *ConnectionSet) *ConnectionSet {
 	return &ConnectionSet{props: c.props.Subtract(other.props)}
 }
 
-// ContainedIn returns true if c is subset of other
-func (c *ConnectionSet) ContainedIn(other *ConnectionSet) bool {
-	return c.props.ContainedIn(other.props)
+// IsSubset returns true if c is subset of other
+func (c *ConnectionSet) IsSubset(other *ConnectionSet) bool {
+	return c.props.IsSubset(other.props)
 }

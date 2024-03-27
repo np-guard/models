@@ -59,7 +59,7 @@ func mapToOld(newCode int) (netp.ICMP, error) {
 
 type ICMPSet uint32
 
-func (s *ICMPSet) ContainedIn(other *ICMPSet) bool {
+func (s *ICMPSet) IsSubset(other *ICMPSet) bool {
 	return (*s)|(*other) == (*other)
 }
 
@@ -134,7 +134,7 @@ func (s *ICMPSet) collect(old int) []netp.ICMP {
 
 func (s *ICMPSet) ICMPList() []netp.ICMP {
 	all := ICMPSet(allCodes)
-	if s.ContainedIn(&all) {
+	if s.IsSubset(&all) {
 		return []netp.ICMP{{TypeCode: nil}}
 	}
 	res := []netp.ICMP{}

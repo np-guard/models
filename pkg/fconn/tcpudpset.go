@@ -87,9 +87,9 @@ func (c *TCPUDPSet) Subtract(other *TCPUDPSet) *TCPUDPSet {
 	return &TCPUDPSet{props: c.props.Subtract(other.props)}
 }
 
-// ContainedIn returns true if c is subset of other
-func (c *TCPUDPSet) ContainedIn(other *TCPUDPSet) bool {
-	return c.props.ContainedIn(other.props)
+// IsSubset returns true if c is subset of other
+func (c *TCPUDPSet) IsSubset(other *TCPUDPSet) bool {
+	return c.props.IsSubset(other.props)
 }
 
 // String returns a string representation of a TCPUDPSet object

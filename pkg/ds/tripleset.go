@@ -35,9 +35,9 @@ func (c *TripleSet[S1, S2, S3]) Size() int {
 	return c.m.Size()
 }
 
-// ContainedIn returns true if c is subset of other
-func (c *TripleSet[S1, S2, S3]) ContainedIn(other *TripleSet[S1, S2, S3]) bool {
-	return c.m.ContainedIn(other.m)
+// IsSubset returns true if c is subset of other
+func (c *TripleSet[S1, S2, S3]) IsSubset(other *TripleSet[S1, S2, S3]) bool {
+	return c.m.IsSubset(other.m)
 }
 
 func (c *TripleSet[S1, S2, S3]) Union(other *TripleSet[S1, S2, S3]) *TripleSet[S1, S2, S3] {
