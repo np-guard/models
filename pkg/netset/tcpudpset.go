@@ -1,6 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-package fconn
+package netset
 
 import (
 	"log"
@@ -13,12 +13,8 @@ import (
 )
 
 const (
-	TCPCode           = 0
-	UDPCode           = 1
-	minProtocol int64 = 0
-	maxProtocol int64 = 2
-	MinPort           = 1
-	MaxPort           = netp.MaxPort
+	TCPCode = 0
+	UDPCode = 1
 )
 
 const (
@@ -122,11 +118,11 @@ func path(protocol *ProtocolSet, srcPort, dstPort *PortSet) *TCPUDPSet {
 func entireDimension(dim Dimension) interval.Interval {
 	switch dim {
 	case protocol:
-		return interval.New(minProtocol, maxProtocol)
+		return interval.New(TCPCode, UDPCode)
 	case srcPort:
-		return interval.New(MinPort, MaxPort)
+		return interval.New(netp.MinPort, netp.MaxPort)
 	case dstPort:
-		return interval.New(MinPort, MaxPort)
+		return interval.New(netp.MinPort, netp.MaxPort)
 	}
 	return interval.New(0, -1)
 }

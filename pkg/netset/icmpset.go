@@ -1,6 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-package fconn
+package netset
 
 import (
 	"github.com/np-guard/models/pkg/interval"

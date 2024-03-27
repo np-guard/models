@@ -1,20 +1,20 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-package fconn_test
+package netset_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	ipblock "github.com/np-guard/models/pkg/fconn"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 func TestOps(t *testing.T) {
-	ipb1, err := ipblock.FromCidrOrAddress("1.2.3.0/24")
+	ipb1, err := netset.IPBlockFromCidrOrAddress("1.2.3.0/24")
 	require.Nil(t, err)
 	require.NotNil(t, ipb1)
-	ipb2, err := ipblock.FromCidrOrAddress("1.2.3.4")
+	ipb2, err := netset.IPBlockFromCidrOrAddress("1.2.3.4")
 	require.Nil(t, err)
 	require.NotNil(t, ipb2)
 	require.True(t, ipb2.IsSubset(ipb1))
@@ -23,7 +23,7 @@ func TestOps(t *testing.T) {
 	minus := ipb1.Subtract(ipb2)
 	require.Equal(t, "1.2.3.0-1.2.3.3, 1.2.3.5-1.2.3.255", minus.ToIPRanges())
 
-	minus2, err := ipblock.FromCidr(ipb1.ToCidrListString())
+	minus2, err := netset.FromCidr(ipb1.ToCidrListString())
 	require.Nil(t, err)
 	minus2, err = minus2.ExceptCidrs(ipb2.ToCidrListString())
 	require.Nil(t, err)
@@ -41,14 +41,14 @@ func TestOps(t *testing.T) {
 
 func TestConversions(t *testing.T) {
 	ipRange := "172.0.10.0-195.8.5.14"
-	ipb1, err := ipblock.FromIPRangeStr(ipRange)
+	ipb1, err := netset.FromIPRangeStr(ipRange)
 	require.Nil(t, err)
 	require.Equal(t, ipRange, ipb1.ToIPRanges())
 
 	cidrs := ipb1.ToCidrList()
 	require.Len(t, cidrs, 26)
 
-	ipb2, err := ipblock.FromCidrList(cidrs)
+	ipb2, err := netset.IPBlockFromCidrList(cidrs)
 	require.Nil(t, err)
 	require.Equal(t, ipb1.ToCidrListString(), ipb2.ToCidrListString())
 
@@ -60,19 +60,19 @@ func TestConversions(t *testing.T) {
 }
 
 func TestDisjointIPBlocks(t *testing.T) {
-	allIPs := ipblock.GetCidrAll()
-	ipb, err := ipblock.FromCidrList([]string{"1.2.3.4/32", "172.0.0.0/8"})
+	allIPs := netset.GetCidrAll()
+	ipb, err := netset.IPBlockFromCidrList([]string{"1.2.3.4/32", "172.0.0.0/8"})
 	require.Nil(t, err)
 
-	disjointBlocks := ipblock.DisjointIPBlocks([]*ipblock.IPBlock{allIPs}, []*ipblock.IPBlock{ipb})
+	disjointBlocks := netset.DisjointIPBlocks([]*netset.IPBlock{allIPs}, []*netset.IPBlock{ipb})
 	require.Len(t, disjointBlocks, 5)
 	require.Equal(t, "1.2.3.4", disjointBlocks[0].ToIPAddressString()) // list is sorted by ip-block size
 
-	ipb2, err := ipblock.FromCidrList([]string{"1.2.3.0/30"})
+	ipb2, err := netset.IPBlockFromCidrList([]string{"1.2.3.0/30"})
 	require.Nil(t, err)
-	ipb3, err := ipblock.FromIPRangeStr("1.2.2.255-1.2.3.1")
+	ipb3, err := netset.FromIPRangeStr("1.2.2.255-1.2.3.1")
 	require.Nil(t, err)
-	disjointBlocks = ipblock.DisjointIPBlocks([]*ipblock.IPBlock{ipb2}, []*ipblock.IPBlock{ipb3})
+	disjointBlocks = netset.DisjointIPBlocks([]*netset.IPBlock{ipb2}, []*netset.IPBlock{ipb3})
 	require.Len(t, disjointBlocks, 3)
 	require.Equal(t, "1.2.2.255", disjointBlocks[0].ToIPAddressString())
 	require.Equal(t, "1.2.3.2/31", disjointBlocks[1].ToCidrListString())
@@ -80,7 +80,7 @@ func TestDisjointIPBlocks(t *testing.T) {
 }
 
 func TestPairCIDRsToIPBlocks(t *testing.T) {
-	first, second, err := ipblock.PairCIDRsToIPBlocks("5.6.7.8/24", "4.9.2.1/32")
+	first, second, err := netset.PairCIDRsToIPBlocks("5.6.7.8/24", "4.9.2.1/32")
 	require.Nil(t, err)
 	require.Equal(t, "5.6.7.0/24", first.ListToPrint()[0])
 	require.Equal(t, "4.9.2.1/32", second.ListToPrint()[0])
@@ -92,58 +92,58 @@ func TestPairCIDRsToIPBlocks(t *testing.T) {
 }
 
 func TestPrefixLength(t *testing.T) {
-	ipb, err := ipblock.FromCidrOrAddress("42.5.2.8/20")
+	ipb, err := netset.IPBlockFromCidrOrAddress("42.5.2.8/20")
 	require.Nil(t, err)
 	prefLen, err := ipb.PrefixLength()
 	require.Nil(t, err)
 	require.Equal(t, int64(20), prefLen)
 
-	ipb, err = ipblock.FromCidrOrAddress("42.5.2.8")
+	ipb, err = netset.IPBlockFromCidrOrAddress("42.5.2.8")
 	require.Nil(t, err)
 	prefLen, err = ipb.PrefixLength()
 	require.Nil(t, err)
 	require.Equal(t, int64(32), prefLen)
 
-	ipb, err = ipblock.FromCidrList([]string{"1.2.3.4/32", "172.0.0.0/8"})
+	ipb, err = netset.IPBlockFromCidrList([]string{"1.2.3.4/32", "172.0.0.0/8"})
 	require.Nil(t, err)
 	_, err = ipb.PrefixLength()
 	require.NotNil(t, err)
 }
 
 func TestBadPath(t *testing.T) {
-	_, err := ipblock.FromCidr("not-a-cidr")
+	_, err := netset.FromCidr("not-a-cidr")
 	require.NotNil(t, err)
 
-	_, err = ipblock.FromCidr("2.5.7.9/24")
+	_, err = netset.FromCidr("2.5.7.9/24")
 	require.Nil(t, err)
 
-	_, err = ipblock.New().ExceptCidrs("5.6.7.8/20", "not-a-cidr")
+	_, err = netset.New().ExceptCidrs("5.6.7.8/20", "not-a-cidr")
 	require.NotNil(t, err)
 
-	_, err = ipblock.FromCidrList([]string{"1.2.3.4/20", "not-a-cidr"})
+	_, err = netset.IPBlockFromCidrList([]string{"1.2.3.4/20", "not-a-cidr"})
 	require.NotNil(t, err)
 
-	_, err = ipblock.FromCidrList([]string{"1.2.3.4/20", "1.2.3.4/40"})
+	_, err = netset.IPBlockFromCidrList([]string{"1.2.3.4/20", "1.2.3.4/40"})
 	require.NotNil(t, err)
 
-	_, err = ipblock.FromIPRangeStr("1.2.3.4")
+	_, err = netset.FromIPRangeStr("1.2.3.4")
 	require.NotNil(t, err)
 
-	_, err = ipblock.FromIPRangeStr("prefix-1.2.3.4")
+	_, err = netset.FromIPRangeStr("prefix-1.2.3.4")
 	require.NotNil(t, err)
 
-	_, err = ipblock.FromIPRangeStr("1.2.3.290-1.2.3.4")
+	_, err = netset.FromIPRangeStr("1.2.3.290-1.2.3.4")
 	require.NotNil(t, err)
 
-	_, err = ipblock.FromIPRangeStr("1.2.3.4-suffix")
+	_, err = netset.FromIPRangeStr("1.2.3.4-suffix")
 	require.NotNil(t, err)
 
-	_, err = ipblock.FromIPRangeStr("1.2.3.4-2.5.6.7/20")
+	_, err = netset.FromIPRangeStr("1.2.3.4-2.5.6.7/20")
 	require.NotNil(t, err)
 
-	_, _, err = ipblock.PairCIDRsToIPBlocks("1.2.3.4/40", "1.2.3.5/24")
+	_, _, err = netset.PairCIDRsToIPBlocks("1.2.3.4/40", "1.2.3.5/24")
 	require.NotNil(t, err)
 
-	_, _, err = ipblock.PairCIDRsToIPBlocks("1.2.3.4/20", "not-a-cidr")
+	_, _, err = netset.PairCIDRsToIPBlocks("1.2.3.4/20", "not-a-cidr")
 	require.NotNil(t, err)
 }

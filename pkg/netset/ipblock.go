@@ -1,6 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-package fconn
+package netset
 
 import (
 	"encoding/binary"
@@ -220,16 +220,16 @@ func PairCIDRsToIPBlocks(cidr1, cidr2 string) (ipb1, ipb2 *IPBlock, err error) {
 	return ipb1, ipb2, nil
 }
 
-// FromCidrOrAddress returns a new IPBlock object from input string of CIDR or IP address
-func FromCidrOrAddress(s string) (*IPBlock, error) {
+// IPBlockFromCidrOrAddress returns a new IPBlock object from input string of CIDR or IP address
+func IPBlockFromCidrOrAddress(s string) (*IPBlock, error) {
 	if strings.Contains(s, cidrSeparator) {
 		return FromCidr(s)
 	}
-	return FromIPAddress(s)
+	return IPBlockFromIPAddress(s)
 }
 
-// FromCidrList returns IPBlock object from multiple CIDRs given as list of strings
-func FromCidrList(cidrsList []string) (*IPBlock, error) {
+// IPBlockFromCidrList returns IPBlock object from multiple CIDRs given as list of strings
+func IPBlockFromCidrList(cidrsList []string) (*IPBlock, error) {
 	res := New()
 	for _, cidr := range cidrsList {
 		block, err := FromCidr(cidr)
@@ -254,8 +254,8 @@ func (b *IPBlock) ExceptCidrs(exceptions ...string) (*IPBlock, error) {
 	return &IPBlock{ipRange: b.ipRange.Subtract(holes)}, nil
 }
 
-// FromIPAddress returns an IPBlock object from input IP address string
-func FromIPAddress(ipAddress string) (*IPBlock, error) {
+// IPBlockFromIPAddress returns an IPBlock object from input IP address string
+func IPBlockFromIPAddress(ipAddress string) (*IPBlock, error) {
 	ipNum, err := parseIP(ipAddress)
 	if err != nil {
 		return nil, err
