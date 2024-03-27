@@ -14,8 +14,8 @@ import (
 // cubioid returns a new ds.NProduct created from a single input cubioid
 // the input cubioid is given as an ordered list of integer values, where each two values
 // represent the range (start,end) for a dimension value
-func cubioid(s1, e1, s2, e2, s3, e3 int64) *ds.TripleSet[*interval.CanonicalSet, *interval.CanonicalSet, *interval.CanonicalSet] {
-	return ds.CartesianTriple(interval.New(s1, e1).ToSet(), interval.New(s2, e2).ToSet(), interval.New(s3, e3).ToSet())
+func cubioid(s1, e1, s2, e2, s3, e3 int64) ds.TripleSet[*interval.CanonicalSet, *interval.CanonicalSet, *interval.CanonicalSet] {
+	return ds.CartesianRightTriple(interval.New(s1, e1).ToSet(), interval.New(s2, e2).ToSet(), interval.New(s3, e3).ToSet())
 }
 
 func TestCubioidEqual(t *testing.T) {
@@ -320,7 +320,7 @@ func TestCubioidOr2(t *testing.T) {
 }
 
 func TestCubioidSwapDimensions(t *testing.T) {
-	s := ds.NewTripleSet[*interval.CanonicalSet, *interval.CanonicalSet, *interval.CanonicalSet]()
+	s := ds.NewRightTripleSet[*interval.CanonicalSet, *interval.CanonicalSet, *interval.CanonicalSet]()
 	require.True(t, s.Swap12().Equal(s))
 
 	require.True(t, cubioid(1, 2, 3, 4, 5, 6).Swap12().Equal(cubioid(3, 4, 1, 2, 5, 6)))

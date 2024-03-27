@@ -36,7 +36,7 @@ type PortSet = interval.CanonicalSet
 type ProtocolSet = interval.CanonicalSet
 
 type TCPUDPSet struct {
-	props *ds.TripleSet[*ProtocolSet, *PortSet, *PortSet]
+	props ds.TripleSet[*ProtocolSet, *PortSet, *PortSet]
 }
 
 func (c *TCPUDPSet) Equal(other *TCPUDPSet) bool {
@@ -110,7 +110,7 @@ func (c *TCPUDPSet) String() string {
 }
 
 func path(protocol *ProtocolSet, srcPort, dstPort *PortSet) *TCPUDPSet {
-	return &TCPUDPSet{props: ds.CartesianTriple(protocol, srcPort, dstPort)}
+	return &TCPUDPSet{props: ds.CartesianRightTriple(protocol, srcPort, dstPort)}
 }
 
 // dimensionsList is the ordered list of dimensions in the TCPUDPSet object
@@ -167,7 +167,7 @@ func NewTCPorUDPSet(protocolString netp.ProtocolString, srcMinP, srcMaxP, dstMin
 }
 
 func EmptyTCPorUDPSet() *TCPUDPSet {
-	return &TCPUDPSet{props: ds.NewTripleSet[*PortSet, *PortSet, *PortSet]()}
+	return &TCPUDPSet{props: ds.NewRightTripleSet[*PortSet, *PortSet, *PortSet]()}
 }
 
 func protocolStringFromCode(protocolCode int64) netp.ProtocolString {

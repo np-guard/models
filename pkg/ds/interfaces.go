@@ -21,3 +21,12 @@ type Set[Self any] interface {
 	Intersect(Self) Self
 	Subtract(Self) Self
 }
+
+// TripleSet is a 3-product of sets S1 x S2 x S3
+type TripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]] interface {
+	Set[TripleSet[S1, S2, S3]]
+	Partitions() []Triple[S1, S2, S3]
+	Swap23() TripleSet[S1, S3, S2]
+	Swap12() TripleSet[S2, S1, S3]
+	Swap13() TripleSet[S3, S2, S1]
+}
