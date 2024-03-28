@@ -1,5 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+
 package ds_test
 
 import (
@@ -27,14 +28,14 @@ func checkContained[S ds.Set[S]](t *testing.T, a, b S, expected bool) {
 // rectangle returns a new ds.Product created from a single input rectangle
 // the input rectangle is given as an ordered list of integer values, where each two values
 // represent the range (start,end) for a dimension value
-func rectangle(s1, e1, s2, e2 int64) *ds.Product[*interval.CanonicalSet, *interval.CanonicalSet] {
-	return ds.CartesianPair(interval.New(s1, e1).ToSet(), interval.New(s2, e2).ToSet())
+func rectangle(s1, e1, s2, e2 int64) ds.Product[*interval.CanonicalSet, *interval.CanonicalSet] {
+	return ds.CartesianPairLeft(interval.New(s1, e1).ToSet(), interval.New(s2, e2).ToSet())
 }
 
 func TestRectangleProductEmpty(t *testing.T) {
-	rightEmpty := ds.CartesianPair(interval.New(1, 2).ToSet(), interval.NewCanonicalSet())
+	rightEmpty := ds.CartesianPairLeft(interval.New(1, 2).ToSet(), interval.NewCanonicalSet())
 	require.True(t, rightEmpty.IsEmpty())
-	leftEmpty := ds.CartesianPair(interval.NewCanonicalSet(), interval.New(1, 2).ToSet())
+	leftEmpty := ds.CartesianPairLeft(interval.NewCanonicalSet(), interval.New(1, 2).ToSet())
 	require.True(t, leftEmpty.IsEmpty())
 }
 

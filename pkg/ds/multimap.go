@@ -1,5 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+
 package ds
 
 // MultiPair is an element of a multimap: a pair of (key, set[Value])
@@ -45,7 +46,7 @@ func (m *MultiMap[K, V]) At(k K) HashSet[V] {
 }
 
 func (m *MultiMap[K, V]) Pairs() []MultiPair[K, V] {
-	res := []MultiPair[K, V]{}
+	var res []MultiPair[K, V]
 	for _, v := range m.m {
 		res = append(res, v...)
 	}
@@ -53,15 +54,16 @@ func (m *MultiMap[K, V]) Pairs() []MultiPair[K, V] {
 }
 
 func (m *MultiMap[K, V]) Keys() []K {
-	res := []K{}
-	for _, p := range m.Pairs() {
-		res = append(res, p.Key)
+	pairs := m.Pairs()
+	res := make([]K, len(pairs))
+	for i, p := range pairs {
+		res[i] = p.Key
 	}
 	return res
 }
 
 func (m *MultiMap[K, V]) Values() []V {
-	res := []V{}
+	var res []V
 	for _, p := range m.Pairs() {
 		res = append(res, p.Value.Items()...)
 	}
@@ -101,7 +103,7 @@ func (m *MultiMap[K, V]) Size() int {
 func InverseMap[K Hashable[K], V Hashable[V]](m *HashMap[K, V]) *MultiMap[V, K] {
 	inverse := NewMultiMap[V, K]()
 	for _, p := range m.Pairs() {
-		inverse.Insert(p.Value, p.Key)
+		inverse.Insert(p.Right, p.Left)
 	}
 	return &inverse
 }

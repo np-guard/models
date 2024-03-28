@@ -1,5 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+
 package interval
 
 import (
@@ -90,7 +91,7 @@ func (c *CanonicalSet) AddInterval(v Interval) {
 
 // AddHole updates the current CanonicalSet object by removing the input Interval from the set
 func (c *CanonicalSet) AddHole(hole Interval) {
-	newIntervalSet := []Interval{}
+	var newIntervalSet []Interval
 	for _, interval := range c.intervalSet {
 		newIntervalSet = append(newIntervalSet, interval.subtract(hole)...)
 	}

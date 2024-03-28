@@ -1,5 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+
 package netset_test
 
 import (

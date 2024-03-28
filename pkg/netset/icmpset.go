@@ -1,5 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+
 package netset
 
 import (
@@ -120,7 +121,7 @@ func (s *ICMPSet) IntervalSet() *interval.CanonicalSet {
 }
 
 func (s *ICMPSet) collect(old int) []netp.ICMP {
-	res := []netp.ICMP{}
+	var res []netp.ICMP
 	for code := 0; code <= netp.MaxCodes[old]; code++ {
 		if s.Contains(mapToNew(old, code)) {
 			res = append(res, netp.ICMP{TypeCode: &netp.ICMPTypeCode{Type: old, Code: &code}})
@@ -137,7 +138,7 @@ func (s *ICMPSet) ICMPList() []netp.ICMP {
 	if s.IsSubset(&all) {
 		return []netp.ICMP{{TypeCode: nil}}
 	}
-	res := []netp.ICMP{}
+	var res []netp.ICMP
 	for t := range netp.MaxCodes {
 		res = append(res, s.collect(t)...)
 	}

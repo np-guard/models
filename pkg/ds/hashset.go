@@ -1,5 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+
 package ds
 
 type HashSet[K Hashable[K]] struct {
@@ -25,7 +26,7 @@ func (m *HashSet[K]) Insert(k K) {
 }
 
 func (m *HashSet[K]) Items() []K {
-	res := []K{}
+	var res []K
 	for _, k := range m.m {
 		res = append(res, k...)
 	}

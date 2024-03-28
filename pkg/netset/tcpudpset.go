@@ -1,5 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+
 package netset
 
 import (
@@ -67,8 +68,8 @@ func (c *TCPUDPSet) Size() int {
 	return c.props.Size()
 }
 
-// SwapDimensions returns a new NProduct object, built from the input NProduct object,
-// with dimensions dim1 and dim2 swapped
+// SwapPorts returns a new NProduct object, built from the input NProduct object,
+// with src ports and dst ports swapped
 func (c *TCPUDPSet) SwapPorts() *TCPUDPSet {
 	return &TCPUDPSet{props: c.props.Swap23()}
 }
@@ -96,13 +97,14 @@ func (c *TCPUDPSet) String() string {
 		return AllConnections
 	}
 	// get cubes and cube str per each cube
-	resStrings := []string{}
-	for _, triple := range c.props.Partitions() {
-		resStrings = append(resStrings, joinNonEmpty(
+	partitions := c.props.Partitions()
+	resStrings := make([]string, len(partitions))
+	for i, triple := range partitions {
+		resStrings[i] = joinNonEmpty(
 			getDimensionString(triple.S1, protocol),
 			getDimensionString(triple.S2, srcPort),
 			getDimensionString(triple.S3, dstPort),
-		))
+		)
 	}
 
 	sort.Strings(resStrings)
@@ -188,7 +190,7 @@ func getDimensionString(dimValue *interval.CanonicalSet, dim Dimension) string {
 	}
 	switch dim {
 	case protocol:
-		pList := []string{}
+		var pList []string
 		for _, code := range []int64{TCPCode, UDPCode} {
 			if dimValue.Contains(code) {
 				pList = append(pList, string(protocolStringFromCode(code)))
@@ -206,7 +208,7 @@ func getDimensionString(dimValue *interval.CanonicalSet, dim Dimension) string {
 }
 
 func joinNonEmpty(inputList ...string) string {
-	res := []string{}
+	var res []string
 	for _, propertyStr := range inputList {
 		if propertyStr != "" {
 			res = append(res, propertyStr)

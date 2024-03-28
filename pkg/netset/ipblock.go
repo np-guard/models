@@ -1,5 +1,6 @@
 // Copyright 2020- IBM Inc. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+
 package netset
 
 import (
@@ -55,11 +56,12 @@ func toIPRange(i interval.Interval) string {
 
 // toIPRangesList: returns a list of the ip-ranges strings in the current IPBlock object
 func (b *IPBlock) toIPRangesList() []string {
-	IPRanges := make([]string, b.ipRange.NumIntervals())
-	for index, span := range b.ipRange.Intervals() {
-		IPRanges[index] = toIPRange(span)
+	intervals := b.ipRange.Intervals()
+	ipRanges := make([]string, len(intervals))
+	for index, span := range intervals {
+		ipRanges[index] = toIPRange(span)
 	}
-	return IPRanges
+	return ipRanges
 }
 
 // IsSubset checks if this IP block is contained within another IP block.
@@ -116,7 +118,7 @@ func (b *IPBlock) Union(c *IPBlock) *IPBlock {
 	}
 }
 
-// Empty returns true if this IPBlock is empty
+// IsEmpty returns true if this IPBlock is empty
 func (b *IPBlock) IsEmpty() bool {
 	return b.ipRange.IsEmpty()
 }
@@ -136,8 +138,9 @@ func (b *IPBlock) ipCount() int {
 
 // Split returns a set of IpBlock objects, each with a single range of ips
 func (b *IPBlock) Split() []*IPBlock {
-	res := make([]*IPBlock, b.ipRange.NumIntervals())
-	for index, span := range b.ipRange.Intervals() {
+	intervals := b.ipRange.Intervals()
+	res := make([]*IPBlock, len(intervals))
+	for index, span := range intervals {
 		res[index] = &IPBlock{
 			ipRange: span.ToSet(),
 		}
@@ -154,19 +157,19 @@ func intToIP4(ipInt int64) string {
 
 // DisjointIPBlocks returns an IPBlock of disjoint ip ranges from 2 input IPBlock objects
 func DisjointIPBlocks(set1, set2 []*IPBlock) []*IPBlock {
-	ipbList := []*IPBlock{}
-	for _, ipb := range set1 {
-		ipbList = append(ipbList, ipb.Copy())
+	ipbList := make([]*IPBlock, len(set1)+len(set2))
+	for i, ipb := range set1 {
+		ipbList[i] = ipb.Copy()
 	}
-	for _, ipb := range set2 {
-		ipbList = append(ipbList, ipb.Copy())
+	for i, ipb := range set2 {
+		ipbList[len(set1)+i] = ipb.Copy()
 	}
 	// sort ipbList by ip_count per ipblock
 	sort.Slice(ipbList, func(i, j int) bool {
 		return ipbList[i].ipCount() < ipbList[j].ipCount()
 	})
 	// making sure the resulting list does not contain overlapping ipBlocks
-	res := []*IPBlock{}
+	var res []*IPBlock
 	for _, ipb := range ipbList {
 		res = addIntervalToList(ipb, res)
 	}
@@ -179,7 +182,7 @@ func DisjointIPBlocks(set1, set2 []*IPBlock) []*IPBlock {
 
 // addIntervalToList is used for computation of DisjointIPBlocks
 func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
-	toAdd := []*IPBlock{}
+	var toAdd []*IPBlock
 	for idx, ipb := range ipbList {
 		if !ipb.ipRange.Overlap(ipbNew.ipRange) {
 			continue
@@ -283,7 +286,7 @@ func cidrToInterval(cidr string) (interval.Interval, error) {
 
 // ToCidrList returns a list of CIDR strings for this IPBlock object
 func (b *IPBlock) ToCidrList() []string {
-	cidrList := []string{}
+	var cidrList []string
 	for _, ipRange := range b.ipRange.Intervals() {
 		cidrList = append(cidrList, intervalToCidrList(ipRange)...)
 	}
@@ -295,9 +298,9 @@ func (b *IPBlock) ToCidrListString() string {
 	return strings.Join(b.ToCidrList(), commaSeparator)
 }
 
-// ListToPrint: returns a uniform to print list s.t. each element contains either a single cidr or an ip range
+// ListToPrint returns a uniform to print list s.t. each element contains either a single cidr or an ip range
 func (b *IPBlock) ListToPrint() []string {
-	cidrsIPRangesList := []string{}
+	var cidrsIPRangesList []string
 	for _, ipRange := range b.ipRange.Intervals() {
 		cidr := intervalToCidrList(ipRange)
 		if len(cidr) == 1 {
@@ -309,7 +312,7 @@ func (b *IPBlock) ListToPrint() []string {
 	return cidrsIPRangesList
 }
 
-// ToIPAdressString returns the IP Address string for this IPBlock
+// ToIPAddressString returns the IP Address string for this IPBlock
 func (b *IPBlock) ToIPAddressString() string {
 	if b.ipRange.IsSingleNumber() {
 		return intToIP4(b.ipRange.Min())
@@ -320,7 +323,7 @@ func (b *IPBlock) ToIPAddressString() string {
 func intervalToCidrList(ipRange interval.Interval) []string {
 	start := ipRange.Start()
 	end := ipRange.End()
-	res := []string{}
+	var res []string
 	for end >= start {
 		maxSize := maxIPv4Bits
 		for maxSize > 0 {
