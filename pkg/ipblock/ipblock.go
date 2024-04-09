@@ -382,3 +382,11 @@ func (b *IPBlock) PrefixLength() (int64, error) {
 	lenStr := strings.Split(cidrStr, cidrSeparator)[1]
 	return strconv.ParseInt(lenStr, ipBase, bitSize64)
 }
+
+// String returns an IPBlock's string -- either single IP address, or list of CIDR strings
+func (b *IPBlock) String() string {
+	if b.ipRange.IsSingleNumber() {
+		return b.ToIPAddressString()
+	}
+	return b.ToCidrListString()
+}
