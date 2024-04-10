@@ -110,6 +110,20 @@ func TestPrefixLength(t *testing.T) {
 	require.NotNil(t, err)
 }
 
+func TestString(t *testing.T) {
+	ipb, err := ipblock.FromCidrOrAddress("42.5.2.8")
+	require.Nil(t, err)
+	require.Equal(t, "42.5.2.8", ipb.String())
+
+	ipb, err = ipblock.FromCidrOrAddress("42.5.0.0/20")
+	require.Nil(t, err)
+	require.Equal(t, "42.5.0.0/20", ipb.String())
+
+	ipb, err = ipblock.FromCidrList([]string{"1.2.3.4/32", "172.0.0.0/8"})
+	require.Nil(t, err)
+	require.Equal(t, "1.2.3.4/32, 172.0.0.0/8", ipb.String())
+}
+
 func TestBadPath(t *testing.T) {
 	_, err := ipblock.FromCidr("not-a-cidr")
 	require.NotNil(t, err)
