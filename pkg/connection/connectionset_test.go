@@ -26,24 +26,24 @@ func TestNoConnections(t *testing.T) {
 func TestBasicSetICMP(t *testing.T) {
 	c := connection.ICMPConnection(ICMPValue, ICMPValue, 5, 5)
 	require.Equal(t, "protocol: ICMP icmp-type: 3 icmp-code: 5", c.String())
-	require.Equal(t, "ICMP type: 3 code: 5", c.MinimizeString())
+	require.Equal(t, "ICMP type: 3 code: 5", c.MinimizedString())
 }
 
 func TestBasicSetTCP(t *testing.T) {
 	e := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 1, 65535, 1, 655)
 	require.Equal(t, "protocol: TCP dst-ports: 1-655", e.String())
-	require.Equal(t, "TCP 1-655", e.MinimizeString())
+	require.Equal(t, "TCP 1-655", e.MinimizedString())
 
 	e = connection.TCPorUDPConnection(netp.ProtocolStringTCP, 1, 535, 1, 655)
 	require.Equal(t, "protocol: TCP src-ports: 1-535 dst-ports: 1-655", e.String())
-	require.Equal(t, "TCP src-ports: 1-535 dst-ports: 1-655", e.MinimizeString())
+	require.Equal(t, "TCP src-ports: 1-535 dst-ports: 1-655", e.MinimizedString())
 
 	e = connection.TCPorUDPConnection(netp.ProtocolStringTCP, 1, 65535, 1, 65535)
 	require.Equal(t, "protocol: TCP", e.String())
 
 	c := connection.All().Subtract(e)
 	require.Equal(t, "protocol: ICMP,UDP", c.String())
-	require.Equal(t, "ICMP,UDP", c.MinimizeString())
+	require.Equal(t, "ICMP,UDP", c.MinimizedString())
 
 	c = c.Union(e)
 	require.Equal(t, "All Connections", c.String())
@@ -62,7 +62,7 @@ func TestBasicSet2(t *testing.T) {
 	require.Equal(t, ""+
 		"ICMP type: 0-2,4-16; "+
 		"ICMP type: 3 code: 0-4; "+
-		"UDP", d.MinimizeString())
+		"UDP", d.MinimizedString())
 }
 
 func TestBasicSet3(t *testing.T) {

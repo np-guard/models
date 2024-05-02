@@ -275,7 +275,7 @@ func (c *Set) String() string {
 }
 
 // String() returns a string representation of a Set object
-func (c *Set) MinimizeString() string {
+func (c *Set) MinimizedString() string {
 	return c.toString(true)
 }
 func (c *Set) toString(minimize bool) string {
