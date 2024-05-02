@@ -308,9 +308,14 @@ func (b *IPBlock) ListToPrint() []string {
 // ToIPAdressString returns the IP Address string for this IPBlock
 func (b *IPBlock) ToIPAddressString() string {
 	if b.ipRange.IsSingleNumber() {
-		return intToIP4(b.ipRange.Min())
+		return b.FirstIPAddress()
 	}
 	return ""
+}
+
+// FirstIPAddress() returns the first IP Address string for this IPBlock
+func (b *IPBlock) FirstIPAddress() string {
+	return intToIP4(b.ipRange.Min())
 }
 
 func intervalToCidrList(ipRange interval.Interval) []string {
@@ -386,7 +391,7 @@ func (b *IPBlock) PrefixLength() (int64, error) {
 // String returns an IPBlock's string -- either single IP address, or list of CIDR strings
 func (b *IPBlock) String() string {
 	if b.ipRange.IsSingleNumber() {
-		return b.ToIPAddressString()
+		return b.FirstIPAddress()
 	}
 	return b.ToCidrListString()
 }
