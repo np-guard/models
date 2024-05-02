@@ -312,9 +312,10 @@ func (b *IPBlock) ToIPAddressString() string {
 	}
 	return ""
 }
+
 // FirstIPAddress() returns the first IP Address string for this IPBlock
 func (b *IPBlock) FirstIPAddress() string {
-		return intToIP4(b.ipRange.Min())
+	return intToIP4(b.ipRange.Min())
 }
 
 func intervalToCidrList(ipRange interval.Interval) []string {
