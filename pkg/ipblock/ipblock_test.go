@@ -22,6 +22,7 @@ func TestOps(t *testing.T) {
 
 	minus := ipb1.Subtract(ipb2)
 	require.Equal(t, "1.2.3.0-1.2.3.3, 1.2.3.5-1.2.3.255", minus.ToIPRanges())
+	require.Equal(t, "1.2.3.0", minus.FirstIPAddress())
 
 	minus2, err := ipblock.FromCidr(ipb1.ToCidrListString())
 	require.Nil(t, err)
@@ -44,6 +45,7 @@ func TestConversions(t *testing.T) {
 	ipb1, err := ipblock.FromIPRangeStr(ipRange)
 	require.Nil(t, err)
 	require.Equal(t, ipRange, ipb1.ToIPRanges())
+	require.Equal(t, "172.0.10.0", ipb1.FirstIPAddress())
 
 	cidrs := ipb1.ToCidrList()
 	require.Len(t, cidrs, 26)
