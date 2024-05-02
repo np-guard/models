@@ -198,9 +198,9 @@ func protocolStringFromCode(protocolCode int64) netp.ProtocolString {
 	return ""
 }
 
-func getDimensionString(cube []*interval.CanonicalSet, dim Dimension, minimize bool) string {
+func getDimensionString(cube []*interval.CanonicalSet, dim Dimension, shortVersion bool) string {
 	choosePrefix := func(long, short string) string {
-		if minimize {
+		if shortVersion {
 			return short
 		}
 		return long
@@ -226,7 +226,7 @@ func getDimensionString(cube []*interval.CanonicalSet, dim Dimension, minimize b
 		return "src-ports: " + dimValue.String()
 	case dstPort:
 		// we omit the dst-ports prefix only if we don't have src:
-		minimize = minimize && cubeAt(cube, srcPort).Equal(entireDimension(srcPort))
+		shortVersion = shortVersion && cubeAt(cube, srcPort).Equal(entireDimension(srcPort))
 		return choosePrefix("dst-ports: ", "") + dimValue.String()
 	case icmpType:
 		return choosePrefix("icmp-type: ", "type: ") + dimValue.String()
@@ -246,26 +246,26 @@ func joinNonEmpty(inputList ...string) string {
 	return strings.Join(res, propertySeparator)
 }
 
-func getConnsCubeStr(cube []*interval.CanonicalSet, minimize bool) string {
+func getConnsCubeStr(cube []*interval.CanonicalSet, shortVersion bool) string {
 	protocols := cubeAt(cube, protocol)
 	tcpOrUDP := protocols.Contains(TCPCode) || protocols.Contains(UDPCode)
 	icmp := protocols.Contains(ICMPCode)
 	switch {
 	case tcpOrUDP && !icmp:
 		return joinNonEmpty(
-			getDimensionString(cube, protocol, minimize),
-			getDimensionString(cube, srcPort, minimize),
-			getDimensionString(cube, dstPort, minimize),
+			getDimensionString(cube, protocol, shortVersion),
+			getDimensionString(cube, srcPort, shortVersion),
+			getDimensionString(cube, dstPort, shortVersion),
 		)
 	case icmp && !tcpOrUDP:
 		return joinNonEmpty(
-			getDimensionString(cube, protocol, minimize),
-			getDimensionString(cube, icmpType, minimize),
-			getDimensionString(cube, icmpCode, minimize),
+			getDimensionString(cube, protocol, shortVersion),
+			getDimensionString(cube, icmpType, shortVersion),
+			getDimensionString(cube, icmpCode, shortVersion),
 		)
 	default:
 		// TODO: make sure other dimension values are full
-		return getDimensionString(cube, protocol, minimize)
+		return getDimensionString(cube, protocol, shortVersion)
 	}
 }
 
@@ -275,10 +275,10 @@ func (c *Set) String() string {
 }
 
 // String() returns a string representation of a Set object
-func (c *Set) MinimizedString() string {
+func (c *Set) ShortString() string {
 	return c.toString(true)
 }
-func (c *Set) toString(minimize bool) string {
+func (c *Set) toString(shortVersion bool) string {
 	if c.IsEmpty() {
 		return NoConnections
 	} else if c.IsAll() {
@@ -287,7 +287,7 @@ func (c *Set) toString(minimize bool) string {
 	// get cubes and cube str per each cube
 	resStrings := []string{}
 	for _, cube := range c.connectionProperties.GetCubesList() {
-		resStrings = append(resStrings, getConnsCubeStr(cube, minimize))
+		resStrings = append(resStrings, getConnsCubeStr(cube, shortVersion))
 	}
 
 	sort.Strings(resStrings)
