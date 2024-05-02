@@ -391,7 +391,7 @@ func (b *IPBlock) PrefixLength() (int64, error) {
 // String returns an IPBlock's string -- either single IP address, or list of CIDR strings
 func (b *IPBlock) String() string {
 	if b.ipRange.IsSingleNumber() {
-		return b.ToIPAddressString()
+		return b.FirstIPAddress()
 	}
 	return b.ToCidrListString()
 }
