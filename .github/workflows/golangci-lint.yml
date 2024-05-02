@@ -16,5 +16,3 @@ jobs:
         with:
           go-version-file: ./go.mod
       - uses: golangci/golangci-lint-action@9d1e0624a798bb64f6c3cea93db47765312263dc
-        with:
-          skip-cache: true
