@@ -11,7 +11,7 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 )
 
-func newTCPConn(t *testing.T, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *connection.Set {
+func NewTCPConn(t *testing.T, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *connection.Set {
 	t.Helper()
 	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
 }
@@ -61,11 +61,11 @@ func TestAll(t *testing.T) {
 		{
 			name:     "first_all_cons_second_tcp_with_ports",
 			srcToDst: connection.All(),                                              // all connections
-			dstToSrc: newTCPConn(t, 80, 80, connection.MinPort, connection.MaxPort), // TCP , src-ports: 80, dst-ports: all
+			dstToSrc: NewTCPConn(t, 80, 80, connection.MinPort, connection.MaxPort), // TCP , src-ports: 80, dst-ports: all
 
 			// TCP src-ports: all, dst-port: 80 , union: all non-TCP conns
 			expectedStatefulConn: connection.All().Subtract(newTCPUDPSet(t, netp.ProtocolStringTCP)).Union(
-				newTCPConn(t, connection.MinPort, connection.MaxPort, 80, 80)),
+				NewTCPConn(t, connection.MinPort, connection.MaxPort, 80, 80)),
 		},
 		{
 			name:     "first_all_conns_second_no_tcp",
@@ -76,38 +76,38 @@ func TestAll(t *testing.T) {
 		},
 		{
 			name:                 "tcp_with_ports_both_directions_exact_match",
-			srcToDst:             newTCPConn(t, 80, 80, 443, 443),
-			dstToSrc:             newTCPConn(t, 443, 443, 80, 80),
-			expectedStatefulConn: newTCPConn(t, 80, 80, 443, 443),
+			srcToDst:             NewTCPConn(t, 80, 80, 443, 443),
+			dstToSrc:             NewTCPConn(t, 443, 443, 80, 80),
+			expectedStatefulConn: NewTCPConn(t, 80, 80, 443, 443),
 		},
 		{
 			name:                 "tcp_with_ports_both_directions_partial_match",
-			srcToDst:             newTCPConn(t, 80, 100, 443, 443),
-			dstToSrc:             newTCPConn(t, 443, 443, 80, 80),
-			expectedStatefulConn: newTCPConn(t, 80, 80, 443, 443),
+			srcToDst:             NewTCPConn(t, 80, 100, 443, 443),
+			dstToSrc:             NewTCPConn(t, 443, 443, 80, 80),
+			expectedStatefulConn: NewTCPConn(t, 80, 80, 443, 443),
 		},
 		{
 			name:                 "tcp_with_ports_both_directions_no_match",
-			srcToDst:             newTCPConn(t, 80, 100, 443, 443),
-			dstToSrc:             newTCPConn(t, 80, 80, 80, 80),
+			srcToDst:             NewTCPConn(t, 80, 100, 443, 443),
+			dstToSrc:             NewTCPConn(t, 80, 80, 80, 80),
 			expectedStatefulConn: connection.None(),
 		},
 		{
 			name:                 "udp_and_tcp_with_ports_both_directions_no_match",
-			srcToDst:             newTCPConn(t, 80, 100, 443, 443).Union(newUDPConn(t, 80, 100, 443, 443)),
-			dstToSrc:             newTCPConn(t, 80, 80, 80, 80).Union(newUDPConn(t, 80, 80, 80, 80)),
+			srcToDst:             NewTCPConn(t, 80, 100, 443, 443).Union(newUDPConn(t, 80, 100, 443, 443)),
+			dstToSrc:             NewTCPConn(t, 80, 80, 80, 80).Union(newUDPConn(t, 80, 80, 80, 80)),
 			expectedStatefulConn: newUDPConn(t, 80, 100, 443, 443),
 		},
 		{
 			name:                 "no_tcp_in_first_direction",
 			srcToDst:             newUDPConn(t, 70, 100, 443, 443),
-			dstToSrc:             newTCPConn(t, 70, 80, 80, 80).Union(newUDPConn(t, 70, 80, 80, 80)),
+			dstToSrc:             NewTCPConn(t, 70, 80, 80, 80).Union(newUDPConn(t, 70, 80, 80, 80)),
 			expectedStatefulConn: newUDPConn(t, 70, 100, 443, 443),
 		},
 		{
 			name:                 "empty_conn_in_first_direction",
 			srcToDst:             connection.None(),
-			dstToSrc:             newTCPConn(t, 80, 80, 80, 80).Union(newTCPUDPSet(t, netp.ProtocolStringUDP)),
+			dstToSrc:             NewTCPConn(t, 80, 80, 80, 80).Union(newTCPUDPSet(t, netp.ProtocolStringUDP)),
 			expectedStatefulConn: connection.None(),
 		},
 		{

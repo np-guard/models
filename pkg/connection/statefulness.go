@@ -8,8 +8,14 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 )
 
-func newTCPSet() *Set {
+func NewTCPSet() *Set {
 	return TCPorUDPConnection(netp.ProtocolStringTCP, MinPort, MaxPort, MinPort, MaxPort)
+}
+
+func PartitionTCPNonTCP(conn *Set) (tcp, nonTCP *Set) {
+	tcpFractionOfConn := NewTCPSet().Intersect(conn)
+	nonTCPFractionOfConn := conn.Subtract(tcpFractionOfConn)
+	return tcpFractionOfConn, nonTCPFractionOfConn
 }
 
 // WithStatefulness returns the stateful part of `c`
@@ -17,11 +23,11 @@ func newTCPSet() *Set {
 // This function also returns a connection object with the exact subset of the stateful part (within TCP)
 // from the entire connection `c`, and with the original connections on other protocols.
 func (c *Set) WithStatefulness(secondDirectionConn *Set) *Set {
-	connTCP := c.Intersect(newTCPSet())
+	connTCP := c.Intersect(NewTCPSet())
 	if connTCP.IsEmpty() {
 		return c
 	}
-	statefulCombinedConnTCP := connTCP.connTCPStatefulness(secondDirectionConn.Intersect(newTCPSet()))
+	statefulCombinedConnTCP := connTCP.connTCPStatefulness(secondDirectionConn.Intersect(NewTCPSet()))
 	return c.Subtract(connTCP).Union(statefulCombinedConnTCP)
 }
 
