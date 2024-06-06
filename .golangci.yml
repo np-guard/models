@@ -5,7 +5,7 @@ linters-settings:
     lines: 100
     statements: 50
   gci:
-    local-prefixes: github.com/np-guard
+    prefix: github.com/np-guard
   goconst:
     min-len: 2
     min-occurrences: 2
@@ -23,27 +23,26 @@ linters-settings:
       const:
         COMPANY: IBM Inc.
     template: |-
-      Copyright 2020- {{ COMPANY }} All Rights Reserved.
+      Copyright 2023- {{ COMPANY }} All Rights Reserved.
+
       SPDX-License-Identifier: Apache-2.0
   goimports:
     local-prefixes: github.com/np-guard
-  gomnd:
-    settings:
-      mnd:
-        # don't include the "operation" and "assign"
-        checks: argument,case,condition,return
-        ignored-numbers: 0,1,2,3
-        ignored-functions: strings.SplitN
+  mnd:
+      # don't include the "operation" and "assign"
+      checks: argument,case,condition,return
+      ignored-numbers: 0,1,2,3
+      ignored-functions: strings.SplitN
 
   govet:
-    check-shadowing: true
+    shadow: true
   lll:
     line-length: 140
   misspell:
     locale: US
   nolintlint:
     allow-leading-space: true # don't require machine-readable nolint directives (i.e. with no leading space)
-    allow-unused: true # report any unused nolint directives
+    allow-unused: false # report any unused nolint directives
     require-explanation: false # don't require an explanation for nolint directives
     require-specific: false # don't require nolint directives to be specific about which linter is being skipped
   revive:
@@ -89,7 +88,7 @@ linters:
     - gofmt
     - goheader
     - goimports
-    - gomnd
+    - mnd
     - gomoddirectives
     - goprintffuncname
     - gosec
@@ -103,7 +102,6 @@ linters:
     - makezero
     - misspell
     - nakedret
-    - nestif
     - nilerr
     - noctx
     - nolintlint
@@ -118,8 +116,6 @@ linters:
     - tagliatelle
     - tenv
     - testableexamples
-    - thelper
-    - tparallel
     - typecheck
     - unconvert
     - unparam
@@ -138,3 +134,6 @@ issues:
 
 run:
   timeout: 5m
+
+output:
+  print-issued-lines: false
