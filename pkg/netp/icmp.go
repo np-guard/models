@@ -1,5 +1,9 @@
-// Copyright 2020- IBM Inc. All Rights Reserved.
-// SPDX-License-Identifier: Apache-2.0
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package netp
 
 import (
@@ -95,7 +99,6 @@ func inverseICMPType(t int) int {
 	return undefinedICMP
 }
 
-//nolint:revive // magic numbers are fine here
 var maxCodes = map[int]int{
 	EchoReply:              0,
 	DestinationUnreachable: 5,
