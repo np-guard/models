@@ -46,7 +46,7 @@ type statefulnessTest struct {
 
 func (tt statefulnessTest) runTest(t *testing.T) {
 	t.Helper()
-	statefulConn := tt.srcToDst.WithStatefulness(tt.dstToSrc)
+	statefulConn := tt.srcToDst.GetResponsiveConn(tt.dstToSrc)
 	require.True(t, tt.expectedStatefulConn.Equal(statefulConn))
 }
 

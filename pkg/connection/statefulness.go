@@ -12,17 +12,18 @@ func NewTCPSet() *Set {
 	return TCPorUDPConnection(netp.ProtocolStringTCP, MinPort, MaxPort, MinPort, MaxPort)
 }
 
+// PartitionTCPNonTCP given a connection returns its TCP and non-TCP sub-connections
 func PartitionTCPNonTCP(conn *Set) (tcp, nonTCP *Set) {
 	tcpFractionOfConn := NewTCPSet().Intersect(conn)
 	nonTCPFractionOfConn := conn.Subtract(tcpFractionOfConn)
 	return tcpFractionOfConn, nonTCPFractionOfConn
 }
 
-// WithStatefulness returns the stateful part of `c`
+// GetResponsiveConn returns  connection object with the exact the responsive part within TCP
+// and with the original connections on other protocols.
 // `c` represents a src-to-dst connection, and `secondDirectionConn` represents dst-to-src connection.
-// Returns a connection object with the exact subset of the stateful part (within TCP)
-// from the entire connection `c` and with the original connections on other protocols.
-func (c *Set) WithStatefulness(secondDirectionConn *Set) *Set {
+// todo: move to analyzer
+func (c *Set) GetResponsiveConn(secondDirectionConn *Set) *Set {
 	connTCP := c.Intersect(NewTCPSet())
 	if connTCP.IsEmpty() {
 		return c
