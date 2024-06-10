@@ -11,6 +11,8 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 )
 
+// todo: move to analyzer
+
 func NewTCPConn(t *testing.T, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *connection.Set {
 	t.Helper()
 	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
@@ -35,7 +37,7 @@ func newTCPUDPSet(t *testing.T, p netp.ProtocolString) *connection.Set {
 		connection.MinPort, connection.MaxPort)
 }
 
-type statefulnessTest struct {
+type responsiveTest struct {
 	name     string
 	srcToDst *connection.Set
 	dstToSrc *connection.Set
@@ -44,14 +46,14 @@ type statefulnessTest struct {
 	expectedStatefulConn *connection.Set
 }
 
-func (tt statefulnessTest) runTest(t *testing.T) {
+func (tt responsiveTest) runTest(t *testing.T) {
 	t.Helper()
 	statefulConn := tt.srcToDst.GetResponsiveConn(tt.dstToSrc)
 	require.True(t, tt.expectedStatefulConn.Equal(statefulConn))
 }
 
 func TestAll(t *testing.T) {
-	var testCasesStatefulness = []statefulnessTest{
+	var testCasesStatefulness = []responsiveTest{
 		{
 			name:                 "tcp_all_ports_on_both_directions",
 			srcToDst:             newTCPUDPSet(t, netp.ProtocolStringTCP), // TCP all ports
