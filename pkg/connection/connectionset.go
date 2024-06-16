@@ -402,3 +402,15 @@ func ToJSON(c *Set) Details {
 
 	return Details(res)
 }
+
+// SwitchSrcDstPorts returns a new Set object, built from the input Set object.
+// The src and dst ports on relevant cubes are being switched.
+func (c *Set) SwitchSrcDstPorts() *Set {
+	if c.IsAll() {
+		return c.Copy()
+	}
+	newConn := c.connectionProperties.SwapDimensions(slices.Index(dimensionsList, srcPort), slices.Index(dimensionsList, dstPort))
+	return &Set{
+		connectionProperties: newConn,
+	}
+}
