@@ -76,7 +76,6 @@ func entireDimension(dim Dimension) *interval.CanonicalSet {
 
 type Set struct {
 	connectionProperties *hypercube.CanonicalSet
-	IsStateful           StatefulState
 }
 
 func None() *Set {
@@ -104,7 +103,6 @@ func (c *Set) Equal(other *Set) bool {
 func (c *Set) Copy() *Set {
 	return &Set{
 		connectionProperties: c.connectionProperties.Copy(),
-		IsStateful:           c.IsStateful,
 	}
 }
 
@@ -128,12 +126,6 @@ func (c *Set) Union(other *Set) *Set {
 	}
 }
 
-// Subtract
-// ToDo: Subtract seems to ignore IsStateful (see https://github.com/np-guard/vpc-network-config-analyzer/issues/199):
-//  1. is the delta connection stateful
-//  2. connectionProperties is identical but c stateful while other is not
-//     the 2nd item can be computed here, with enhancement to relevant structure
-//     the 1st can not since we do not know where exactly the statefulness came from
 func (c *Set) Subtract(other *Set) *Set {
 	if c.IsEmpty() {
 		return None()
@@ -409,4 +401,16 @@ func ToJSON(c *Set) Details {
 	}
 
 	return Details(res)
+}
+
+// SwitchSrcDstPorts returns a new Set object, built from the input Set object.
+// The src and dst ports on relevant cubes are being switched.
+func (c *Set) SwitchSrcDstPorts() *Set {
+	if c.IsAll() {
+		return c.Copy()
+	}
+	newConn := c.connectionProperties.SwapDimensions(slices.Index(dimensionsList, srcPort), slices.Index(dimensionsList, dstPort))
+	return &Set{
+		connectionProperties: newConn,
+	}
 }
