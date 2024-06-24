@@ -2,9 +2,9 @@
 A collection of Golang packages with models for connectivity and network resources
 
 ## Packages
-* **interval** - A canonical representation of a set of intervals defined over the integers
+* **interval** - A canonical representation of a set of intervals defined over integers
 * **ipblock** - A canonical representation of a set of IP ranges. Currently limited to IPv4
-* **hypercube** - A canonical representation of a set of n-dimensional hypercubes. All dimensions are defined over the integers.
+* **hypercube** - A canonical representation of a set of n-dimensional hypercubes. All dimensions are defined over integers.
 * **netp** - Various structs for representing and handling common network protocols (TCP, UDP, ICMP)
 * **connection** - A canonical representation of a set of connections. E.g., for representing all protocols/ports/codes permitted by a given firewall, given a specific source and destination.
 * **spec** - A collection of structs for defining required connectivity. Automatically generated from a JSON schema (see below).
