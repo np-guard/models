@@ -115,7 +115,12 @@ func (b *IPBlock) Union(c *IPBlock) *IPBlock {
 	}
 }
 
-// Empty returns true if this IPBlock is empty
+// Overlap returns whether the two IPBlocks have at least one IP address in common
+func (b *IPBlock) Overlap(c *IPBlock) bool {
+	return !b.Intersect(c).IsEmpty()
+}
+
+// IsEmpty returns true if this IPBlock is empty
 func (b *IPBlock) IsEmpty() bool {
 	return b.ipRange.IsEmpty()
 }

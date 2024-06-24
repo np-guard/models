@@ -41,6 +41,9 @@ func TestOps(t *testing.T) {
 
 	intersect2 := minus.Intersect(intersect)
 	require.True(t, intersect2.IsEmpty())
+
+	require.True(t, ipb2.Overlap(ipb1))
+	require.False(t, intersect2.Overlap(ipb1))
 }
 
 func TestConversions(t *testing.T) {
