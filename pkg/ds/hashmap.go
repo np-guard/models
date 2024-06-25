@@ -11,8 +11,8 @@ type HashMap[K Hashable[K], V Comparable[V]] struct {
 	m map[int][]Pair[K, V]
 }
 
-// NewMap creates a new empty hash map.
-func NewMap[K Hashable[K], V Comparable[V]]() *HashMap[K, V] {
+// NewHashMap creates a new empty hash map.
+func NewHashMap[K Hashable[K], V Comparable[V]]() *HashMap[K, V] {
 	return &HashMap[K, V]{m: map[int][]Pair[K, V]{}}
 }
 
@@ -53,7 +53,7 @@ func (m *HashMap[K, V]) Insert(k K, v V) {
 
 // Copy returns a deep copy of the map.
 func (m *HashMap[K, V]) Copy() *HashMap[K, V] {
-	res := NewMap[K, V]()
+	res := NewHashMap[K, V]()
 	for _, p := range m.Pairs() {
 		res.Insert(p.Left, p.Right)
 	}

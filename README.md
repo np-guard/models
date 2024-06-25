@@ -15,7 +15,7 @@ A collection of Golang packages with models for cartesian products and network r
     * `Triple` - A simple generic triple
     * `HashMap` - A generic map for mapping any Hashable key to any Comparable.
     * `HashSet` - A generic `Set` for storing any Hashable.
-    * `MultiMap` - A map for mapping any Hashable key to a set of Comparable values.
+    * `MultiMap` - A map for mapping any Hashable key to a set of Hashable values.
     * `ProductLeft` - A `Product` of two sets, implemented using a map where each key-values pair represents the cartesian product of the two sets.
     * `LeftTripleSet`, RightTripleSet, OuterTripleSet - `TripleSet` implementations.
     * `DisjointSum` - A sum type for two tagged sets.

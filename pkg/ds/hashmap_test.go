@@ -26,7 +26,7 @@ func less(p1, p2 ds.Pair[Int, Int]) bool {
 func assertMapEmpty(t *testing.T, m *Map) {
 	t.Helper()
 	assertEmpty(t, m)
-	require.True(t, m.Equal(ds.NewMap[Int, Int]()))
+	require.True(t, m.Equal(ds.NewHashMap[Int, Int]()))
 	_, ok := m.At(Int{1})
 	require.False(t, ok)
 
@@ -65,7 +65,7 @@ func assertMapSingle(t *testing.T, m *Map, key, value int) {
 		require.True(t, values[0].int == value)
 	}
 
-	m1 := ds.NewMap[Int, Int]()
+	m1 := ds.NewHashMap[Int, Int]()
 	assertNotEqual(t, m, m1)
 
 	m1.Insert(Int{key}, Int{value})
@@ -135,7 +135,7 @@ func assertMapDouble(t *testing.T, m *Map, key1, value1, key2, value2 int) {
 		require.True(t, values[1].int == v2)
 	}
 
-	m1 := ds.NewMap[Int, Int]()
+	m1 := ds.NewHashMap[Int, Int]()
 	assertNotEqual(t, m, m1)
 
 	m1.Insert(Int{key2}, Int{value2})
@@ -157,7 +157,7 @@ func assertMapDouble(t *testing.T, m *Map, key1, value1, key2, value2 int) {
 func TestMap(t *testing.T) {
 	var m, dupl *Map
 
-	m = ds.NewMap[Int, Int]()
+	m = ds.NewHashMap[Int, Int]()
 	assertMapEmpty(t, m)
 	m.Delete(Int{1})
 	assertMapEmpty(t, m)

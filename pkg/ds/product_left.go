@@ -16,7 +16,7 @@ type ProductLeft[K Set[K], V Set[V]] struct {
 // NewProductLeft with parameters [K, V] creates an empty Product[K, V] object,
 // implemented using K sets are keys and V sets as values.
 func NewProductLeft[K Set[K], V Set[V]]() *ProductLeft[K, V] {
-	return &ProductLeft[K, V]{m: NewMap[K, V]()}
+	return &ProductLeft[K, V]{m: NewHashMap[K, V]()}
 }
 
 // CartesianPairLeft returns a new Product object holding the cartesian product of the input sets k x v.
@@ -128,7 +128,7 @@ func (m *ProductLeft[K, V]) Union(other Product[K, V]) Product[K, V] {
 	if other.IsEmpty() {
 		return m.Copy()
 	}
-	remainingFromSelf := NewMap[K, K]()
+	remainingFromSelf := NewHashMap[K, K]()
 	for _, k := range m.m.Keys() {
 		remainingFromSelf.Insert(k, k)
 	}
@@ -221,9 +221,9 @@ func (m *ProductLeft[K, V]) canonicalize() {
 			m.m.Delete(k)
 		}
 	}
-	newM := NewMap[K, V]()
+	newM := NewHashMap[K, V]()
 	for _, p := range InverseMap(m.m).MultiPairs() {
-		items := p.Value.Items()
+		items := p.Right.Items()
 		if len(items) == 0 {
 			continue
 		}
@@ -231,7 +231,7 @@ func (m *ProductLeft[K, V]) canonicalize() {
 		for _, v := range items[1:] {
 			newKey = newKey.Union(v)
 		}
-		newM.Insert(newKey, p.Key)
+		newM.Insert(newKey, p.Left)
 	}
 	m.m = newM
 }
