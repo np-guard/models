@@ -1,12 +1,12 @@
 # models
-A collection of Golang packages with models for connectivity and network resources
+A collection of Golang packages with models for cartesian products and network resources
 
 ## Packages
-* **interval** - A canonical representation of a set of intervals defined over integers
-* **ipblock** - A canonical representation of a set of IP ranges. Currently limited to IPv4
-* **hypercube** - A canonical representation of a set of n-dimensional hypercubes. All dimensions are defined over integers.
-* **netp** - Various structs for representing and handling common network protocols (TCP, UDP, ICMP)
-* **connection** - A canonical representation of a set of connections. E.g., for representing all protocols/ports/codes permitted by a given firewall, given a specific source and destination.
+* **ds** - A set of generic data structures: maps, sets, and cartesian product of sets.
+* **interval** - Interval data structure, and a set implemented using sets of intervals.
+* **netp** - Various structs for representing and handling common network protocols (TCP, UDP, ICMP).
+* **netset** - Sets of network-related tuples: IP addresses x ports x protocols, etc.
+* **connection** - Set of connections. E.g., for representing all protocols/ports/codes permitted by a given firewall, given a specific source and destination.
 * **spec** - A collection of structs for defining required connectivity. Automatically generated from a JSON schema (see below).
 
 ## Code generation

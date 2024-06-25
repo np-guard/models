@@ -23,6 +23,10 @@ func NewCanonicalSet() *CanonicalSet {
 	}
 }
 
+func (c *CanonicalSet) Hash() int {
+	return len(c.intervalSet)
+}
+
 func (c *CanonicalSet) Intervals() []Interval {
 	return slices.Clone(c.intervalSet)
 }
@@ -90,7 +94,7 @@ func (c *CanonicalSet) AddInterval(v Interval) {
 
 // AddHole updates the current CanonicalSet object by removing the input Interval from the set
 func (c *CanonicalSet) AddHole(hole Interval) {
-	newIntervalSet := []Interval{}
+	var newIntervalSet []Interval
 	for _, interval := range c.intervalSet {
 		newIntervalSet = append(newIntervalSet, interval.subtract(hole)...)
 	}
@@ -127,11 +131,19 @@ func (c *CanonicalSet) Copy() *CanonicalSet {
 }
 
 func (c *CanonicalSet) Contains(n int64) bool {
-	return New(n, n).ToSet().ContainedIn(c)
+	return New(n, n).ToSet().IsSubset(c)
 }
 
-// ContainedIn returns true of the current CanonicalSet is contained in the input CanonicalSet
-func (c *CanonicalSet) ContainedIn(other *CanonicalSet) bool {
+func (c *CanonicalSet) Size() int {
+	res := 0
+	for _, v := range c.intervalSet {
+		res += int(v.Size())
+	}
+	return res
+}
+
+// IsSubset returns true of the current CanonicalSet is contained in the input CanonicalSet
+func (c *CanonicalSet) IsSubset(other *CanonicalSet) bool {
 	if c == other {
 		return true
 	}
