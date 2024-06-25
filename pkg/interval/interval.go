@@ -104,7 +104,7 @@ func (i Interval) intersect(other Interval) Interval {
 }
 
 func (i Interval) Elements() []int64 {
-	res := []int64{}
+	var res []int64
 	for v := i.start; v <= i.end; v++ {
 		res = append(res, v)
 	}
