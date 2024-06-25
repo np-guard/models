@@ -45,8 +45,8 @@ func assertMultiMapSingle(t *testing.T, m *MultiMap, key, value int) {
 	{
 		pairs := m.MultiPairs()
 		require.Len(t, pairs, 1)
-		require.True(t, pairs[0].Key.int == key)
-		assertSingleSet(t, pairs[0].Value, value)
+		require.True(t, pairs[0].Left.int == key)
+		assertSingleSet(t, pairs[0].Right, value)
 	}
 	{
 		keys := m.Keys()
