@@ -134,7 +134,7 @@ func (b *IPBlock) Copy() *IPBlock {
 	return &IPBlock{ipRange: b.ipRange.Copy()}
 }
 
-func (b *IPBlock) IpCount() int {
+func (b *IPBlock) IPCount() int {
 	return int(b.ipRange.CalculateSize())
 }
 
@@ -167,7 +167,7 @@ func DisjointIPBlocks(set1, set2 []*IPBlock) []*IPBlock {
 	}
 	// sort ipbList by ip_count per ipblock
 	sort.Slice(ipbList, func(i, j int) bool {
-		return ipbList[i].IpCount() < ipbList[j].IpCount()
+		return ipbList[i].IPCount() < ipbList[j].IPCount()
 	})
 	// making sure the resulting list does not contain overlapping ipBlocks
 	res := []*IPBlock{}
