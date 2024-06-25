@@ -1,12 +1,41 @@
 # models
 A collection of Golang packages with models for cartesian products and network resources
 
-## Packages
-* **ds** - A set of generic data structures: maps, sets, and cartesian product of sets.
-* **interval** - Interval data structure, and a set implemented using sets of intervals.
-* **netp** - Various structs for representing and handling common network protocols (TCP, UDP, ICMP).
+## Packages and Types
+* **ds** - A collection of generic data structures.
+  * Interfaces:
+    * `Sized` (IsEmpty, Size)
+    * `Comparable` (Equal, Copy)
+    * `Hashable` (Comparable, Hash)
+    * `Set` (Hashable, Sized, IsSubset, Union, Intersect, Substract)
+    * `Product[A, B]` - A x B (Partitions, NumPartitions, Left and Right projections, Swap)
+    * `TripleSet[S1, S2, S3]` - S1 x S2 x S3; associativity-agnostic (Partitions)
+  * Concrete types:
+    * `Pair` - A simple generic pair
+    * `Triple` - A simple generic triple
+    * `HashMap` - A generic map for mapping any Hashable key to any Comparable.
+    * `HashSet` - A generic `Set` for storing any Hashable.
+    * `MultiMap` - A map for mapping any Hashable key to a set of Comparable values.
+    * `ProductLeft` - A `Product` of two sets, implemented using a map where each key-values pair represents the cartesian product of the two sets.
+    * `LeftTripleSet`, RightTripleSet, OuterTripleSet - `TripleSet` implementations.
+    * `DisjointSum` - A sum type for two tagged sets.
+* **interval** - Interval-related data structures.
+    * `Interval` - A simple interval data structure.
+    * `IntervalSet` - A set of numbers, implements using intervals.
+* **netp** - Various structs and functions representing and handling common network protocols (TCP, UDP, ICMP).
+  * `ICMP` - describing type and code values for ICMP packets.
+  * `TCPUDP` - describing port and protocol values for TCP and UDP packets.
+  * `Protocol` - an interface for protocol values.
+  * `AnyProtocol` - a protocol value that matches any protocol.
 * **netset** - Sets of network-related tuples: IP addresses x ports x protocols, etc.
-* **connection** - Set of connections. E.g., for representing all protocols/ports/codes permitted by a given firewall, given a specific source and destination.
+  * `PortSet` - A set of ports. Implemented using an IntervalSet.
+  * `ProtocolSet` - Whether the protocol is TCP or UDP. Implemented using IntervalSet.
+  * `TCPUDPSet` - `TripleSet[*ProtocolSet, *PortSet, *PortSet]`.
+  * `ICMPSet` - accurately tracking set of ICMP types and code pairs. Implemented using a bitset.
+  * `TransportSet` - either ICMP or TCPUDP set. Implemented as `Disjoint[*TCPUDPSet, *ICMPSet]`.
+  * `IPBlock` - A set of IP addresses. Implemented using IntervalSet.
+  * `ConnectionSet` - `TripleSet[*IPBlock, *IPBlock, *TransportSet]`.
+* **connection** - `Set` as Alias for `TransportSet`.
 * **spec** - A collection of structs for defining required connectivity. Automatically generated from a JSON schema (see below).
 
 ## Code generation
