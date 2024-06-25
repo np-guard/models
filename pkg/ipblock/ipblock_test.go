@@ -60,7 +60,7 @@ func TestConversions(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, ipb1.ToCidrListString(), ipb2.ToCidrListString())
 
-	toPrint := ipb1.ListToPrint()
+	toPrint := ipb1.ToRangesList()
 	require.Len(t, toPrint, 1)
 	require.Equal(t, ipRange, toPrint[0])
 
@@ -90,12 +90,12 @@ func TestDisjointIPBlocks(t *testing.T) {
 func TestPairCIDRsToIPBlocks(t *testing.T) {
 	first, second, err := ipblock.PairCIDRsToIPBlocks("5.6.7.8/24", "4.9.2.1/32")
 	require.Nil(t, err)
-	require.Equal(t, "5.6.7.0/24", first.ListToPrint()[0])
-	require.Equal(t, "4.9.2.1/32", second.ListToPrint()[0])
+	require.Equal(t, "5.6.7.0/24", first.ToRangesList()[0])
+	require.Equal(t, "4.9.2.1/32", second.ToRangesList()[0])
 
 	intersect := first.Intersect(second)
 	require.Equal(t, "", intersect.ToIPAddressString())
-	require.Empty(t, intersect.ListToPrint())
+	require.Empty(t, intersect.ToRangesList())
 	require.Empty(t, intersect.ToCidrListString())
 }
 

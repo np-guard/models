@@ -134,7 +134,7 @@ func (b *IPBlock) Copy() *IPBlock {
 	return &IPBlock{ipRange: b.ipRange.Copy()}
 }
 
-func (b *IPBlock) ipCount() int {
+func (b *IPBlock) IpCount() int {
 	return int(b.ipRange.CalculateSize())
 }
 
@@ -167,7 +167,7 @@ func DisjointIPBlocks(set1, set2 []*IPBlock) []*IPBlock {
 	}
 	// sort ipbList by ip_count per ipblock
 	sort.Slice(ipbList, func(i, j int) bool {
-		return ipbList[i].ipCount() < ipbList[j].ipCount()
+		return ipbList[i].IpCount() < ipbList[j].IpCount()
 	})
 	// making sure the resulting list does not contain overlapping ipBlocks
 	res := []*IPBlock{}
@@ -300,6 +300,7 @@ func (b *IPBlock) ToCidrListString() string {
 }
 
 // ListToPrint: returns a uniform to print list s.t. each element contains either a single cidr or an ip range
+// todo - remove this func, and put its code under ToRangesList()
 func (b *IPBlock) ListToPrint() []string {
 	cidrsIPRangesList := []string{}
 	for _, ipRange := range b.ipRange.Intervals() {
@@ -311,6 +312,14 @@ func (b *IPBlock) ListToPrint() []string {
 		}
 	}
 	return cidrsIPRangesList
+}
+
+func (b *IPBlock) ToRangesList() []string {
+	return b.ListToPrint()
+}
+
+func (b *IPBlock) ToRangesListString() string {
+	return strings.Join(b.ToRangesList(), commaSeparator)
 }
 
 // ToIPAdressString returns the IP Address string for this IPBlock
