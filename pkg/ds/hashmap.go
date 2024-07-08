@@ -8,7 +8,7 @@ package ds
 
 // HashMap is a generic hash map with keys of a Hashable type K and values of Comparable type V.
 type HashMap[K Hashable[K], V Comparable[V]] struct {
-	m map[int][]Pair[K, V]
+	m map[int][]Pair[K, V] // map from key hash value to the list of pairs (k,v)
 }
 
 // NewHashMap creates a new empty hash map.
