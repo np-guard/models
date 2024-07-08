@@ -11,12 +11,6 @@ SPDX-License-Identifier: Apache-2.0
 // product of the two sets.
 package ds
 
-type Sized interface {
-	IsEmpty() bool
-	// Size returns the actual, full size of the set. For Product, it returns the number of pairs.
-	Size() int
-}
-
 type Comparable[Self any] interface {
 	Equal(Self) bool
 	Copy() Self
@@ -25,6 +19,15 @@ type Comparable[Self any] interface {
 type Hashable[Self any] interface {
 	Comparable[Self]
 	Hash() int
+}
+
+type Sized interface {
+	IsEmpty() bool
+
+	// Size returns the actual, full size of the set.
+	// For Product, it returns the number of pairs of concrete elements that belong to the product, not the number of Partitions().
+	// In other words, for Product, p.Size() == sum(s1.Size() * s2.Size() for _, (s1, s2) := range p.Partitions())
+	Size() int
 }
 
 type Set[Self any] interface {
@@ -39,10 +42,22 @@ type Set[Self any] interface {
 // Product is a cartesian product of sets S1 x S2
 type Product[S1 Set[S1], S2 Set[S2]] interface {
 	Set[Product[S1, S2]]
+
+	// Partitions returns a slice of pairs such that, for (p Product):
+	// 	  p.Equal(Union(CartesianPairLeft(s1, s2) for _, (s1, s2) := range p.Partitions())
+	// (note that the order is arbitrary; we do not return HashSet because Pair is not Hashable)
 	Partitions() []Pair[S1, S2]
+
+	// NumPartitions returns len(Partitions()). It is different from Size() which should return the number of concrete pairs of elements.
 	NumPartitions() int
+
+	// Left returns the projection of Product[S1, S2] on the set S1. If the product is empty, it returns the empty set.
 	Left(empty S1) S1
+
+	// Right returns the projection of Product[S1, S2] on the set S2. If the product is empty, it returns the empty set.
 	Right(empty S2) S2
+
+	// Swap returns a new Product object, built from the receiver object, with left and right swapped
 	Swap() Product[S2, S1]
 }
 
