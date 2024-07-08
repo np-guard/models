@@ -8,12 +8,15 @@ package interval
 
 import "fmt"
 
-// Interval is an integer interval from start to end inclusive
+// Interval is an integer interval from start to end inclusive.
+// An empty interval is represented by [-1, 0].
 type Interval struct {
 	start int64
 	end   int64
 }
 
+// New creates a new Interval object with the given start and end values.
+// If end < start, the interval is considered empty, and is returned as [-1, 0].
 func New(start, end int64) Interval {
 	if end < start {
 		return Interval{start: 0, end: -1}
@@ -29,7 +32,7 @@ func (i Interval) End() int64 {
 	return i.end
 }
 
-// String returns a String representation of Interval object
+// String returns a String representation of Interval object: [start-end]
 func (i Interval) String() string {
 	if i.IsEmpty() {
 		return "[]"
@@ -38,7 +41,7 @@ func (i Interval) String() string {
 }
 
 // ShortString returns a compacted String representation of Interval object:
-// "v" instead of "v-v", without braces
+// Without braces, and "v" instead of "v-v"
 func (i Interval) ShortString() string {
 	if i.IsEmpty() {
 		return ""
@@ -64,26 +67,32 @@ func (i Interval) Size() int64 {
 	return i.end - i.start + 1
 }
 
-func (i Interval) overlap(other Interval) bool {
+func (i Interval) Overlap(other Interval) bool {
 	if i.IsEmpty() {
 		return false
 	}
 	return other.end >= i.start && other.start <= i.end
 }
 
-func (i Interval) isSubset(other Interval) bool {
+func (i Interval) IsSubset(other Interval) bool {
 	if i.IsEmpty() {
 		return true
 	}
 	return other.start <= i.start && other.end >= i.end
 }
 
-// returns a list with up to 2 intervals
-func (i Interval) subtract(other Interval) []Interval {
-	if !i.overlap(other) {
+// SubtractSplit returns a list with up to 2 intervals
+func (i Interval) SubtractSplit(other Interval) []Interval {
+	if i.IsEmpty() {
+		return []Interval{}
+	}
+	if other.IsEmpty() {
 		return []Interval{i}
 	}
-	if i.isSubset(other) {
+	if !i.Overlap(other) {
+		return []Interval{i}
+	}
+	if i.IsSubset(other) {
 		return []Interval{}
 	}
 	if i.start < other.start && i.end > other.end {
@@ -96,7 +105,7 @@ func (i Interval) subtract(other Interval) []Interval {
 	return []Interval{{start: max(i.start, other.end+1), end: i.end}}
 }
 
-func (i Interval) intersect(other Interval) Interval {
+func (i Interval) Intersect(other Interval) Interval {
 	return New(
 		max(i.start, other.start),
 		min(i.end, other.end),
@@ -104,9 +113,10 @@ func (i Interval) intersect(other Interval) Interval {
 }
 
 func (i Interval) Elements() []int64 {
-	var res []int64
-	for v := i.start; v <= i.end; v++ {
-		res = append(res, v)
+	size := i.Size()
+	res := make([]int64, size)
+	for v := int64(0); v < size; v++ {
+		res[v] = i.start + v
 	}
 	return res
 }
