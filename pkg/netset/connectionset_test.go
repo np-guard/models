@@ -1,11 +1,18 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package netset_test
 
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/netset"
-	"github.com/stretchr/testify/require"
 )
 
 func TestConnectionSetBasicOperations(t *testing.T) {
@@ -36,5 +43,4 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 	// basic IsEmpty test
 	require.False(t, conn1.IsEmpty())
 	require.True(t, netset.NewConnectionSet().IsEmpty())
-
 }
