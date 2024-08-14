@@ -52,6 +52,7 @@ func getCubeAsTCPItems(srcPorts, dstPorts *netset.PortSet, p int64) []spec.TcpUd
 
 type Details spec.ProtocolList
 
+// ToJSON returns a `Details` object for JSON representation of the input connection Set.
 func ToJSON(c *Set) Details {
 	if c == nil {
 		return nil
