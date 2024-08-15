@@ -111,6 +111,11 @@ func (b *IPBlock) Subtract(c *IPBlock) *IPBlock {
 	}
 }
 
+// Overlap returns whether the two IPBlocks have at least one IP address in common
+func (b *IPBlock) Overlap(c *IPBlock) bool {
+	return !b.Intersect(c).IsEmpty()
+}
+
 // Union returns a new IPBlock from union of input IPBlock with this IPBlock
 func (b *IPBlock) Union(c *IPBlock) *IPBlock {
 	if b == c {
