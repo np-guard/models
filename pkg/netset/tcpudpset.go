@@ -23,7 +23,7 @@ type PortSet = interval.CanonicalSet
 type ProtocolSet = interval.CanonicalSet
 
 func AllPorts() *PortSet {
-	return interval.New(netp.MinPort, netp.MaxPort).ToSet()
+	return netp.AllPorts().ToSet()
 }
 
 type TCPUDPSet struct {
@@ -62,18 +62,13 @@ func (c *TCPUDPSet) Size() int {
 	return c.props.Size()
 }
 
-// SwapPorts returns a new NProduct object, built from the input NProduct object,
+// SwapPorts returns a new TCPUDPSet object, built from the input TCPUDPSet object,
 // with src ports and dst ports swapped
 func (c *TCPUDPSet) SwapPorts() *TCPUDPSet {
 	return &TCPUDPSet{props: ds.MapTripleSet(c.props, ds.Triple[*ProtocolSet, *PortSet, *PortSet].Swap23)}
 }
 
-// Subtract
-// ToDo: Subtract seems to ignore IsStateful (see https://github.com/np-guard/vpc-network-config-analyzer/issues/199):
-//  1. is the delta connection stateful
-//  2. props is identical but c stateful while other is not
-//     the 2nd item can be computed here, with enhancement to relevant structure
-//     the 1st can not since we do not know where exactly the statefulness came from
+// Subtract returns the subtraction of the other from c
 func (c *TCPUDPSet) Subtract(other *TCPUDPSet) *TCPUDPSet {
 	return &TCPUDPSet{props: c.props.Subtract(other.props)}
 }
@@ -95,8 +90,8 @@ func EmptyTCPorUDPSet() *TCPUDPSet {
 func AllTCPUDPSet() *TCPUDPSet {
 	return pathLeft(
 		interval.New(TCPCode, UDPCode).ToSet(),
-		interval.New(netp.MinPort, netp.MaxPort).ToSet(),
-		interval.New(netp.MinPort, netp.MaxPort).ToSet(),
+		AllPorts(),
+		AllPorts(),
 	)
 }
 

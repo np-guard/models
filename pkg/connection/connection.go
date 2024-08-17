@@ -19,6 +19,21 @@ func NewTCPorUDP(protocol netp.ProtocolString, srcMinP, srcMaxP, dstMinP, dstMax
 	return netset.NewTCPorUDPTransport(protocol, srcMinP, srcMaxP, dstMinP, dstMaxP)
 }
 
+// NewTCP returns a set of TCP connections containing the specified ports
+func NewTCP(srcMinP, srcMaxP, dstMinP, dstMaxP int64) *Set {
+	return NewTCPorUDP(netp.ProtocolStringTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+}
+
+// NewUDP returns a set of UDP connections containing the specified ports
+func NewUDP(srcMinP, srcMaxP, dstMinP, dstMaxP int64) *Set {
+	return NewTCPorUDP(netp.ProtocolStringUDP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+}
+
+// AllTCPorUDP returns a set of connections containing the specified protocol (TCP/UDP) with all possible ports
+func AllTCPorUDP(protocol netp.ProtocolString) *Set {
+	return NewTCPorUDP(protocol, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort)
+}
+
 // AllICMP returns a set of connections containing the ICMP protocol with all its possible types,codes
 func AllICMP() *Set {
 	return netset.AllOrNothingTransport(false, true)
@@ -26,7 +41,7 @@ func AllICMP() *Set {
 
 // NewTCPSet returns a set of connections containing the TCP protocol with all its possible ports
 func NewTCPSet() *Set {
-	return NewTCPorUDP(netp.ProtocolStringTCP, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort)
+	return AllTCPorUDP(netp.ProtocolStringTCP)
 }
 
 // ICMPConnection returns a set of connections containing the ICMP protocol with specified type,code values
