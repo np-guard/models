@@ -10,7 +10,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"log"
 	"math"
 	"net"
 	"sort"
@@ -53,8 +52,8 @@ func (b *IPBlock) ToIPRanges() string {
 
 // toIPRange returns a string of the ip range of a single interval
 func toIPRange(i interval.Interval) string {
-	startIP := intToIP4(i.Start())
-	endIP := intToIP4(i.End())
+	startIP := int64ToIP4(i.Start())
+	endIP := int64ToIP4(i.End())
 	return rangeIPstr(startIP, endIP)
 }
 
@@ -157,13 +156,10 @@ func (b *IPBlock) Split() []*IPBlock {
 	return res
 }
 
-// intToIP4 returns a string of an ip address from an input integer ip value
-func intToIP4(ipInt int64) string {
-	ipUint64 := uint64(ipInt)
-	if ipUint64 > math.MaxUint32 {
-		log.Panicf("intToIP4: %v is not a valid ipv4", ipInt)
-	}
-	ipUint32 := uint32(ipUint64 & ipMask)
+// int64ToIP4 returns a string of an ip address from an input integer ip value
+func int64ToIP4(ipInt int64) string {
+	//nolint:gosec // overflow is not possible
+	ipUint32 := uint32(uint64(ipInt) & ipMask)
 	var d [4]byte
 	binary.BigEndian.PutUint32(d[:], ipUint32)
 	return net.IPv4(d[0], d[1], d[2], d[3]).String()
@@ -336,7 +332,7 @@ func (b *IPBlock) ToIPAddressString() string {
 
 // FirstIPAddress returns the first IP Address string for this IPBlock
 func (b *IPBlock) FirstIPAddress() string {
-	return intToIP4(b.ipRange.Min())
+	return int64ToIP4(b.ipRange.Min())
 }
 
 func intervalToCidrList(ipRange interval.Interval) []string {
@@ -359,7 +355,7 @@ func intervalToCidrList(ipRange interval.Interval) []string {
 		if maxSize < int(maxDiff) {
 			maxSize = int(maxDiff)
 		}
-		ip := intToIP4(start)
+		ip := int64ToIP4(start)
 		res = append(res, fmt.Sprintf("%s/%d", ip, maxSize))
 		start += int64(math.Pow(2, maxIPv4Bits-float64(maxSize)))
 	}
