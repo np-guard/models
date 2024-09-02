@@ -10,6 +10,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"net"
 	"sort"
@@ -158,8 +159,12 @@ func (b *IPBlock) Split() []*IPBlock {
 
 // intToIP4 returns a string of an ip address from an input integer ip value
 func intToIP4(ipInt int64) string {
+	ipUint64 := uint64(ipInt)
+	if ipUint64 > math.MaxUint32 {
+		log.Panicf("intToIP4: %v is not a valid ipv4", ipInt)
+	}
 	var d [4]byte
-	binary.BigEndian.PutUint32(d[:], uint32(ipInt))
+	binary.BigEndian.PutUint32(d[:], uint32(ipUint64))
 	return net.IPv4(d[0], d[1], d[2], d[3]).String()
 }
 
