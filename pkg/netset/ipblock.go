@@ -163,8 +163,9 @@ func intToIP4(ipInt int64) string {
 	if ipUint64 > math.MaxUint32 {
 		log.Panicf("intToIP4: %v is not a valid ipv4", ipInt)
 	}
+	ipUint32 := uint32(ipUint64 & ipMask)
 	var d [4]byte
-	binary.BigEndian.PutUint32(d[:], uint32(ipUint64))
+	binary.BigEndian.PutUint32(d[:], ipUint32)
 	return net.IPv4(d[0], d[1], d[2], d[3]).String()
 }
 

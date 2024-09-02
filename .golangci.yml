@@ -82,7 +82,7 @@ linters:
     - errcheck
     - errname
     - errorlint
-    - copyloopvar
+    - exportloopref  # since 1.22: copyloopvar
     - funlen
     - ginkgolinter
     - gochecknoinits
