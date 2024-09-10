@@ -155,7 +155,7 @@ func intToIP4(ipInt int64) string {
 		return "0.0.0.0"
 	}
 	var d [4]byte
-	binary.BigEndian.PutUint32(d[:], uint32(ipInt)) //nolint:gosec // seems like a gosec bug - see above check for overflow
+	binary.BigEndian.PutUint32(d[:], uint32(ipInt))
 	return net.IPv4(d[0], d[1], d[2], d[3]).String()
 }
 
