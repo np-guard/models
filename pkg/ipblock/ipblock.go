@@ -151,6 +151,9 @@ func (b *IPBlock) Split() []*IPBlock {
 
 // intToIP4 returns a string of an ip address from an input integer ip value
 func intToIP4(ipInt int64) string {
+	if ipInt < 0 || ipInt > math.MaxUint32 {
+		return "0.0.0.0"
+	}
 	var d [4]byte
 	binary.BigEndian.PutUint32(d[:], uint32(ipInt))
 	return net.IPv4(d[0], d[1], d[2], d[3]).String()
