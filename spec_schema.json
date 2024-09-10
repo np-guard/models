@@ -108,6 +108,34 @@
                 "$ref": "#/$defs/protocol"
             }
         },
+        "segment": {
+            "description": "A segment is a named collection of resources of the same type (subnet, cidr, instance, or nif)",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "type",
+                "items"
+            ],
+            "properties": {
+                "type": {
+                    "description": "The type of the elements inside the segment",
+                    "enum": [
+                        "subnet",
+                        "cidr",
+                        "instance",
+                        "nif"
+                    ]
+                },
+                "items": {
+                    "description": "All items are of the type specified in the type property, identified by name",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+
+        },
         "resource": {
             "type": "object",
             "additionalProperties": false,
@@ -142,31 +170,7 @@
             "description": "Segments are a way for users to create aggregations. These can later be used in src/dst fields",
             "type": "object",
             "additionalProperties": {
-                "description": "A segment is a named collection of resources of the same type (subnet, cidr, instance, or nif)",
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                    "type",
-                    "items"
-                ],
-                "properties": {
-                    "type": {
-                        "description": "The type of the elements inside the segment",
-                        "enum": [
-                            "subnet",
-                            "cidr",
-                            "instance",
-                            "nif"
-                        ]
-                    },
-                    "items": {
-                        "description": "All items are of the type specified in the type property, identified by name",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                }
+                "$ref": "#/$defs/segment"
             }
         },
         "subnets": {
