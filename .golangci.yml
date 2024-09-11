@@ -76,7 +76,7 @@ linters:
     - bidichk
     - bodyclose
     - contextcheck
-    - copyloopvar
+    # - copyloopvar # currently disabled, relevant for go 1.22
     - dogsled
     - dupl
     - durationcheck

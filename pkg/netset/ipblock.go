@@ -161,7 +161,6 @@ func int64ToIP4(ipInt int64) string {
 	if ipInt < 0 || ipInt > math.MaxUint32 {
 		return "0.0.0.0"
 	}
-	//nolint:gosec // overflow is not possible
 	ipUint32 := uint32(uint64(ipInt) & ipMask)
 	var d [4]byte
 	binary.BigEndian.PutUint32(d[:], ipUint32)

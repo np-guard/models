@@ -4,6 +4,7 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
+//nolint:lll //long lines for tests used to document the connection objects
 package netset_test
 
 import (
@@ -19,6 +20,7 @@ import (
 	"github.com/np-guard/models/pkg/netset"
 )
 
+// TestConnectionSetBasicOperations tests basic operations on netset.ConnectionSet objects
 func TestConnectionSetBasicOperations(t *testing.T) {
 	// relevant src/dst IP objects
 	cidr1, _ := netset.IPBlockFromCidr("10.240.10.0/24")
@@ -55,6 +57,7 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 	// demonstrate split in allwoed connections for dest dimension, to be reflected in partitions
 	conn5 := netset.ConnectionSetFrom(cidr1, subsetOfCidr1MinusCidr2, connection.AllICMP())
 	conn5UnionConn2 := conn5.Union(conn2)
+	require.Equal(t, 2, len(conn5UnionConn2.Partitions()))
 
 	// partitions string examples - for the objects used in this test
 
@@ -93,7 +96,6 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 	fmt.Printf("conn5UnionConn2 cubes string:\n%s\n", getPartitionsStr(conn5UnionConn2))
 
 	fmt.Println("done")
-
 }
 
 // simple string functions for testing
@@ -132,7 +134,6 @@ func tcpudpSetStr(tcpupdset *netset.TCPUDPSet) string {
 	for i := range cubes {
 		cube := cubes[i] // each cube is of type ds.Triple[*ProtocolSet, *PortSet, *PortSet]
 		cubesStrings[i] = fmt.Sprintf("protocols %s, src-ports %s, dst-ports %s", cube.S1.String(), cube.S2.String(), cube.S3.String())
-
 	}
 	return strings.Join(cubesStrings, ",")
 }
