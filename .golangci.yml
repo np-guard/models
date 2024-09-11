@@ -76,6 +76,7 @@ linters:
     - bidichk
     - bodyclose
     - contextcheck
+    - copyloopvar
     - dogsled
     - dupl
     - durationcheck
