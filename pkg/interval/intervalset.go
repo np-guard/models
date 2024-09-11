@@ -219,3 +219,15 @@ func (c *CanonicalSet) Elements() []int64 {
 func NewSetFromInterval(span Interval) *CanonicalSet {
 	return &CanonicalSet{intervalSet: []Interval{span}}
 }
+
+// String returns a string representation of the current CanonicalSet object
+func (c *CanonicalSet) String() string {
+	if c.IsEmpty() {
+		return "Empty"
+	}
+	res := ""
+	for _, interval := range c.intervalSet {
+		res += interval.ShortString() + ","
+	}
+	return res[:len(res)-1]
+}
