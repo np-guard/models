@@ -27,6 +27,9 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 	cidr2, _ := netset.IPBlockFromCidr("10.240.10.0/32")
 	cidr1MinusCidr2 := cidr1.Subtract(cidr2) // 10.240.10.1/32, 10.240.10.2/31, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27, 10.240.10.64/26, 10.240.10.128/25
 	subsetOfCidr1MinusCidr2, _ := netset.IPBlockFromCidr("10.240.10.2/31")
+	//  10.240.10.0/25 union 10.240.10.128/25 == 10.240.10.0/24
+	leftHalfCidr1, _ := netset.IPBlockFromCidr("10.240.10.0/25")
+	rightHalfCidr1, _ := netset.IPBlockFromCidr("10.240.10.128/25")
 
 	// relevant connection set objects
 	conn1 := netset.ConnectionSetFrom(cidr1, cidr2, connection.NewTCPSet())           // conns from cidr1 to cidr2 over all TCP
@@ -72,6 +75,20 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 	conn10 := netset.ConnectionSetFrom(cidr1, cidr1MinusCidr2, connection.All())
 	conn9UnionConn6 := conn9.Union(conn6)
 	require.True(t, conn10.Equal(conn9UnionConn6))
+
+	// demonstrate split in allowed connections for src dimensions, to be reflected in partitions
+	// starting from conn8
+	udp53 := connection.NewUDP(netp.MinPort, netp.MaxPort, 53, 53)
+	conn11 := netset.ConnectionSetFrom(leftHalfCidr1, subsetOfCidr1MinusCidr2, udp53)
+	conn12 := conn11.Union(conn8)
+
+	// another way to produce obj equiv to conn12 :
+	conn13 := netset.ConnectionSetFrom(leftHalfCidr1, subsetOfCidr1MinusCidr2, tcpAndICMP.Union(udp53))
+	conn14 := netset.ConnectionSetFrom(leftHalfCidr1, cidr1MinusCidr2, connection.NewTCPSet())
+	conn15 := netset.ConnectionSetFrom(rightHalfCidr1, subsetOfCidr1MinusCidr2, tcpAndICMP)
+	conn16 := netset.ConnectionSetFrom(rightHalfCidr1, cidr1MinusCidr2, connection.NewTCPSet())
+	conn17 := (conn13.Union(conn14)).Union(conn15.Union(conn16))
+	require.True(t, conn12.Equal(conn17))
 
 	// partitions string examples - for the objects used in this test
 
@@ -121,6 +138,20 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 	// dst: 10.240.10.1/32, 10.240.10.2/31, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27, 10.240.10.64/26, 10.240.10.128/25,
 	// conns: all
 	fmt.Printf("conn9UnionConn6 cubes string:\n%s\n", getPartitionsStr(conn9UnionConn6))
+
+	//conn12 cubes string:
+	// src: 10.240.10.0/24,
+	// dst: 10.240.10.1/32, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27, 10.240.10.64/26, 10.240.10.128/25,
+	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;
+	// src: 10.240.10.0/25,
+	// dst: 10.240.10.2/31,
+	// conns: protocols 1, src-ports 1-65535, dst-ports 53,protocols 0, src-ports 1-65535, dst-ports 1-65535;all icmp
+	// src: 10.240.10.128/25,
+	// dst: 10.240.10.2/31,
+	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;all icmp
+	fmt.Printf("conn12 cubes string:\n%s\n", getPartitionsStr(conn12))
+
+	fmt.Printf("conn17 cubes string:\n%s\n", getPartitionsStr(conn17))
 
 	fmt.Println("done")
 }
