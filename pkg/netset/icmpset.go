@@ -175,6 +175,10 @@ func fromIndex(i int) *ICMPSet {
 	return &res
 }
 
+func (s *ICMPSet) IsAll() bool {
+	return s.Equal(AllICMPSet())
+}
+
 // constants for sets of ICMP codes, grouped by types.
 // For example, allDestinationUnreachable is the set of all ICMP codes for DestinationUnreachable type.
 const (

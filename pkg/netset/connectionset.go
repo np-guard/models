@@ -77,3 +77,7 @@ func (c *ConnectionSet) IsSubset(other *ConnectionSet) bool {
 func ConnectionSetFrom(src, dst *IPBlock, conn *TransportSet) *ConnectionSet {
 	return &ConnectionSet{props: ds.CartesianLeftTriple(src, dst, conn)}
 }
+
+func (c *ConnectionSet) Partitions() []ds.Triple[*IPBlock, *IPBlock, *TransportSet] {
+	return c.props.Partitions()
+}
