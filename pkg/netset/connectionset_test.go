@@ -56,8 +56,22 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 
 	// demonstrate split in allwoed connections for dest dimension, to be reflected in partitions
 	conn5 := netset.ConnectionSetFrom(cidr1, subsetOfCidr1MinusCidr2, connection.AllICMP())
-	conn5UnionConn2 := conn5.Union(conn2)
+	conn5UnionConn2 := conn5.Union(conn2) // for certain dest- icmp+tcp, and for remaining dest- only tcp [common src for both]
 	require.Equal(t, 2, len(conn5UnionConn2.Partitions()))
+
+	// other operations on other objects, to get equiv object of conn5UnionConn2:
+	tcpAndICMP := connection.NewTCPSet().Union(connection.AllICMP())
+	conn6 := netset.ConnectionSetFrom(cidr1, cidr1MinusCidr2, tcpAndICMP)
+	deltaCidrs := cidr1MinusCidr2.Subtract(subsetOfCidr1MinusCidr2)
+	conn7 := netset.ConnectionSetFrom(cidr1, deltaCidrs, connection.AllICMP())
+	conn8 := conn6.Subtract(conn7)
+	require.True(t, conn8.Equal(conn5UnionConn2))
+
+	// add udp to tcpAndICMP => check it is All()
+	conn9 := netset.ConnectionSetFrom(cidr1, cidr1MinusCidr2, connection.NewUDPSet())
+	conn10 := netset.ConnectionSetFrom(cidr1, cidr1MinusCidr2, connection.All())
+	conn9UnionConn6 := conn9.Union(conn6)
+	require.True(t, conn10.Equal(conn9UnionConn6))
 
 	// partitions string examples - for the objects used in this test
 
@@ -94,6 +108,19 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 	// dst: 10.240.10.1/32, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27, 10.240.10.64/26, 10.240.10.128/25,
 	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;
 	fmt.Printf("conn5UnionConn2 cubes string:\n%s\n", getPartitionsStr(conn5UnionConn2))
+
+	// src: 10.240.10.0/24,
+	// dst: 10.240.10.2/31,
+	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;all icmp
+	// src: 10.240.10.0/24,
+	// dst: 10.240.10.1/32, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27, 10.240.10.64/26, 10.240.10.128/25,
+	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;
+	fmt.Printf("conn8 cubes string:\n%s\n", getPartitionsStr(conn8))
+
+	// src: 10.240.10.0/24,
+	// dst: 10.240.10.1/32, 10.240.10.2/31, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27, 10.240.10.64/26, 10.240.10.128/25,
+	// conns: all
+	fmt.Printf("conn9UnionConn6 cubes string:\n%s\n", getPartitionsStr(conn9UnionConn6))
 
 	fmt.Println("done")
 }

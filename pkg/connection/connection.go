@@ -44,6 +44,11 @@ func NewTCPSet() *Set {
 	return AllTCPorUDP(netp.ProtocolStringTCP)
 }
 
+// NewUDPSet returns a set of connections containing the UDP protocol with all its possible ports
+func NewUDPSet() *Set {
+	return AllTCPorUDP(netp.ProtocolStringUDP)
+}
+
 // ICMPConnection returns a set of connections containing the ICMP protocol with specified type,code values
 func ICMPConnection(icmpType, icmpCode *int64) (*Set, error) {
 	icmp, err := netp.ICMPFromTypeAndCode64(icmpType, icmpCode)
