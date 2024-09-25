@@ -17,6 +17,48 @@ type AnyProtocolProtocol string
 
 const AnyProtocolProtocolANY AnyProtocolProtocol = "ANY"
 
+var enumValues_AnyProtocolProtocol = []interface{}{
+	"ANY",
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *AnyProtocolProtocol) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_AnyProtocolProtocol {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_AnyProtocolProtocol, v)
+	}
+	*j = AnyProtocolProtocol(v)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *AnyProtocol) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["protocol"]; raw != nil && !ok {
+		return fmt.Errorf("field protocol in AnyProtocol: required")
+	}
+	type Plain AnyProtocol
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = AnyProtocol(plain)
+	return nil
+}
+
 type Icmp struct {
 	// ICMP code allowed. If omitted, any code is allowed
 	Code *int `json:"code,omitempty"`
@@ -31,6 +73,48 @@ type Icmp struct {
 type IcmpProtocol string
 
 const IcmpProtocolICMP IcmpProtocol = "ICMP"
+
+var enumValues_IcmpProtocol = []interface{}{
+	"ICMP",
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *IcmpProtocol) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_IcmpProtocol {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_IcmpProtocol, v)
+	}
+	*j = IcmpProtocol(v)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Icmp) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["protocol"]; raw != nil && !ok {
+		return fmt.Errorf("field protocol in Icmp: required")
+	}
+	type Plain Icmp
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Icmp(plain)
+	return nil
+}
 
 type Protocol interface{}
 
@@ -53,6 +137,122 @@ const ResourceTypeNif ResourceType = "nif"
 const ResourceTypeSegment ResourceType = "segment"
 const ResourceTypeSubnet ResourceType = "subnet"
 const ResourceTypeVpe ResourceType = "vpe"
+
+var enumValues_ResourceType = []interface{}{
+	"external",
+	"segment",
+	"subnet",
+	"instance",
+	"nif",
+	"cidr",
+	"vpe",
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *ResourceType) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_ResourceType {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_ResourceType, v)
+	}
+	*j = ResourceType(v)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Resource) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["name"]; raw != nil && !ok {
+		return fmt.Errorf("field name in Resource: required")
+	}
+	if _, ok := raw["type"]; raw != nil && !ok {
+		return fmt.Errorf("field type in Resource: required")
+	}
+	type Plain Resource
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Resource(plain)
+	return nil
+}
+
+// A segment is a named collection of resources of the same type (subnet, cidr,
+// instance, or nif)
+type Segment struct {
+	// All items are of the type specified in the type property, identified by name
+	Items []string `json:"items"`
+
+	// The type of the elements inside the segment
+	Type SegmentType `json:"type"`
+}
+
+type SegmentType string
+
+const SegmentTypeCidr SegmentType = "cidr"
+const SegmentTypeInstance SegmentType = "instance"
+const SegmentTypeNif SegmentType = "nif"
+const SegmentTypeSubnet SegmentType = "subnet"
+
+var enumValues_SegmentType = []interface{}{
+	"subnet",
+	"cidr",
+	"instance",
+	"nif",
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *SegmentType) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_SegmentType {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_SegmentType, v)
+	}
+	*j = SegmentType(v)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Segment) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["items"]; raw != nil && !ok {
+		return fmt.Errorf("field items in Segment: required")
+	}
+	if _, ok := raw["type"]; raw != nil && !ok {
+		return fmt.Errorf("field type in Segment: required")
+	}
+	type Plain Segment
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Segment(plain)
+	return nil
+}
 
 type Spec struct {
 	// Externals are a way for users to name CIDRs external to the VPC. These are
@@ -100,18 +300,54 @@ type SpecRequiredConnectionsElem struct {
 	Src Resource `json:"src"`
 }
 
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *SpecRequiredConnectionsElem) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["dst"]; raw != nil && !ok {
+		return fmt.Errorf("field dst in SpecRequiredConnectionsElem: required")
+	}
+	if _, ok := raw["src"]; raw != nil && !ok {
+		return fmt.Errorf("field src in SpecRequiredConnectionsElem: required")
+	}
+	type Plain SpecRequiredConnectionsElem
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	if v, ok := raw["bidirectional"]; !ok || v == nil {
+		plain.Bidirectional = false
+	}
+	*j = SpecRequiredConnectionsElem(plain)
+	return nil
+}
+
 // Segments are a way for users to create aggregations. These can later be used in
 // src/dst fields
-type SpecSegments map[string]struct {
-	// All items are of the type specified in the type property, identified by name
-	Items []string `json:"items"`
-
-	// The type of the elements inside the segment
-	Type Type `json:"type"`
-}
+type SpecSegments map[string]Segment
 
 // Lightweight way to define subnets.
 type SpecSubnets map[string]string
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Spec) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["required-connections"]; raw != nil && !ok {
+		return fmt.Errorf("field required-connections in Spec: required")
+	}
+	type Plain Spec
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Spec(plain)
+	return nil
+}
 
 type TcpUdp struct {
 	// Maximal destination port; default is 65535
@@ -133,29 +369,11 @@ type TcpUdp struct {
 type TcpUdpProtocol string
 
 const TcpUdpProtocolTCP TcpUdpProtocol = "TCP"
+const TcpUdpProtocolUDP TcpUdpProtocol = "UDP"
 
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *SpecRequiredConnectionsElem) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["dst"]; !ok || v == nil {
-		return fmt.Errorf("field dst in SpecRequiredConnectionsElem: required")
-	}
-	if v, ok := raw["src"]; !ok || v == nil {
-		return fmt.Errorf("field src in SpecRequiredConnectionsElem: required")
-	}
-	type Plain SpecRequiredConnectionsElem
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	if v, ok := raw["bidirectional"]; !ok || v == nil {
-		plain.Bidirectional = false
-	}
-	*j = SpecRequiredConnectionsElem(plain)
-	return nil
+var enumValues_TcpUdpProtocol = []interface{}{
+	"TCP",
+	"UDP",
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -179,55 +397,12 @@ func (j *TcpUdpProtocol) UnmarshalJSON(b []byte) error {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *IcmpProtocol) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-	var ok bool
-	for _, expected := range enumValues_IcmpProtocol {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_IcmpProtocol, v)
-	}
-	*j = IcmpProtocol(v)
-	return nil
-}
-
-const TcpUdpProtocolUDP TcpUdpProtocol = "UDP"
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Resource) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["name"]; !ok || v == nil {
-		return fmt.Errorf("field name in Resource: required")
-	}
-	if v, ok := raw["type"]; !ok || v == nil {
-		return fmt.Errorf("field type in Resource: required")
-	}
-	type Plain Resource
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = Resource(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
 func (j *TcpUdp) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	if v, ok := raw["protocol"]; !ok || v == nil {
+	if _, ok := raw["protocol"]; raw != nil && !ok {
 		return fmt.Errorf("field protocol in TcpUdp: required")
 	}
 	type Plain TcpUdp
@@ -248,156 +423,5 @@ func (j *TcpUdp) UnmarshalJSON(b []byte) error {
 		plain.MinSourcePort = 1.0
 	}
 	*j = TcpUdp(plain)
-	return nil
-}
-
-var enumValues_AnyProtocolProtocol = []interface{}{
-	"ANY",
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *ResourceType) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-	var ok bool
-	for _, expected := range enumValues_ResourceType {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_ResourceType, v)
-	}
-	*j = ResourceType(v)
-	return nil
-}
-
-var enumValues_ResourceType = []interface{}{
-	"external",
-	"segment",
-	"subnet",
-	"instance",
-	"nif",
-	"cidr",
-	"vpe",
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *AnyProtocolProtocol) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-	var ok bool
-	for _, expected := range enumValues_AnyProtocolProtocol {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_AnyProtocolProtocol, v)
-	}
-	*j = AnyProtocolProtocol(v)
-	return nil
-}
-
-var enumValues_TcpUdpProtocol = []interface{}{
-	"TCP",
-	"UDP",
-}
-
-type Type string
-
-var enumValues_Type = []interface{}{
-	"subnet",
-	"cidr",
-	"instance",
-	"nif",
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Type) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-	var ok bool
-	for _, expected := range enumValues_Type {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_Type, v)
-	}
-	*j = Type(v)
-	return nil
-}
-
-const TypeSubnet Type = "subnet"
-const TypeCidr Type = "cidr"
-const TypeInstance Type = "instance"
-const TypeNif Type = "nif"
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *AnyProtocol) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["protocol"]; !ok || v == nil {
-		return fmt.Errorf("field protocol in AnyProtocol: required")
-	}
-	type Plain AnyProtocol
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = AnyProtocol(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Icmp) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["protocol"]; !ok || v == nil {
-		return fmt.Errorf("field protocol in Icmp: required")
-	}
-	type Plain Icmp
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = Icmp(plain)
-	return nil
-}
-
-var enumValues_IcmpProtocol = []interface{}{
-	"ICMP",
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Spec) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["required-connections"]; !ok || v == nil {
-		return fmt.Errorf("field required-connections in Spec: required")
-	}
-	type Plain Spec
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = Spec(plain)
 	return nil
 }
