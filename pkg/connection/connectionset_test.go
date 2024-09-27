@@ -32,6 +32,14 @@ func TestBasicSetICMP(t *testing.T) {
 	require.Equal(t, "ICMP type: 3 code: 5", c.ShortString())
 }
 
+func TestICMPTypeOutOfRange(t *testing.T) {
+	c1 := connection.ICMPConnection(135, 136, connection.MinICMPCode, connection.MaxICMPCode)
+	c2 := connection.ICMPConnection(connection.MinICMPType, connection.MaxICMPType, connection.MinICMPCode, connection.MaxICMPCode)
+	require.Equal(t, "protocol: ICMP icmp-type: 135-136", c1.String())
+	require.Equal(t, "protocol: ICMP", c2.String())
+	require.Equal(t, "protocol: ICMP", c1.Union(c2).String())
+}
+
 func TestBasicSetTCP(t *testing.T) {
 	e := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 1, 65535, 1, 655)
 	require.Equal(t, "protocol: TCP dst-ports: 1-655", e.String())
