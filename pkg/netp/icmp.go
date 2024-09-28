@@ -85,7 +85,7 @@ func (t ICMP) InverseDirection() Protocol {
 		//TODO: is this well defined?
 		return ICMP{TypeCode: &ICMPTypeCode{Type: invType, Code: t.TypeCode.Code}}
 	}
-	return nil
+	return nil //ICMP{} // TODO: check..
 }
 
 // Based on https://datatracker.ietf.org/doc/html/rfc792

@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package ds_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -43,9 +44,18 @@ func TestRectangleProductEmpty(t *testing.T) {
 }
 
 func TestRectangleEqual(t *testing.T) {
+
+	// d is of type: ds.Product[*interval.CanonicalSet, *interval.CanonicalSet] , string: {(1-100 x 1-100)}
 	d := rectangle(1, 100, 1, 100)
+
+	// e is of type: ds.Product[*interval.CanonicalSet, *interval.CanonicalSet] , string: {(1-100 x 1-100)}
 	e := rectangle(1, 100, 1, 100)
+
+	// f is of type: ds.Product[*interval.CanonicalSet, *interval.CanonicalSet] , string: {(1-100 x 1-200)}
 	f := rectangle(1, 100, 1, 200)
+	fmt.Println(d.String())
+	fmt.Println(e.String())
+	fmt.Println(f.String())
 
 	require.True(t, d.Equal(e))
 	require.True(t, e.Equal(d))
@@ -60,6 +70,48 @@ func TestRectangleEqual(t *testing.T) {
 	)
 	b := rectangle(1, 2, 1, 9)
 	require.True(t, a.Equal(b))
+
+	c := rectangle(1, 50, 1, 101)
+	fmt.Println(c)           // {(1-50 x 1-101)}
+	fmt.Println(union(c, d)) // {(1-50 x 1-101) | (51-100 x 1-100)}
+	fmt.Println(union(d, c)) // {(1-50 x 1-101) | (51-100 x 1-100)}
+	g := rectangle(1, 1000, 101, 101)
+	h := union(d, c).Subtract(g) // {(1-100 x 1-100)}
+	fmt.Println(h)
+	require.True(t, h.Equal(d))
+	require.True(t, e.Equal(h))
+
+	y := rectangle(3, 50, 1, 101)
+	fmt.Println(y)           // {(3-50 x 1-101)}
+	fmt.Println(union(y, d)) // {(3-50 x 1-101) | (1-2,51-100 x 1-100)}
+	fmt.Println(union(d, y)) // {(3-50 x 1-101) | (1-2,51-100 x 1-100)}
+	fmt.Println("done")
+
+}
+
+// This example demonstrates the canonical representation, and the "left" impact of "product_left":
+// the left dimension values determine the partitions
+// all three representations are equivalent, converging to the "left" canonical representation
+func TestCacnonicalRep(t *testing.T) {
+	a1 := rectangle(1, 7, 1, 3)
+	a2 := rectangle(8, 9, 1, 5)
+	resA := union(a1, a2)
+	fmt.Println(resA) // {(8-9 x 1-5) | (1-7 x 1-3)}
+
+	b1 := rectangle(1, 7, 1, 3)
+	b2 := rectangle(8, 9, 1, 3)
+	b3 := rectangle(8, 9, 4, 5)
+	resB := union(b1, b2, b3)
+	fmt.Println(resB) // {(8-9 x 1-5) | (1-7 x 1-3)}
+
+	c1 := rectangle(1, 9, 1, 3)
+	c2 := rectangle(8, 9, 4, 5)
+	resC := union(c1, c2)
+	fmt.Println(resC) // {(8-9 x 1-5) | (1-7 x 1-3)}
+
+	require.True(t, resA.Equal(resB))
+	require.True(t, resA.Equal(resC))
+	require.True(t, resB.Equal(resC))
 }
 
 func TestRectangleCopy(t *testing.T) {
@@ -72,10 +124,31 @@ func TestRectangleCopy(t *testing.T) {
 
 func TestRectangleIsSubset(t *testing.T) {
 	a := rectangle(1, 100, 200, 300)
-	b := rectangle(10, 80, 210, 280)
+	b := rectangle(10, 80, 210, 280) // b is subset of a
 	checkContained(t, b, a, true)
-	b = b.Union(rectangle(10, 200, 210, 280))
-	checkContained(t, b, a, false)
+	// print the delta
+	fmt.Println(a.Subtract(b)) // {(1-9,81-100 x 200-300) | (10-80 x 200-209,281-300)}
+	require.True(t, b.Subtract(a).IsEmpty())
+
+	b1 := b.Union(rectangle(10, 200, 210, 280)) // b1 is not a subset of a (first dimension exceeds a's range)
+	checkContained(t, b1, a, false)
+	checkContained(t, a, b1, false) // a is not a subset of b1
+	// print the delta
+	fmt.Println(b1.Subtract(a)) // {(101-200 x 210-280)}
+	fmt.Println(a.Subtract(b1)) // {(10-100 x 200-209,281-300) | (1-9 x 200-300)}
+
+	b2 := b.Union(rectangle(10, 100, 210, 310)) // b2 is not a subset of a (second dimension exceeds a's range)
+	checkContained(t, b2, a, false)
+	checkContained(t, a, b2, false) // b2 is not a subset of a
+	// print the detla
+	fmt.Println(b2.Subtract(a)) // {(10-100 x 301-310)}
+	fmt.Println(a.Subtract(b2)) // {(10-100 x 200-209) | (1-9 x 200-300)}
+
+	b3 := b.Union(rectangle(99, 99, 201, 300)) // b3 is a subset of a
+	checkContained(t, b3, a, true)
+	// print the delta (a minus b3):
+	// {(99 x 200) | (10-80 x 200-209,281-300) | (1-9,81-98,100 x 200-300)}
+	fmt.Println(a.Subtract(b3).String())
 
 	c := union(
 		rectangle(1, 100, 200, 300),
@@ -315,4 +388,58 @@ func TestRectangleSwapDimensions(t *testing.T) {
 		rectangle(7, 20, 1, 3),
 		rectangle(7, 20, 20, 23),
 	)))
+}
+
+func TestAdditionalInterfaceFuncs(t *testing.T) {
+	// NumPartitions()
+	a := union(rectangle(1, 9, 1, 3), rectangle(8, 9, 4, 5)) // {(8-9 x 1-5) | (1-7 x 1-3)}
+	require.Equal(t, 2, a.NumPartitions())
+	require.Equal(t, 31, a.Size()) // 10 + 21 = 31
+
+	// Left() , Right()
+	leftSet := a.Left(interval.NewCanonicalSet())
+	rightSet := a.Right(interval.NewCanonicalSet())
+	require.True(t, interval.New(1, 9).ToSet().Equal(leftSet))
+	require.True(t, interval.New(1, 5).ToSet().Equal(rightSet))
+	fmt.Println(a.Left(interval.NewCanonicalSet()))  // 1-9
+	fmt.Println(a.Right(interval.NewCanonicalSet())) // 1-5
+
+	// NewProductLeft()
+	z1 := ds.NewProductLeft[*interval.CanonicalSet, *interval.CanonicalSet]()
+	require.True(t, z1.IsEmpty())
+	fmt.Println(z1)
+
+	// CartesianPairLeft()
+	z2 := ds.CartesianPairLeft(interval.NewCanonicalSet(), interval.New(1, 9).ToSet())
+	z3 := ds.CartesianPairLeft(interval.New(1, 9).ToSet(), interval.NewCanonicalSet())
+	z4 := ds.CartesianPairLeft(interval.New(1, 9).ToSet(), interval.New(1, 9).ToSet())
+	require.True(t, z2.IsEmpty())
+	require.True(t, z3.IsEmpty())
+	require.True(t, !z4.IsEmpty())
+
+	fmt.Printf("done")
+}
+
+func TestUnion(t *testing.T) {
+	a1 := rectangle(1, 3, 1, 5)
+	a2 := rectangle(3, 3, 6, 7)
+	a3 := a1.Union(a2)
+	fmt.Println(a3) // {(3 x 1-7) | (1-2 x 1-5)}
+	require.Equal(t, 2, a3.NumPartitions())
+	a4 := rectangle(1, 2, 6, 7)
+	// union below, identifies that the two paritions now have common 2-nd dimension sets, thus results in one parition object res
+	fmt.Println(union(a4, a3)) // {(1-3 x 1-7)}
+	require.Equal(t, 1, union(a4, a3).NumPartitions())
+}
+
+func TestSubtract(t *testing.T) {
+	a1 := rectangle(1, 3, 1, 5)
+	a2 := rectangle(3, 3, 1, 10)
+	res1 := a1.Subtract(a2) // nothing remains on [3] in left set
+	require.True(t, res1.Left(interval.NewCanonicalSet()).Equal(interval.New(1, 2).ToSet()))
+	res2 := res1.Subtract(rectangle(1, 2, 1, 10))
+	require.True(t, res2.IsEmpty())
+	fmt.Println(res1) // {(1-2 x 1-5)}
+	fmt.Println("done")
+
 }

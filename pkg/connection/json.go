@@ -55,7 +55,7 @@ type Details spec.ProtocolList
 // ToJSON returns a `Details` object for JSON representation of the input connection Set.
 func ToJSON(c *Set) Details {
 	if c == nil {
-		return nil
+		return Details{}
 	}
 	if c.IsAll() {
 		return Details(spec.ProtocolList{spec.AnyProtocol{Protocol: spec.AnyProtocolProtocolANY}})

@@ -6,6 +6,11 @@ SPDX-License-Identifier: Apache-2.0
 
 package ds
 
+import (
+	"fmt"
+	"strings"
+)
+
 // ProductLeft is a cartesian product of two sets
 // The implementation represents the sets succinctly, merging keys with equivalent values to a single key,
 // so the mapping is injective (one-to-one).
@@ -258,4 +263,14 @@ func (m *ProductLeft[K, V]) Swap() Product[V, K] {
 	}
 	res.(*ProductLeft[V, K]).canonicalize()
 	return res
+}
+
+// TODO: sort string elements for consistency
+func (m *ProductLeft[K, V]) String() string {
+	partitions := m.Partitions()
+	partitionsStrings := make([]string, len(partitions))
+	for i, pair := range partitions {
+		partitionsStrings[i] = fmt.Sprintf("(%s x %s)", pair.Left.String(), pair.Right.String())
+	}
+	return "{" + strings.Join(partitionsStrings, " | ") + "}"
 }

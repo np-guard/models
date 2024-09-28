@@ -8,25 +8,40 @@ package netset
 
 import (
 	"log"
+	"slices"
+	"sort"
+	"strings"
 
 	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
 )
 
+// thid file defines type TCPUDPSet as TripleSet[*ProtocolSet, *PortSet, *PortSet]
+
+// encoding TCP/UDP protocols as integers for TCPUDPSet
 const (
 	TCPCode = 0
 	UDPCode = 1
 )
 
-type PortSet = interval.CanonicalSet
-type ProtocolSet = interval.CanonicalSet
+// TODO: currently assuming input values are always within valid ranges.
+// should add validation / error handling for this?
+
+type ProtocolSet = interval.CanonicalSet // valid range: [0,1] (see TCPCode , UDPCode)
+type PortSet = interval.CanonicalSet     // valid range: [1,65535]  (see netp.MinPort , netp.MaxPort)
 
 func AllPorts() *PortSet {
 	return netp.AllPorts().ToSet()
 }
 
+func AllTCPUDPProtocolSet() *ProtocolSet {
+	return interval.New(TCPCode, UDPCode).ToSet()
+}
+
+// TCPUDPSet captures sets of protocols (within TCP,UDP only) and ports (source and destinaion)
 type TCPUDPSet struct {
+	// S1: protocols, S2: src ports, S3: dst ports
 	props ds.TripleSet[*ProtocolSet, *PortSet, *PortSet]
 }
 
@@ -89,7 +104,7 @@ func EmptyTCPorUDPSet() *TCPUDPSet {
 
 func AllTCPUDPSet() *TCPUDPSet {
 	return pathLeft(
-		interval.New(TCPCode, UDPCode).ToSet(),
+		AllTCPUDPProtocolSet(),
 		AllPorts(),
 		AllPorts(),
 	)
@@ -119,4 +134,39 @@ func protocolStringToCode(protocol netp.ProtocolString) int64 {
 	}
 	log.Panicf("Impossible protocol code %v", protocol)
 	return 0
+}
+
+func protocolCodeToString(pSet *ProtocolSet) string {
+	switch {
+	case pSet.Equal(AllTCPUDPProtocolSet()):
+		return strings.Join([]string{string(netp.ProtocolStringTCP), string(netp.ProtocolStringUDP)}, ",")
+	case pSet.Contains(UDPCode):
+		return string(netp.ProtocolStringUDP)
+	case pSet.Contains(TCPCode):
+		return string(netp.ProtocolStringTCP)
+	}
+	return ""
+}
+
+func getTCPUDPCubeStr(cube ds.Triple[*ProtocolSet, *PortSet, *PortSet]) string {
+	var ports []string
+	if !cube.S2.Equal(AllPorts()) {
+		ports = append(ports, "src-ports: "+cube.S2.String())
+	}
+	if !cube.S3.Equal(AllPorts()) {
+		ports = append(ports, "dst-ports: "+cube.S3.String())
+	}
+	protocolsStr := protocolCodeToString(cube.S1)
+	allComponentsStrList := slices.Concat([]string{protocolsStr}, ports)
+	return strings.Join(allComponentsStrList, " ")
+}
+
+func (c *TCPUDPSet) String() string {
+	cubes := c.Partitions()
+	var resStrings = make([]string, len(cubes))
+	for i, cube := range cubes {
+		resStrings[i] = getTCPUDPCubeStr(cube)
+	}
+	sort.Strings(resStrings)
+	return strings.Join(resStrings, ",")
 }

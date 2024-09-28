@@ -6,7 +6,12 @@ SPDX-License-Identifier: Apache-2.0
 
 package ds
 
-// OuterTripleSet is an outer-associative 3-product of sets (S1 x S3) x S2
+import (
+	"fmt"
+	"strings"
+)
+
+// OuterTripleSet is an outer-associative 3-product of sets (S1 x S3) x S2,  created as LeftTripleSet[S1, S3, S2] (Product[Product[S1, S3], S2])
 type OuterTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]] struct {
 	m *LeftTripleSet[S1, S3, S2]
 }
@@ -71,3 +76,21 @@ func (c *OuterTripleSet[S1, S2, S3]) Subtract(other TripleSet[S1, S2, S3]) Tripl
 func (c *OuterTripleSet[S1, S2, S3]) Partitions() []Triple[S1, S2, S3] {
 	return partitionsMap(c.m, Triple[S1, S3, S2].Swap23)
 }
+
+func (c *OuterTripleSet[S1, S2, S3]) String() string {
+	partitions := c.Partitions()
+	partitionsStrings := make([]string, len(partitions))
+	for i, triple := range partitions {
+		partitionsStrings[i] = fmt.Sprintf("(%s x %s x %s)", triple.S1.String(), triple.S2.String(), triple.S3.String())
+	}
+	return "{" + strings.Join(partitionsStrings, " | ") + "}"
+}
+
+/*func (c *OuterTripleSet[S1, S2, S3]) NumPartitions() int {
+	res := 0
+	for _, p := range c.m.Partitions() {
+		res += p.Left.NumPartitions()
+	}
+	return res
+	return 0
+}*/

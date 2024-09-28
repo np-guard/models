@@ -15,6 +15,13 @@ import (
 const MinPort = 1
 const MaxPort = 65535
 
+// AllPorts returns an interval representing all possible valid ports.
+func AllPorts() interval.Interval {
+	return interval.New(MinPort, MaxPort)
+}
+
+// TODO: code below can be removed?
+
 // TCPUDP represents a TCP or UDP protocol with contiguous source and destination port ranges.
 type TCPUDP struct {
 	isTCP    bool
@@ -50,11 +57,6 @@ func (t TCPUDP) ProtocolString() ProtocolString {
 		return ProtocolStringTCP
 	}
 	return ProtocolStringUDP
-}
-
-// AllPorts returns an interval representing all possible valid ports.
-func AllPorts() interval.Interval {
-	return interval.New(MinPort, MaxPort)
 }
 
 // IsAllPorts returns true if the input port range covers all possible valid ports.

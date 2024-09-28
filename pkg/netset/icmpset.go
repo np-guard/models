@@ -219,3 +219,7 @@ func NewICMPSet(t netp.ICMP) *ICMPSet {
 	}
 	return &res
 }
+
+func (s *ICMPSet) String() string {
+	return ""
+}

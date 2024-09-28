@@ -139,7 +139,6 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 	// conns: all
 	fmt.Printf("conn9UnionConn6 cubes string:\n%s\n", getPartitionsStr(conn9UnionConn6))
 
-	//conn12 cubes string:
 	// src: 10.240.10.0/24,
 	// dst: 10.240.10.1/32, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27, 10.240.10.64/26, 10.240.10.128/25,
 	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;

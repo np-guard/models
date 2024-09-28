@@ -11,6 +11,9 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 )
 
+// type connection.Set is an alias for netset.TransportSet
+
+// TransportSet captures connection-sets for protocols from {TCP, UDP, ICMP}
 type TransportSet struct {
 	set *ds.Disjoint[*TCPUDPSet, *ICMPSet]
 }
@@ -100,4 +103,8 @@ func (t *TransportSet) Intersect(other *TransportSet) *TransportSet {
 
 func (t *TransportSet) Subtract(other *TransportSet) *TransportSet {
 	return &TransportSet{t.set.Subtract(other.set)}
+}
+
+func (t *TransportSet) String() string {
+	return ""
 }

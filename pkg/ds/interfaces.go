@@ -37,6 +37,7 @@ type Set[Self any] interface {
 	Union(Self) Self
 	Intersect(Self) Self
 	Subtract(Self) Self
+	String() string
 }
 
 // Product is a cartesian product of sets S1 x S2
@@ -66,4 +67,5 @@ type Product[S1 Set[S1], S2 Set[S2]] interface {
 type TripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]] interface {
 	Set[TripleSet[S1, S2, S3]]
 	Partitions() []Triple[S1, S2, S3]
+	//NumPartitions() int
 }
