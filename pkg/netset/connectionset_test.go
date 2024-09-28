@@ -9,13 +9,11 @@ package netset_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
 )
@@ -94,130 +92,72 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 
 	// src: 10.240.10.0/24,
 	// dst: 10.240.10.0,
-	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;
-	fmt.Printf("conn1 cubes string:\n%s\n", getPartitionsStr(conn1))
+	// conns: TCP
+	fmt.Printf("conn1 cubes string:\n%s\n", conn1.String())
 
 	// src: 10.240.10.0/24,
 	// dst: 10.240.10.1/32, 10.240.10.2/31, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27,10.240.10.64/26, 10.240.10.128/25,
-	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;
-	fmt.Printf("conn2 cubes string:\n%s\n", getPartitionsStr(conn2))
+	// conns: TCP
+	fmt.Printf("conn2 cubes string:\n%s\n", conn2.String())
 
 	// src: 10.240.10.0/24,
 	// dst: 10.240.10.0/24,
-	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;
-	fmt.Printf("conn3 cubes string:\n%s\n", getPartitionsStr(conn3))
+	// conns: TCP
+	fmt.Printf("conn3 cubes string:\n%s\n", conn3.String())
 
 	// src: 10.240.10.0/24,
 	// dst: 10.240.10.1/32, 10.240.10.2/31, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27, 10.240.10.64/26, 10.240.10.128/25,
-	// conns: all
-	fmt.Printf("conn4 cubes string:\n%s\n", getPartitionsStr(conn4))
+	// conns: All Connections
+	fmt.Printf("conn4 cubes string:\n%s\n", conn4.String())
 
 	// src: 10.240.10.0/24,
 	// dst: 10.240.10.2/31,
-	// conns: ;all icmp
-	fmt.Printf("conn5 cubes string:\n%s\n", getPartitionsStr(conn5))
+	// conns: ICMP
+	fmt.Printf("conn5 cubes string:\n%s\n", conn5.String())
 
 	// two partitions in the following object:
 	// src: 10.240.10.0/24,
 	// dst: 10.240.10.2/31,
-	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535; all icmp
+	// conns: ICMP,TCP
 	// src: 10.240.10.0/24,
 	// dst: 10.240.10.1/32, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27, 10.240.10.64/26, 10.240.10.128/25,
-	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;
-	fmt.Printf("conn5UnionConn2 cubes string:\n%s\n", getPartitionsStr(conn5UnionConn2))
+	// conns: TCP
+	fmt.Printf("conn5UnionConn2 cubes string:\n%s\n", conn5UnionConn2.String())
 
 	// src: 10.240.10.0/24,
 	// dst: 10.240.10.2/31,
-	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;all icmp
+	// conns: ICMP,TCP
 	// src: 10.240.10.0/24,
 	// dst: 10.240.10.1/32, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27, 10.240.10.64/26, 10.240.10.128/25,
-	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;
-	fmt.Printf("conn8 cubes string:\n%s\n", getPartitionsStr(conn8))
+	// conns: TCP
+	fmt.Printf("conn8 cubes string:\n%s\n", conn8.String())
 
 	// src: 10.240.10.0/24,
 	// dst: 10.240.10.1/32, 10.240.10.2/31, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27, 10.240.10.64/26, 10.240.10.128/25,
-	// conns: all
-	fmt.Printf("conn9UnionConn6 cubes string:\n%s\n", getPartitionsStr(conn9UnionConn6))
+	// conns:  All Connections
+	fmt.Printf("conn9UnionConn6 cubes string:\n%s\n", conn9UnionConn6.String())
 
 	// src: 10.240.10.0/24,
 	// dst: 10.240.10.1/32, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27, 10.240.10.64/26, 10.240.10.128/25,
-	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;
+	// conns: TCP
 	// src: 10.240.10.0/25,
 	// dst: 10.240.10.2/31,
-	// conns: protocols 1, src-ports 1-65535, dst-ports 53,protocols 0, src-ports 1-65535, dst-ports 1-65535;all icmp
+	// conns: ICMP;TCP,UDP dst-ports: 53
 	// src: 10.240.10.128/25,
 	// dst: 10.240.10.2/31,
-	// conns: protocols 0, src-ports 1-65535, dst-ports 1-65535;all icmp
-	fmt.Printf("conn12 cubes string:\n%s\n", getPartitionsStr(conn12))
+	// conns: ICMP,TCP
+	fmt.Printf("conn12 cubes string:\n%s\n", conn12.String())
 
-	fmt.Printf("conn17 cubes string:\n%s\n", getPartitionsStr(conn17))
+	// src: 10.240.10.0/24,
+	// dst: 10.240.10.1/32, 10.240.10.4/30, 10.240.10.8/29, 10.240.10.16/28, 10.240.10.32/27, 10.240.10.64/26, 10.240.10.128/25,
+	// conns: TCP,
+	// src: 10.240.10.0/25,
+	// dst: 10.240.10.2/31,
+	// conns: ICMP;TCP,UDP dst-ports: 53,
+	// src: 10.240.10.128/25,
+	// dst: 10.240.10.2/31,
+	// conns: ICMP,TCP
+	fmt.Printf("conn17 cubes string:\n%s\n", conn17.String())
 
 	fmt.Println("done")
-}
-
-// simple string functions for testing
-
-func icmpStr(icmpObj netp.ICMP) string {
-	if icmpObj.TypeCode.Code != nil {
-		return fmt.Sprintf("icmp type: %d, code: %d", icmpObj.TypeCode.Type, *icmpObj.TypeCode.Code)
-	}
-	return fmt.Sprintf("icmp type: %d", icmpObj.TypeCode.Type)
-}
-
-func icmpSetStr(icmpset *netset.ICMPSet) string {
-	if icmpset.IsAll() {
-		return "all icmp"
-	}
-	if icmpset.IsEmpty() {
-		return ""
-	}
-	cubes := icmpset.Partitions()
-	cubesStrings := make([]string, len(cubes))
-	for i := range cubes {
-		cubesStrings[i] = icmpStr(cubes[i])
-	}
-	return strings.Join(cubesStrings, ",")
-}
-
-func tcpudpSetStr(tcpupdset *netset.TCPUDPSet) string {
-	if tcpupdset.IsAll() {
-		return "all tcp,udp"
-	}
-	if tcpupdset.IsEmpty() {
-		return ""
-	}
-	cubes := tcpupdset.Partitions()
-	cubesStrings := make([]string, len(cubes))
-	for i := range cubes {
-		cube := cubes[i] // each cube is of type ds.Triple[*ProtocolSet, *PortSet, *PortSet]
-		cubesStrings[i] = fmt.Sprintf("protocols %s, src-ports %s, dst-ports %s", cube.S1.String(), cube.S2.String(), cube.S3.String())
-	}
-	return strings.Join(cubesStrings, ",")
-}
-
-func transportSetStr(conn *netset.TransportSet) string {
-	if conn.IsAll() {
-		return "all"
-	}
-	if conn.IsEmpty() {
-		return "empty"
-	}
-	tcpudpSet := conn.TCPUDPSet()
-	icmpSet := conn.ICMPSet()
-	resStrList := []string{tcpudpSetStr(tcpudpSet), icmpSetStr(icmpSet)}
-
-	return strings.Join(resStrList, ";")
-}
-
-func cubeStr(c ds.Triple[*netset.IPBlock, *netset.IPBlock, *netset.TransportSet]) string {
-	return fmt.Sprintf("src: %s, dst: %s, conns: %s", c.S1.String(), c.S2.String(), transportSetStr(c.S3))
-}
-
-func getPartitionsStr(conn *netset.ConnectionSet) string {
-	cubes := conn.Partitions()
-	cubesStrings := make([]string, len(cubes))
-	for i := range cubes {
-		cubesStrings[i] = cubeStr(cubes[i])
-	}
-	return strings.Join(cubesStrings, "\n")
 }

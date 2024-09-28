@@ -110,6 +110,22 @@ func AllTCPUDPSet() *TCPUDPSet {
 	)
 }
 
+func NewAllTCPOnlySet() *TCPUDPSet {
+	return pathLeft(
+		interval.New(TCPCode, TCPCode).ToSet(),
+		AllPorts(),
+		AllPorts(),
+	)
+}
+
+func NewAllUDPOnlySet() *TCPUDPSet {
+	return pathLeft(
+		interval.New(UDPCode, UDPCode).ToSet(),
+		AllPorts(),
+		AllPorts(),
+	)
+}
+
 func NewTCPorUDPSet(protocolString netp.ProtocolString, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *TCPUDPSet {
 	protocol := protocolStringToCode(protocolString)
 	return pathLeft(
@@ -139,7 +155,7 @@ func protocolStringToCode(protocol netp.ProtocolString) int64 {
 func protocolCodeToString(pSet *ProtocolSet) string {
 	switch {
 	case pSet.Equal(AllTCPUDPProtocolSet()):
-		return strings.Join([]string{string(netp.ProtocolStringTCP), string(netp.ProtocolStringUDP)}, ",")
+		return string(netp.ProtocolStringTCP) + comma + string(netp.ProtocolStringUDP)
 	case pSet.Contains(UDPCode):
 		return string(netp.ProtocolStringUDP)
 	case pSet.Contains(TCPCode):
@@ -168,5 +184,5 @@ func (c *TCPUDPSet) String() string {
 		resStrings[i] = getTCPUDPCubeStr(cube)
 	}
 	sort.Strings(resStrings)
-	return strings.Join(resStrings, ",")
+	return strings.Join(resStrings, " | ")
 }

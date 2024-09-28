@@ -7,6 +7,9 @@ SPDX-License-Identifier: Apache-2.0
 package netset
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/np-guard/models/pkg/ds"
 	"github.com/np-guard/models/pkg/netp"
 )
@@ -30,6 +33,14 @@ func NewICMPTransport(tc netp.ICMP) *TransportSet {
 		EmptyTCPorUDPSet(),
 		NewICMPSet(tc),
 	)}
+}
+
+func NewICMPTransportFromTypeCode(icmpType, icmpCode int64) (*TransportSet, error) {
+	icmp, err := netp.ICMPFromTypeAndCode64(&icmpType, &icmpCode)
+	if err != nil {
+		return nil, err
+	}
+	return NewICMPTransport(icmp), nil
 }
 
 func AllOrNothingTransport(allTcpubp, allIcmp bool) *TransportSet {
@@ -106,5 +117,22 @@ func (t *TransportSet) Subtract(other *TransportSet) *TransportSet {
 }
 
 func (t *TransportSet) String() string {
-	return ""
+	if t.IsEmpty() {
+		return NoConnections
+	} else if t.IsAll() {
+		return AllConnections
+	}
+	tcpString := t.TCPUDPSet().String()
+	icmpString := t.ICMPSet().String()
+
+	// Special case: ICMP,UDP or ICMP,TCP
+	if strings.HasSuffix(tcpString, string(netp.ProtocolStringTCP)) || strings.HasSuffix(tcpString, string(netp.ProtocolStringUDP)) {
+		if strings.HasSuffix(icmpString, string(netp.ProtocolStringICMP)) {
+			return fmt.Sprintf("%s,%s", icmpString, tcpString)
+		}
+	}
+	if tcpString != "" && icmpString != "" {
+		return fmt.Sprintf("%s%s%s", icmpString, semicolon, tcpString)
+	}
+	return icmpString + tcpString // here, one of these is empty
 }

@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package ds
 
 import (
-	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -265,12 +265,20 @@ func (m *ProductLeft[K, V]) Swap() Product[V, K] {
 	return res
 }
 
-// TODO: sort string elements for consistency
 func (m *ProductLeft[K, V]) String() string {
 	partitions := m.Partitions()
 	partitionsStrings := make([]string, len(partitions))
 	for i, pair := range partitions {
-		partitionsStrings[i] = fmt.Sprintf("(%s x %s)", pair.Left.String(), pair.Right.String())
+		partitionsStrings[i] = tupleString(pair.Left.String(), pair.Right.String())
 	}
-	return "{" + strings.Join(partitionsStrings, " | ") + "}"
+	return setString(partitionsStrings)
+}
+
+func tupleString(s ...string) string {
+	return "(" + strings.Join(s, " x ") + ")"
+}
+
+func setString(elementsStr []string) string {
+	sort.Strings(elementsStr)
+	return "{" + strings.Join(elementsStr, " | ") + "}"
 }

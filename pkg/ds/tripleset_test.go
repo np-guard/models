@@ -223,9 +223,6 @@ func TestCubioidIsSubset(t *testing.T) {
 	fmt.Println(e) // {(10-100 x 210-280 x 0-3)}
 	require.True(t, union(d1, e).Equal(a))
 	require.True(t, union(d2, e).Equal(b))
-
-	fmt.Println("done")
-
 }
 
 func TestCubioidIsSubset1(t *testing.T) {

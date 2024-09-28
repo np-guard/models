@@ -7,6 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package netset
 
 import (
+	"fmt"
+	"sort"
+	"strings"
+
 	"github.com/np-guard/models/pkg/ds"
 )
 
@@ -80,4 +84,18 @@ func ConnectionSetFrom(src, dst *IPBlock, conn *TransportSet) *ConnectionSet {
 
 func (c *ConnectionSet) Partitions() []ds.Triple[*IPBlock, *IPBlock, *TransportSet] {
 	return c.props.Partitions()
+}
+
+func cubeStr(c ds.Triple[*IPBlock, *IPBlock, *TransportSet]) string {
+	return fmt.Sprintf("src: %s, dst: %s, conns: %s", c.S1.String(), c.S2.String(), c.S3.String())
+}
+
+func (c *ConnectionSet) String() string {
+	cubes := c.Partitions()
+	var resStrings = make([]string, len(cubes))
+	for i, cube := range cubes {
+		resStrings[i] = cubeStr(cube)
+	}
+	sort.Strings(resStrings)
+	return strings.Join(resStrings, comma)
 }

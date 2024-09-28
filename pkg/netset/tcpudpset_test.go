@@ -1,3 +1,9 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package netset_test
 
 import (
@@ -64,5 +70,15 @@ func TestTCPUDPSetBasicFunctionality(t *testing.T) {
 	// Subtract, Union, Intersect
 	require.True(t, tcp80.Union(allButTCP80).Equal(all))
 	require.True(t, tcp80.Intersect(allButTCP80).IsEmpty())
+}
 
+func TestTCPUDPSetString(t *testing.T) {
+	a1 := netset.NewAllTCPOnlySet()
+	a2 := netset.NewTCPorUDPSet(netp.ProtocolStringUDP, netp.MinPort, netp.MaxPort, 53, 53)
+	a3 := netset.NewTCPorUDPSet(netp.ProtocolStringTCP, netp.MinPort, netp.MaxPort, 53, 53)
+	a := a1.Union(a2)
+	fmt.Println(a) // TCP | UDP dst-ports: 53
+	b := a2.Union(a3)
+	fmt.Println(b) // TCP,UDP dst-ports: 53
+	fmt.Println("done")
 }

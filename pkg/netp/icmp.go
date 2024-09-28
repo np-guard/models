@@ -82,10 +82,10 @@ func (t ICMP) InverseDirection() Protocol {
 	}
 
 	if invType := inverseICMPType(t.TypeCode.Type); invType != undefinedICMP {
-		//TODO: is this well defined?
+		// TODO: is this well defined?
 		return ICMP{TypeCode: &ICMPTypeCode{Type: invType, Code: t.TypeCode.Code}}
 	}
-	return nil //ICMP{} // TODO: check..
+	return nil
 }
 
 // Based on https://datatracker.ietf.org/doc/html/rfc792

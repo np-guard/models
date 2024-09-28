@@ -7,10 +7,16 @@ SPDX-License-Identifier: Apache-2.0
 package netset
 
 import (
+	"fmt"
 	"log"
+	"sort"
+	"strings"
 
 	"github.com/np-guard/models/pkg/netp"
 )
+
+// ICMPSet is a set of ICMP values, encoded as a bitset
+type ICMPSet uint32
 
 // Encoding for ICMP types and codes, enumerating the possible pairs of values.
 // For example:
@@ -83,9 +89,6 @@ func decode(encodedCode int) (netp.ICMP, error) {
 	code := encodedCode - t
 	return netp.NewICMP(&netp.ICMPTypeCode{Type: t, Code: &code})
 }
-
-// ICMPSet is a set of ICMP values, encoded as a bitset
-type ICMPSet uint32
 
 func (s *ICMPSet) IsSubset(other *ICMPSet) bool {
 	return ((*s) | (*other)) == (*other)
@@ -220,6 +223,34 @@ func NewICMPSet(t netp.ICMP) *ICMPSet {
 	return &res
 }
 
+func getICMPCubeStr(cube netp.ICMP) string {
+	tc := cube.ICMPTypeCode()
+	if tc == nil {
+		return ""
+	}
+	if tc.Code == nil {
+		if netp.HasSingleCode(tc.Type) {
+			return fmt.Sprintf("icmp-type: %d icmp-code: 0", tc.Type)
+		}
+		return fmt.Sprintf("icmp-type: %d", tc.Type)
+	}
+	return fmt.Sprintf("icmp-type: %d icmp-code: %d", tc.Type, *tc.Code)
+}
+
 func (s *ICMPSet) String() string {
-	return ""
+	if s.IsEmpty() {
+		return ""
+	}
+	cubes := s.Partitions()
+	var resStrings = make([]string, len(cubes))
+	for i, cube := range cubes {
+		resStrings[i] = getICMPCubeStr(cube)
+	}
+	sort.Strings(resStrings)
+	str := string(netp.ProtocolStringICMP)
+	last := strings.Join(resStrings, semicolon)
+	if last != "" {
+		str += " " + last
+	}
+	return str
 }

@@ -44,7 +44,6 @@ func TestRectangleProductEmpty(t *testing.T) {
 }
 
 func TestRectangleEqual(t *testing.T) {
-
 	// d is of type: ds.Product[*interval.CanonicalSet, *interval.CanonicalSet] , string: {(1-100 x 1-100)}
 	d := rectangle(1, 100, 1, 100)
 
@@ -86,7 +85,6 @@ func TestRectangleEqual(t *testing.T) {
 	fmt.Println(union(y, d)) // {(3-50 x 1-101) | (1-2,51-100 x 1-100)}
 	fmt.Println(union(d, y)) // {(3-50 x 1-101) | (1-2,51-100 x 1-100)}
 	fmt.Println("done")
-
 }
 
 // This example demonstrates the canonical representation, and the "left" impact of "product_left":
@@ -391,12 +389,12 @@ func TestRectangleSwapDimensions(t *testing.T) {
 }
 
 func TestAdditionalInterfaceFuncs(t *testing.T) {
-	// NumPartitions()
+	// NumPartitions
 	a := union(rectangle(1, 9, 1, 3), rectangle(8, 9, 4, 5)) // {(8-9 x 1-5) | (1-7 x 1-3)}
 	require.Equal(t, 2, a.NumPartitions())
 	require.Equal(t, 31, a.Size()) // 10 + 21 = 31
 
-	// Left() , Right()
+	// Left , Right
 	leftSet := a.Left(interval.NewCanonicalSet())
 	rightSet := a.Right(interval.NewCanonicalSet())
 	require.True(t, interval.New(1, 9).ToSet().Equal(leftSet))
@@ -404,12 +402,12 @@ func TestAdditionalInterfaceFuncs(t *testing.T) {
 	fmt.Println(a.Left(interval.NewCanonicalSet()))  // 1-9
 	fmt.Println(a.Right(interval.NewCanonicalSet())) // 1-5
 
-	// NewProductLeft()
+	// NewProductLeft
 	z1 := ds.NewProductLeft[*interval.CanonicalSet, *interval.CanonicalSet]()
 	require.True(t, z1.IsEmpty())
 	fmt.Println(z1)
 
-	// CartesianPairLeft()
+	// CartesianPairLeft
 	z2 := ds.CartesianPairLeft(interval.NewCanonicalSet(), interval.New(1, 9).ToSet())
 	z3 := ds.CartesianPairLeft(interval.New(1, 9).ToSet(), interval.NewCanonicalSet())
 	z4 := ds.CartesianPairLeft(interval.New(1, 9).ToSet(), interval.New(1, 9).ToSet())
@@ -440,6 +438,4 @@ func TestSubtract(t *testing.T) {
 	res2 := res1.Subtract(rectangle(1, 2, 1, 10))
 	require.True(t, res2.IsEmpty())
 	fmt.Println(res1) // {(1-2 x 1-5)}
-	fmt.Println("done")
-
 }

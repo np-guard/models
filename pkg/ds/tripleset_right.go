@@ -6,11 +6,6 @@ SPDX-License-Identifier: Apache-2.0
 
 package ds
 
-import (
-	"fmt"
-	"strings"
-)
-
 // RightTripleSet is a right-associative 3-product of sets S1 x (S2 x S3), created as LeftTripleSet[S2, S3, S1] (Product[Product[S2, S3], S1])
 type RightTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]] struct {
 	m *LeftTripleSet[S2, S3, S1]
@@ -81,9 +76,9 @@ func (c *RightTripleSet[S1, S2, S3]) String() string {
 	partitions := c.Partitions()
 	partitionsStrings := make([]string, len(partitions))
 	for i, triple := range partitions {
-		partitionsStrings[i] = fmt.Sprintf("(%s x %s x %s)", triple.S1.String(), triple.S2.String(), triple.S3.String())
+		partitionsStrings[i] = tupleString(triple.S1.String(), triple.S2.String(), triple.S3.String())
 	}
-	return "{" + strings.Join(partitionsStrings, " | ") + "}"
+	return setString(partitionsStrings)
 }
 
 /*func (c *RightTripleSet[S1, S2, S3]) NumPartitions() int {
