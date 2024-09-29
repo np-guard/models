@@ -22,9 +22,9 @@ const (
 	UDPCode           = 1
 	ICMPCode          = 2
 	MinICMPType int64 = 0
-	MaxICMPType int64 = netp.InformationReply
+	MaxICMPType int64 = 254 // netp.InformationReply
 	MinICMPCode int64 = 0
-	MaxICMPCode int64 = 5
+	MaxICMPCode int64 = 255 // 5
 	minProtocol int64 = 0
 	maxProtocol int64 = 2
 	MinPort           = 1
