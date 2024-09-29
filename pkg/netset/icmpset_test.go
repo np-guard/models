@@ -10,9 +10,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
-	"github.com/stretchr/testify/require"
 )
 
 func TestBasicICMPSet(t *testing.T) {

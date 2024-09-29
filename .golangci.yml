@@ -76,14 +76,14 @@ linters:
     - bidichk
     - bodyclose
     - contextcheck
-    # - copyloopvar # currently disabled, relevant for go 1.22
+    - copyloopvar
     - dogsled
     - dupl
     - durationcheck
     - errcheck
     - errname
     - errorlint
-    - exportloopref  # since 1.22: copyloopvar
+    #- exportloopref  # since 1.22: copyloopvar
     - funlen
     - ginkgolinter
     - gochecknoinits

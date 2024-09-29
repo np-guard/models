@@ -6,7 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 
 package ds
 
-// RightTripleSet is a right-associative 3-product of sets S1 x (S2 x S3), created as LeftTripleSet[S2, S3, S1] (Product[Product[S2, S3], S1])
+// RightTripleSet is a right-associative 3-product of sets S1 x (S2 x S3),
+// created as LeftTripleSet[S2, S3, S1] (Product[Product[S2, S3], S1])
 type RightTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]] struct {
 	m *LeftTripleSet[S2, S3, S1]
 }

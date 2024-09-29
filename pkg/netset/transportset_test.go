@@ -10,9 +10,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
-	"github.com/stretchr/testify/require"
 )
 
 const ICMPValue = netp.DestinationUnreachable
@@ -82,7 +83,12 @@ func TestBasicSet2TransportSet(t *testing.T) {
 	except2 := netset.NewTCPorUDPTransport(netp.ProtocolStringTCP, 1, 65535, 1, 65535)
 
 	d := netset.AllTransportSet().Subtract(except1).Subtract(except2)
-	fmt.Println(d) // ICMP icmp-type: 0 icmp-code: 0;icmp-type: 11;icmp-type: 12 icmp-code: 0;icmp-type: 13 icmp-code: 0;icmp-type: 14 icmp-code: 0;icmp-type: 15 icmp-code: 0;icmp-type: 16 icmp-code: 0;icmp-type: 3 icmp-code: 0;icmp-type: 3 icmp-code: 1;icmp-type: 3 icmp-code: 2;icmp-type: 3 icmp-code: 3;icmp-type: 3 icmp-code: 4;icmp-type: 4 icmp-code: 0;icmp-type: 5;icmp-type: 8 icmp-code: 0;UDP
+	fmt.Println(d)
+	// ICMP icmp-type: 0 icmp-code: 0;icmp-type: 11;icmp-type: 12 icmp-code: 0;icmp-type: 13 icmp-code: 0;
+	// icmp-type: 14 icmp-code: 0;icmp-type: 15 icmp-code: 0;icmp-type: 16 icmp-code: 0;icmp-type: 3 icmp-code: 0;
+	// icmp-type: 3 icmp-code: 1;icmp-type: 3 icmp-code: 2;icmp-type: 3 icmp-code: 3;icmp-type: 3 icmp-code: 4;
+	// icmp-type: 4 icmp-code: 0;icmp-type: 5;icmp-type: 8 icmp-code: 0;UDP
+
 	require.Equal(t, 15, len(d.ICMPSet().Partitions()))
 	require.Equal(t, 1, len(d.TCPUDPSet().Partitions()))
 

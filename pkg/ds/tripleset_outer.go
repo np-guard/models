@@ -6,7 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 
 package ds
 
-// OuterTripleSet is an outer-associative 3-product of sets (S1 x S3) x S2,  created as LeftTripleSet[S1, S3, S2] (Product[Product[S1, S3], S2])
+// OuterTripleSet is an outer-associative 3-product of sets (S1 x S3) x S2,
+// created as LeftTripleSet[S1, S3, S2] (Product[Product[S1, S3], S2])
 type OuterTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]] struct {
 	m *LeftTripleSet[S1, S3, S2]
 }

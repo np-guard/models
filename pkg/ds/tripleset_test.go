@@ -69,7 +69,8 @@ func TestCubioidLeftRightOuter(t *testing.T) {
 	d1e2 := union(d1, e2)
 	fmt.Println(d1e2) // {(20-80 x 101 x 1-100) | (1-100 x 3-100 x 2-100)}
 	require.Equal(t, 2, len(d1e2.Partitions()))
-	// note in the previous version this would be split to 3 cubes: [(1-19,81-100),(3-100),(2-100)]; [(20-80),(101),(1-100)]; [(20-80),(3-100),(2-100)]
+	// note in the previous version this would be split to 3 cubes:
+	//  [(1-19,81-100),(3-100),(2-100)]; [(20-80),(101),(1-100)]; [(20-80),(3-100),(2-100)]
 	// in this version there is an overlap in the first dimension of the two cubes
 	// that is because in the internal representation the tripleset is a map from product-set to set
 

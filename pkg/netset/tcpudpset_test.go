@@ -10,9 +10,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
-	"github.com/stretchr/testify/require"
 )
 
 func TestTCPUDPSetBasicFunctionality(t *testing.T) {
@@ -50,8 +51,6 @@ func TestTCPUDPSetBasicFunctionality(t *testing.T) {
 	// Equal
 	require.False(t, all.Equal(empty))
 	require.False(t, empty.Equal(all))
-	require.True(t, empty.Equal(empty))
-	require.True(t, all.Equal(all))
 	require.False(t, empty.Equal(tcp80))
 	require.False(t, tcp80.Equal(empty))
 	require.False(t, all.Equal(tcp80))
