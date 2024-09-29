@@ -91,18 +91,44 @@ func TestCubioidLeftRightOuter(t *testing.T) {
 	fmt.Println(d1e4) // (1-19,81-100 x 3-100 x 2-100) | (20-80 x 3-19,81-100 x 2-100) | (20-80 x 20-80 x 2-101)}
 	require.Equal(t, 3, len(d1e4.Partitions()))
 
-	// TODO: for the below conversions- are these the expected output?
+	// right vs left example
+	// same cubes, different partitions sets for right and left
+	r1 := cubioidRight(3, 100, 2, 100, 1, 100)
+	r2 := cubioidRight(101, 101, 20, 80, 1, 100)
+	r3 := r1.Union(r2)
+	fmt.Println(r3) // {(3-100 x 2-19,81-100 x 1-100) | (3-101 x 20-80 x 1-100)}
 
-	// convert d1e2 to RightTripleSet
-	d1Right := cubioidRight(1, 100, 3, 100, 2, 100)
-	e2Right := cubioidRight(20, 80, 101, 101, 1, 100)
-	d1e2Right := union(d1Right, e2Right)
-	fmt.Println(d1e2Right) // {(20-80 x 101 x 1-100) | (1-100 x 3-100 x 2-100)}
+	l1 := cubioidLeft(3, 100, 2, 100, 1, 100)
+	l2 := cubioidLeft(101, 101, 20, 80, 1, 100)
+	l3 := l1.Union(l2)
+	fmt.Println(l3) // {(101 x 20-80 x 1-100) | (3-100 x 2-100 x 1-100)}
 
-	// convert d1e3 to RightTripleSet
-	e3Right := cubioidRight(1, 100, 3, 100, 101, 101)
-	d1e3Right := union(d1Right, e3Right)
-	fmt.Println(d1e3Right) // {(1-100 x 3-100 x 2-101)}
+	require.NotEqual(t, l3.String(), r3.String())
+	require.True(t, l3.Equal(r3))
+	require.True(t, r3.Equal(l3))
+
+	// outer vs left, right example ("right" should be keeping orig cubes in this case)
+	o1 := cubioidOuter(2, 100, 3, 100, 1, 100)
+	o2 := cubioidOuter(20, 80, 101, 101, 1, 100)
+	o3 := o1.Union(o2)
+	fmt.Println(o3) // {(2-19,81-100 x 3-100 x 1-100) | (20-80 x 3-101 x 1-100)}
+
+	l1 = cubioidLeft(2, 100, 3, 100, 1, 100)
+	l2 = cubioidLeft(20, 80, 101, 101, 1, 100)
+	l3 = l1.Union(l2)
+	fmt.Println(l3) // {(2-19,81-100 x 3-100 x 1-100) | (20-80 x 3-101 x 1-100)}
+
+	r1 = cubioidRight(2, 100, 3, 100, 1, 100)
+	r2 = cubioidRight(20, 80, 101, 101, 1, 100)
+	r3 = r1.Union(r2)
+	fmt.Println(r3) // {(2-100 x 3-100 x 1-100) | (20-80 x 101 x 1-100)}
+
+	require.NotEqual(t, o3.String(), r3.String())
+	require.NotEqual(t, r3.String(), l3.String())
+	require.Equal(t, o3.String(), l3.String())
+	require.True(t, o3.Equal(r3))
+	require.True(t, o3.Equal(l3))
+	require.True(t, r3.Equal(l3))
 }
 
 func TestCanonicalRepCubioids(t *testing.T) {
