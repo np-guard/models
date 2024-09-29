@@ -43,10 +43,10 @@ func NewICMPTransportFromTypeCode(icmpType, icmpCode int64) (*TransportSet, erro
 	return NewICMPTransport(icmp), nil
 }
 
-func AllOrNothingTransport(allTcpubp, allIcmp bool) *TransportSet {
+func AllOrNothingTransport(allTcpudp, allIcmp bool) *TransportSet {
 	var tcpudp *TCPUDPSet
 	var icmp *ICMPSet
-	if allTcpubp {
+	if allTcpudp {
 		tcpudp = AllTCPUDPSet()
 	} else {
 		tcpudp = EmptyTCPorUDPSet()

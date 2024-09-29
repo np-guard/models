@@ -41,9 +41,9 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 
 	// basic subtract & Equal test
 	conn4 := netset.ConnectionSetFrom(cidr1, cidr1MinusCidr2, connection.All())
-	subttractionRes := conn3.Subtract(conn4) // removes all connections over (src1, dst2) from conn3
-	require.True(t, subttractionRes.Equal(conn1))
-	require.True(t, conn1.Equal(subttractionRes))
+	subtractionRes := conn3.Subtract(conn4) // removes all connections over (src1, dst2) from conn3
+	require.True(t, subtractionRes.Equal(conn1))
+	require.True(t, conn1.Equal(subtractionRes))
 
 	// basic IsSubset test
 	require.True(t, conn1.IsSubset(conn3))
@@ -55,7 +55,7 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 	require.False(t, conn1.IsEmpty())
 	require.True(t, netset.NewConnectionSet().IsEmpty())
 
-	// demonstrate split in allwoed connections for dest dimension, to be reflected in partitions
+	// demonstrate split in allowed connections for dest dimension, to be reflected in partitions
 	conn5 := netset.ConnectionSetFrom(cidr1, subsetOfCidr1MinusCidr2, connection.AllICMP())
 	conn5UnionConn2 := conn5.Union(conn2) // for certain dest- icmp+tcp, and for remaining dest- only tcp [common src for both]
 	require.Equal(t, 2, len(conn5UnionConn2.Partitions()))

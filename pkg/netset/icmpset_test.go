@@ -18,7 +18,7 @@ import (
 
 func TestBasicICMPSet(t *testing.T) {
 	// create ICMPSet objects
-	i1 := int(8)
+	i1 := 8
 	all := netset.AllICMPSet()
 	obj1, err := netp.ICMPFromTypeAndCode(&i1, nil)
 	require.Nil(t, err)

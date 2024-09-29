@@ -14,7 +14,7 @@ Types defined in this package:
 
 IPBlock - captures a set of IP ranges
 
-TCPUDPSet - captures sets of protocols (within TCP,UDP only) and ports (source and destinaion)
+TCPUDPSet - captures sets of protocols (within TCP,UDP only) and ports (source and destination)
 
 ICMPSet - captures sets of types,codes for ICMP protocol
 

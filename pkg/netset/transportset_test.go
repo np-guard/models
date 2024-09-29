@@ -25,15 +25,15 @@ func TestAllConnectionsTransportSet(t *testing.T) {
 	// IsAll
 	require.True(t, c.IsAll())
 
-	// Paritions
+	// Partitions
 	icmpPartitions := c.ICMPSet().Partitions()
-	tcpudpParitions := c.TCPUDPSet().Partitions()
-	require.Equal(t, 1, len(tcpudpParitions))
+	tcpudpPartitions := c.TCPUDPSet().Partitions()
+	require.Equal(t, 1, len(tcpudpPartitions))
 	require.Equal(t, 1, len(icmpPartitions))
 	// all tcp-udp
-	require.True(t, tcpudpParitions[0].S1.Equal(netset.AllTCPUDPProtocolSet()))
-	require.True(t, tcpudpParitions[0].S2.Equal(netset.AllPorts()))
-	require.True(t, tcpudpParitions[0].S3.Equal(netset.AllPorts()))
+	require.True(t, tcpudpPartitions[0].S1.Equal(netset.AllTCPUDPProtocolSet()))
+	require.True(t, tcpudpPartitions[0].S2.Equal(netset.AllPorts()))
+	require.True(t, tcpudpPartitions[0].S3.Equal(netset.AllPorts()))
 	// all icmp
 	require.Nil(t, icmpPartitions[0].TypeCode)
 }
@@ -44,8 +44,8 @@ func TestNoConnectionsTransportSet(t *testing.T) {
 
 	require.True(t, c.IsEmpty())
 	icmpPartitions := c.ICMPSet().Partitions()
-	tcpudpParitions := c.TCPUDPSet().Partitions()
-	require.Equal(t, 0, len(tcpudpParitions))
+	tcpudpPartitions := c.TCPUDPSet().Partitions()
+	require.Equal(t, 0, len(tcpudpPartitions))
 	require.Equal(t, 0, len(icmpPartitions))
 }
 

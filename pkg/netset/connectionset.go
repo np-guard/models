@@ -37,7 +37,7 @@ func (c *ConnectionSet) Copy() *ConnectionSet {
 	}
 }
 
-// Intersect returns a ConnectionSet object with connection tuples that result from intersecion of
+// Intersect returns a ConnectionSet object with connection tuples that result from intersection of
 // this and `other` sets
 func (c *ConnectionSet) Intersect(other *ConnectionSet) *ConnectionSet {
 	return &ConnectionSet{props: c.props.Intersect(other.props)}

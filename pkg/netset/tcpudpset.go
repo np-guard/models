@@ -17,7 +17,7 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 )
 
-// thid file defines type TCPUDPSet as TripleSet[*ProtocolSet, *PortSet, *PortSet]
+// this file defines type TCPUDPSet as TripleSet[*ProtocolSet, *PortSet, *PortSet]
 
 // encoding TCP/UDP protocols as integers for TCPUDPSet
 const (
@@ -39,7 +39,7 @@ func AllTCPUDPProtocolSet() *ProtocolSet {
 	return interval.New(TCPCode, UDPCode).ToSet()
 }
 
-// TCPUDPSet captures sets of protocols (within TCP,UDP only) and ports (source and destinaion)
+// TCPUDPSet captures sets of protocols (within TCP,UDP only) and ports (source and destination)
 type TCPUDPSet struct {
 	// S1: protocols, S2: src ports, S3: dst ports
 	props ds.TripleSet[*ProtocolSet, *PortSet, *PortSet]
