@@ -23,6 +23,7 @@ func cubioidLeft(s1, e1, s2, e2, s3, e3 int64) ds.TripleSet[*interval.CanonicalS
 	return ds.CartesianLeftTriple(interval.New(s1, e1).ToSet(), interval.New(s2, e2).ToSet(), interval.New(s3, e3).ToSet())
 }
 
+//nolint:unparam //  `e3` always receives `100` on current test examples
 func cubioidRight(s1, e1, s2, e2, s3, e3 int64) ds.TripleSet[*interval.CanonicalSet, *interval.CanonicalSet, *interval.CanonicalSet] {
 	return ds.CartesianRightTriple(interval.New(s1, e1).ToSet(), interval.New(s2, e2).ToSet(), interval.New(s3, e3).ToSet())
 }
