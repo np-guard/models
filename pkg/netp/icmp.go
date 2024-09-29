@@ -12,6 +12,14 @@ import (
 	"slices"
 )
 
+// general non-strict ICMP type, code ranges
+const (
+	MinICMPType int64 = 0
+	MaxICMPType int64 = 254
+	MinICMPCode int64 = 0
+	MaxICMPCode int64 = 255
+)
+
 type ICMPTypeCode struct {
 	// ICMP type allowed.
 	Type int
