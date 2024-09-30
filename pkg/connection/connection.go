@@ -54,6 +54,10 @@ func ICMPConnection(icmpType, icmpCode int64) (*Set, error) {
 	return netset.NewICMPTransport(icmpType, icmpType, icmpCode, icmpCode), nil
 }
 
+func ICMPConnectionTypeCodeRanges(minIcmpType, maxICMPType, minCode, maxCode int64) (*Set, error) {
+	return netset.NewICMPTransport(minIcmpType, maxICMPType, minCode, maxCode), nil
+}
+
 // All returns a set of all protocols (TCP,UPD,ICMP) in the set (with all possible properties values)
 func All() *Set {
 	return netset.AllTransportSet()

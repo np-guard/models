@@ -102,7 +102,7 @@ func (c *ICMPSet) IsAll() bool {
 	return c.Equal(allICMP)
 }
 
-func gettICMPCubeStrNew(cube ds.Pair[*TypeSet, *CodeSet]) string {
+func gettICMPCubeStr(cube ds.Pair[*TypeSet, *CodeSet]) string {
 	if cube.Right.Equal(AllICMPCodes()) {
 		return fmt.Sprintf("ICMP type: %s", cube.Left.String())
 	}
@@ -116,7 +116,7 @@ func (c *ICMPSet) String() string {
 	cubes := c.Partitions()
 	var resStrings = make([]string, len(cubes))
 	for i, cube := range cubes {
-		resStrings[i] = gettICMPCubeStrNew(cube)
+		resStrings[i] = gettICMPCubeStr(cube)
 	}
 	sort.Strings(resStrings)
 	return strings.Join(resStrings, " | ")
