@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package connection_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -30,6 +31,18 @@ func TestBasicSetICMP(t *testing.T) {
 	c := connection.ICMPConnection(ICMPValue, ICMPValue, 5, 5)
 	require.Equal(t, "protocol: ICMP icmp-type: 3 icmp-code: 5", c.String())
 	require.Equal(t, "ICMP type: 3 code: 5", c.ShortString())
+}
+
+func TestICMPUnion(t *testing.T) {
+	c1 := connection.ICMPConnection(135, 136, connection.MinICMPCode, connection.MaxICMPCode)
+	c2 := connection.ICMPConnection(connection.MinICMPType, connection.MaxICMPType, connection.MinICMPCode, connection.MaxICMPCode)
+	union := c1.Union(c2)
+	fmt.Println(c1.String())
+	fmt.Println(c2.String())
+	fmt.Println(union.String())
+	require.Equal(t, "protocol: ICMP icmp-type: 135-136", c1.String())
+	require.Equal(t, "protocol: ICMP", c2.String())
+	require.Equal(t, "protocol: ICMP", union.String())
 }
 
 func TestBasicSetTCP(t *testing.T) {
@@ -58,14 +71,15 @@ func TestBasicSet2(t *testing.T) {
 	except2 := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 1, 65535, 1, 65535)
 
 	d := connection.All().Subtract(except1).Subtract(except2)
+	fmt.Println(d.String())
+	fmt.Println(d.ShortString())
 	require.Equal(t, ""+
-		"protocol: ICMP icmp-type: 0-2,4-16; "+
-		"protocol: ICMP icmp-type: 3 icmp-code: 0-4; "+
-		"protocol: UDP", d.String())
+		"protocol: ICMP icmp-type: 0-2,4-254; "+
+		"protocol: ICMP icmp-type: 3 icmp-code: 0-4,6-255; protocol: UDP",
+		d.String())
 	require.Equal(t, ""+
-		"ICMP type: 0-2,4-16; "+
-		"ICMP type: 3 code: 0-4; "+
-		"UDP", d.ShortString())
+		"ICMP type: 0-2,4-254; ICMP type: 3 code: 0-4,6-255; UDP",
+		d.ShortString())
 }
 
 func TestBasicSet3(t *testing.T) {
