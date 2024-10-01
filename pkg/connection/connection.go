@@ -50,12 +50,14 @@ func NewUDPSet() *Set {
 }
 
 // ICMPConnection returns a set of connections containing the ICMP protocol with specified type,code values
-func ICMPConnection(icmpType, icmpCode int64) (*Set, error) {
-	return netset.NewICMPTransport(icmpType, icmpType, icmpCode, icmpCode), nil
+func ICMPConnection(icmpType, icmpCode int64) *Set {
+	return netset.NewICMPTransport(icmpType, icmpType, icmpCode, icmpCode)
 }
 
-func ICMPConnectionTypeCodeRanges(minIcmpType, maxICMPType, minCode, maxCode int64) (*Set, error) {
-	return netset.NewICMPTransport(minIcmpType, maxICMPType, minCode, maxCode), nil
+// ICMPConnectionTypeCodeRanges returns a set of connections containing the ICMP
+// protocol with specified type,code ranges values
+func ICMPConnectionTypeCodeRanges(minIcmpType, maxICMPType, minCode, maxCode int64) *Set {
+	return netset.NewICMPTransport(minIcmpType, maxICMPType, minCode, maxCode)
 }
 
 // All returns a set of all protocols (TCP,UPD,ICMP) in the set (with all possible properties values)
