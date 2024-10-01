@@ -9,6 +9,7 @@ package netp
 import (
 	"fmt"
 	"log"
+	"slices"
 )
 
 type ICMPTypeCode struct {
@@ -20,7 +21,7 @@ type ICMPTypeCode struct {
 }
 
 type ICMP struct {
-	typeCode *ICMPTypeCode
+	TypeCode *ICMPTypeCode
 }
 
 func NewICMP(typeCode *ICMPTypeCode) (ICMP, error) {
@@ -28,28 +29,61 @@ func NewICMP(typeCode *ICMPTypeCode) (ICMP, error) {
 	if err != nil {
 		return ICMP{}, err
 	}
-	return ICMP{typeCode: typeCode}, nil
+	if typeCode == nil {
+		return ICMP{TypeCode: nil}, nil
+	}
+	res := &ICMPTypeCode{Type: typeCode.Type}
+	if HasSingleCode(typeCode.Type) {
+		res.Code = nil
+	} else {
+		res.Code = typeCode.Code
+	}
+	return ICMP{TypeCode: res}, nil
+}
+
+func ICMPFromTypeAndCode(icmpType, icmpCode *int) (ICMP, error) {
+	if icmpType == nil && icmpCode != nil {
+		return ICMP{}, fmt.Errorf("cannot specify ICMP code without ICMP type")
+	}
+	if icmpType != nil {
+		return NewICMP(&ICMPTypeCode{Type: *icmpType, Code: icmpCode})
+	}
+	return NewICMP(nil)
+}
+
+func int64ToInt(i *int64) *int {
+	if i == nil {
+		return nil
+	}
+	res := int(*i)
+	return &res
+}
+
+func ICMPFromTypeAndCode64(icmpType, icmpCode *int64) (ICMP, error) {
+	return ICMPFromTypeAndCode(int64ToInt(icmpType), int64ToInt(icmpCode))
 }
 
 func (t ICMP) ICMPTypeCode() *ICMPTypeCode {
-	if t.typeCode == nil {
+	if t.TypeCode == nil {
 		return nil
 	}
-	if t.typeCode.Code == nil {
-		return t.typeCode
+	if t.TypeCode.Code == nil {
+		return t.TypeCode
 	}
 	// avoid aliasing and mutation by someone else
-	code := *t.typeCode.Code
-	return &ICMPTypeCode{Type: t.typeCode.Type, Code: &code}
+	code := *t.TypeCode.Code
+	return &ICMPTypeCode{Type: t.TypeCode.Type, Code: &code}
 }
 
+// InverseDirection returns the ICMP message that is the reply to this ICMP message.
 func (t ICMP) InverseDirection() Protocol {
-	if t.typeCode == nil {
-		return nil
+	if t.TypeCode == nil {
+		return ICMP{TypeCode: nil}
 	}
 
-	if invType := inverseICMPType(t.typeCode.Type); invType != undefinedICMP {
-		return ICMP{typeCode: &ICMPTypeCode{Type: invType, Code: t.typeCode.Code}}
+	if invType := inverseICMPType(t.TypeCode.Type); invType != undefinedICMP {
+		// TODO: is this well defined?
+		return ICMP{TypeCode: &ICMPTypeCode{Type: invType, Code: t.TypeCode.Code}}
 	}
 	return nil
 }
@@ -99,6 +133,8 @@ func inverseICMPType(t int) int {
 	return undefinedICMP
 }
 
+// maxCodes is a map from ICMP type to the maximum code allowed for that type.
+// All the values between 0 and the maximum code are allowed.
 var maxCodes = map[int]int{
 	EchoReply:              0,
 	DestinationUnreachable: 5,
@@ -113,6 +149,28 @@ var maxCodes = map[int]int{
 	InformationReply:       0,
 }
 
+func MaxCode(t int) int {
+	return maxCodes[t]
+}
+
+var types = []int{
+	EchoReply,
+	DestinationUnreachable,
+	SourceQuench,
+	Redirect,
+	Echo,
+	TimeExceeded,
+	ParameterProblem,
+	Timestamp,
+	TimestampReply,
+	InformationRequest,
+	InformationReply,
+}
+
+func Types() []int {
+	return slices.Clone(types)
+}
+
 func ValidateICMP(typeCode *ICMPTypeCode) error {
 	if typeCode == nil {
 		return nil
@@ -121,10 +179,14 @@ func ValidateICMP(typeCode *ICMPTypeCode) error {
 	if !ok {
 		return fmt.Errorf("invalid ICMP type %v", typeCode.Type)
 	}
-	if *typeCode.Code > maxCode {
+	if typeCode.Code != nil && *typeCode.Code > maxCode {
 		return fmt.Errorf("ICMP code %v is invalid for ICMP type %v", *typeCode.Code, typeCode.Type)
 	}
 	return nil
+}
+
+func HasSingleCode(t int) bool {
+	return maxCodes[t] == 0
 }
 
 func (t ICMP) ProtocolString() ProtocolString {
