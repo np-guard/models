@@ -28,20 +28,20 @@ func NewTCPorUDPTransport(protocol netp.ProtocolString, srcMinP, srcMaxP, dstMin
 	)}
 }
 
-func NewICMPTransport(tc netp.ICMP) *TransportSet {
+func NewICMPTransport(minType, maxType, minCode, maxCode int64) *TransportSet {
 	return &TransportSet{ds.NewDisjoint(
 		EmptyTCPorUDPSet(),
-		NewICMPSet(tc),
+		NewICMPSet(minType, maxType, minCode, maxCode),
 	)}
 }
 
-func NewICMPTransportFromTypeCode(icmpType, icmpCode int64) (*TransportSet, error) {
+/*func NewICMPTransportFromTypeCode(icmpType, icmpCode int64) (*TransportSet, error) {
 	icmp, err := netp.ICMPFromTypeAndCode64(&icmpType, &icmpCode)
 	if err != nil {
 		return nil, err
 	}
 	return NewICMPTransport(icmp), nil
-}
+}*/
 
 func AllOrNothingTransport(allTcpudp, allIcmp bool) *TransportSet {
 	var tcpudp *TCPUDPSet

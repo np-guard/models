@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package connection
 
 import (
+	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
@@ -52,6 +53,40 @@ func getCubeAsTCPItems(srcPorts, dstPorts *netset.PortSet, p int64) []spec.TcpUd
 
 type Details spec.ProtocolList
 
+func getCubeAsICMPItems(typesSet, codesSet *interval.CanonicalSet) []spec.Icmp {
+	allTypes := typesSet.Equal(netset.AllICMPTypes())
+	allCodes := codesSet.Equal(netset.AllICMPCodes())
+	switch {
+	case allTypes && allCodes:
+		return []spec.Icmp{{Protocol: spec.IcmpProtocolICMP}}
+	case allTypes:
+		res := []spec.Icmp{}
+		for _, code64 := range codesSet.Elements() {
+			code := int(code64)
+			res = append(res, spec.Icmp{Protocol: spec.IcmpProtocolICMP, Code: &code})
+		}
+		return res
+	case allCodes:
+		res := []spec.Icmp{}
+		for _, type64 := range typesSet.Elements() {
+			t := int(type64)
+			res = append(res, spec.Icmp{Protocol: spec.IcmpProtocolICMP, Type: &t})
+		}
+		return res
+	default:
+		res := []spec.Icmp{}
+		// iterate both codes and types
+		for _, type64 := range typesSet.Elements() {
+			t := int(type64)
+			for _, code64 := range codesSet.Elements() {
+				code := int(code64)
+				res = append(res, spec.Icmp{Protocol: spec.IcmpProtocolICMP, Type: &t, Code: &code})
+			}
+		}
+		return res
+	}
+}
+
 // ToJSON returns a `Details` object for JSON representation of the input connection Set.
 func ToJSON(c *Set) Details {
 	if c == nil {
@@ -72,19 +107,10 @@ func ToJSON(c *Set) Details {
 		}
 	}
 	for _, item := range c.ICMPSet().Partitions() {
-		if item.TypeCode != nil {
-			t := item.TypeCode.Type
-			res = append(res, spec.Icmp{
-				Protocol: spec.IcmpProtocolICMP,
-				Type:     &t,
-				Code:     item.TypeCode.Code,
-			})
-		} else {
-			res = append(res, spec.Icmp{
-				Protocol: spec.IcmpProtocolICMP,
-			})
+		icmpItems := getCubeAsICMPItems(item.Left, item.Right)
+		for _, item := range icmpItems {
+			res = append(res, item)
 		}
 	}
-
 	return Details(res)
 }
