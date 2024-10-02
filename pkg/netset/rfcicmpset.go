@@ -223,7 +223,7 @@ func NewICMPSetStrict(t netp.ICMP) *RFCICMPSet {
 	return &res
 }
 
-func getICMPCubeStr(cube netp.ICMP) string {
+func getRFCICMPCubeStr(cube netp.ICMP) string {
 	tc := cube.ICMPTypeCode()
 	if tc == nil {
 		return ""
@@ -244,7 +244,7 @@ func (s *RFCICMPSet) String() string {
 	cubes := s.Partitions()
 	var resStrings = make([]string, len(cubes))
 	for i, cube := range cubes {
-		resStrings[i] = getICMPCubeStr(cube)
+		resStrings[i] = getRFCICMPCubeStr(cube)
 	}
 	sort.Strings(resStrings)
 	str := string(netp.ProtocolStringICMP)

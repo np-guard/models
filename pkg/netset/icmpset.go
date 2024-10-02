@@ -65,7 +65,7 @@ func (c *ICMPSet) IsSubset(other *ICMPSet) bool {
 	return c.props.IsSubset(other.props)
 }
 
-// pathLeft creates a new TCPUDPSet, implemented using LeftTriple.
+// icmpPropsPathLeft creates a new ICMPSet, implemented using CartesianPairLeft.
 func icmpPropsPathLeft(typesSet *TypeSet, codeSet *CodeSet) *ICMPSet {
 	return &ICMPSet{props: ds.CartesianPairLeft(typesSet, codeSet)}
 }
@@ -102,7 +102,7 @@ func (c *ICMPSet) IsAll() bool {
 	return c.Equal(allICMP)
 }
 
-func gettICMPCubeStr(cube ds.Pair[*TypeSet, *CodeSet]) string {
+func getICMPCubeStr(cube ds.Pair[*TypeSet, *CodeSet]) string {
 	if cube.Right.Equal(AllICMPCodes()) {
 		return fmt.Sprintf("ICMP type: %s", cube.Left.String())
 	}
@@ -116,7 +116,7 @@ func (c *ICMPSet) String() string {
 	cubes := c.Partitions()
 	var resStrings = make([]string, len(cubes))
 	for i, cube := range cubes {
-		resStrings[i] = gettICMPCubeStr(cube)
+		resStrings[i] = getICMPCubeStr(cube)
 	}
 	sort.Strings(resStrings)
 	return strings.Join(resStrings, " | ")
