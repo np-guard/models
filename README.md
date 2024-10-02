@@ -17,7 +17,7 @@ A collection of Golang packages with models for cartesian products and network r
     * `HashSet` - A generic `Set` for storing any Hashable.
     * `MultiMap` - A map for mapping any Hashable key to a set of Hashable values.
     * `ProductLeft` - A `Product` of two sets, implemented using a map where each key-values pair represents the cartesian product of the two sets.
-    * `LeftTripleSet`, RightTripleSet, OuterTripleSet - `TripleSet` implementations.
+    * `LeftTripleSet`, `RightTripleSet`, `OuterTripleSet` - `TripleSet` implementations.
     * `DisjointSum` - A sum type for two tagged sets.
 * **interval** - Interval-related data structures.
     * `Interval` - A simple interval data structure.
@@ -31,11 +31,13 @@ A collection of Golang packages with models for cartesian products and network r
   * `PortSet` - A set of ports. Implemented using an IntervalSet.
   * `ProtocolSet` - Whether the protocol is TCP or UDP. Implemented using IntervalSet.
   * `TCPUDPSet` - `TripleSet[*ProtocolSet, *PortSet, *PortSet]`.
-  * `ICMPSet` - accurately tracking set of ICMP types and code pairs. Implemented using a bitset.
-  * `TransportSet` - either ICMP or TCPUDP set. Implemented as `Disjoint[*TCPUDPSet, *ICMPSet]`.
+  * `RFCICMPSet` - accurately tracking set of ICMP types and code pairs. Implemented using a bitset.
+  * `TypeSet` - ICMP types set. Implemented using an IntervalSet.
+  * `CodeSet` ICMP codes set. Implemented using an IntervalSet.
+  * `ICMPSet` - ICMP types and code pairs, implemented as `Product[*TypeSet, *CodeSet]`.
+  * `TransportSet` - either ICMPSet or TCPUDP set. Implemented as `Disjoint[*TCPUDPSet, *ICMPSet]`.
   * `IPBlock` - A set of IP addresses. Implemented using IntervalSet.
-  * `ConnectionSet` - `TripleSet[*IPBlock, *IPBlock, *TransportSet]`.
-* **connection** - `Set` as Alias for `TransportSet`.
+  * `EndpointsTrafficSet` - `TripleSet[*IPBlock, *IPBlock, *TransportSet]`.
 * **spec** - A collection of structs for defining required connectivity. Automatically generated from a JSON schema (see below).
 
 ## Code generation
