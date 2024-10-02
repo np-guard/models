@@ -52,12 +52,12 @@ func AllICMPTransport() *TransportSet {
 	return AllOrNothingTransport(false, true)
 }
 
-// NewTCPSet returns a set of connections containing the TCP protocol with all its possible ports
+// AllTCPSetTransport returns a set of connections containing the TCP protocol with all its possible ports
 func AllTCPSetTransport() *TransportSet {
 	return AllTCPorUDPTransport(netp.ProtocolStringTCP)
 }
 
-// NewUDPSet returns a set of connections containing the UDP protocol with all its possible ports
+// AllUDPSetTransport returns a set of connections containing the UDP protocol with all its possible ports
 func AllUDPSetTransport() *TransportSet {
 	return AllTCPorUDPTransport(netp.ProtocolStringUDP)
 }
