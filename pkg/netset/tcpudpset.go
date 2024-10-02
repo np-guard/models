@@ -93,8 +93,8 @@ func (c *TCPUDPSet) IsSubset(other *TCPUDPSet) bool {
 	return c.props.IsSubset(other.props)
 }
 
-// pathLeft creates a new TCPUDPSet, implemented using LeftTriple.
-func pathLeft(protocol *ProtocolSet, srcPort, dstPort *PortSet) *TCPUDPSet {
+// tcpudpPathLeft creates a new TCPUDPSet, implemented using LeftTriple.
+func tcpudpPathLeft(protocol *ProtocolSet, srcPort, dstPort *PortSet) *TCPUDPSet {
 	return &TCPUDPSet{props: ds.CartesianLeftTriple(protocol, srcPort, dstPort)}
 }
 
@@ -103,7 +103,7 @@ func EmptyTCPorUDPSet() *TCPUDPSet {
 }
 
 func AllTCPUDPSet() *TCPUDPSet {
-	return pathLeft(
+	return tcpudpPathLeft(
 		AllTCPUDPProtocolSet(),
 		AllPorts(),
 		AllPorts(),
@@ -111,7 +111,7 @@ func AllTCPUDPSet() *TCPUDPSet {
 }
 
 func NewAllTCPOnlySet() *TCPUDPSet {
-	return pathLeft(
+	return tcpudpPathLeft(
 		interval.New(TCPCode, TCPCode).ToSet(),
 		AllPorts(),
 		AllPorts(),
@@ -119,7 +119,7 @@ func NewAllTCPOnlySet() *TCPUDPSet {
 }
 
 func NewAllUDPOnlySet() *TCPUDPSet {
-	return pathLeft(
+	return tcpudpPathLeft(
 		interval.New(UDPCode, UDPCode).ToSet(),
 		AllPorts(),
 		AllPorts(),
@@ -128,7 +128,7 @@ func NewAllUDPOnlySet() *TCPUDPSet {
 
 func NewTCPorUDPSet(protocolString netp.ProtocolString, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *TCPUDPSet {
 	protocol := protocolStringToCode(protocolString)
-	return pathLeft(
+	return tcpudpPathLeft(
 		interval.New(protocol, protocol).ToSet(),
 		interval.New(srcMinP, srcMaxP).ToSet(),
 		interval.New(dstMinP, dstMaxP).ToSet(),
