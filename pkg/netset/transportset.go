@@ -14,8 +14,6 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 )
 
-// type connection.Set is an alias for netset.TransportSet
-
 // TransportSet captures connection-sets for protocols from {TCP, UDP, ICMP}
 type TransportSet struct {
 	set *ds.Disjoint[*TCPUDPSet, *ICMPSet]
@@ -52,13 +50,13 @@ func AllICMPTransport() *TransportSet {
 	return AllOrNothingTransport(false, true)
 }
 
-// AllTCPSetTransport returns a set of connections containing the TCP protocol with all its possible ports
-func AllTCPSetTransport() *TransportSet {
+// AllTCPTransport returns a set of connections containing the TCP protocol with all its possible ports
+func AllTCPTransport() *TransportSet {
 	return AllTCPorUDPTransport(netp.ProtocolStringTCP)
 }
 
-// AllUDPSetTransport returns a set of connections containing the UDP protocol with all its possible ports
-func AllUDPSetTransport() *TransportSet {
+// AllUDPTransport returns a set of connections containing the UDP protocol with all its possible ports
+func AllUDPTransport() *TransportSet {
 	return AllTCPorUDPTransport(netp.ProtocolStringUDP)
 }
 
@@ -78,11 +76,11 @@ func AllOrNothingTransport(allTcpudp, allIcmp bool) *TransportSet {
 	return &TransportSet{ds.NewDisjoint(tcpudp, icmp)}
 }
 
-func AllTransportSet() *TransportSet {
+func AllTransports() *TransportSet {
 	return AllOrNothingTransport(true, true)
 }
 
-func EmptyTransportSet() *TransportSet {
+func NoTransports() *TransportSet {
 	return AllOrNothingTransport(false, false)
 }
 
@@ -115,7 +113,7 @@ func (t *TransportSet) IsEmpty() bool {
 }
 
 func (t *TransportSet) IsAll() bool {
-	return t.Equal(AllTransportSet())
+	return t.Equal(AllTransports())
 }
 
 func (t *TransportSet) Size() int {

@@ -29,9 +29,9 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 	rightHalfCidr1, _ := netset.IPBlockFromCidr("10.240.10.128/25")
 
 	// relevant connection set objects
-	conn1 := netset.EndpointsTrafficSetFrom(cidr1, cidr2, netset.AllTCPSetTransport())           // conns from cidr1 to cidr2 over all TCP
-	conn2 := netset.EndpointsTrafficSetFrom(cidr1, cidr1MinusCidr2, netset.AllTCPSetTransport()) // conns from cidr1 to cidr1MinusCidr2 over all TCP
-	conn3 := netset.EndpointsTrafficSetFrom(cidr1, cidr1, netset.AllTCPSetTransport())           // conns from cidr1 to cidr1 over all TCP
+	conn1 := netset.NewEndpointsTrafficSet(cidr1, cidr2, netset.AllTCPTransport())           // conns from cidr1 to cidr2 over all TCP
+	conn2 := netset.NewEndpointsTrafficSet(cidr1, cidr1MinusCidr2, netset.AllTCPTransport()) // conns from cidr1 to cidr1MinusCidr2 over all TCP
+	conn3 := netset.NewEndpointsTrafficSet(cidr1, cidr1, netset.AllTCPTransport())           // conns from cidr1 to cidr1 over all TCP
 
 	// basic union & Equal test
 	unionConn := conn1.Union(conn2)
@@ -39,7 +39,7 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 	require.True(t, conn3.Equal(unionConn))
 
 	// basic subtract & Equal test
-	conn4 := netset.EndpointsTrafficSetFrom(cidr1, cidr1MinusCidr2, netset.AllTransportSet())
+	conn4 := netset.NewEndpointsTrafficSet(cidr1, cidr1MinusCidr2, netset.AllTransports())
 	subtractionRes := conn3.Subtract(conn4) // removes all connections over (src1, dst2) from conn3
 	require.True(t, subtractionRes.Equal(conn1))
 	require.True(t, conn1.Equal(subtractionRes))
@@ -52,38 +52,38 @@ func TestConnectionSetBasicOperations(t *testing.T) {
 
 	// basic IsEmpty test
 	require.False(t, conn1.IsEmpty())
-	require.True(t, netset.NewEndpointsTrafficSet().IsEmpty())
+	require.True(t, netset.EmptyEndpointsTrafficSet().IsEmpty())
 
 	// demonstrate split in allowed connections for dest dimension, to be reflected in partitions
-	conn5 := netset.EndpointsTrafficSetFrom(cidr1, subsetOfCidr1MinusCidr2, netset.AllICMPTransport())
+	conn5 := netset.NewEndpointsTrafficSet(cidr1, subsetOfCidr1MinusCidr2, netset.AllICMPTransport())
 	conn5UnionConn2 := conn5.Union(conn2) // for certain dest- icmp+tcp, and for remaining dest- only tcp [common src for both]
 	require.Equal(t, 2, len(conn5UnionConn2.Partitions()))
 
 	// other operations on other objects, to get equiv object of conn5UnionConn2:
-	tcpAndICMP := netset.AllTCPSetTransport().Union(netset.AllICMPTransport())
-	conn6 := netset.EndpointsTrafficSetFrom(cidr1, cidr1MinusCidr2, tcpAndICMP)
+	tcpAndICMP := netset.AllTCPTransport().Union(netset.AllICMPTransport())
+	conn6 := netset.NewEndpointsTrafficSet(cidr1, cidr1MinusCidr2, tcpAndICMP)
 	deltaCidrs := cidr1MinusCidr2.Subtract(subsetOfCidr1MinusCidr2)
-	conn7 := netset.EndpointsTrafficSetFrom(cidr1, deltaCidrs, netset.AllICMPTransport())
+	conn7 := netset.NewEndpointsTrafficSet(cidr1, deltaCidrs, netset.AllICMPTransport())
 	conn8 := conn6.Subtract(conn7)
 	require.True(t, conn8.Equal(conn5UnionConn2))
 
 	// add udp to tcpAndICMP => check it is All()
-	conn9 := netset.EndpointsTrafficSetFrom(cidr1, cidr1MinusCidr2, netset.AllUDPSetTransport())
-	conn10 := netset.EndpointsTrafficSetFrom(cidr1, cidr1MinusCidr2, netset.AllTransportSet())
+	conn9 := netset.NewEndpointsTrafficSet(cidr1, cidr1MinusCidr2, netset.AllUDPTransport())
+	conn10 := netset.NewEndpointsTrafficSet(cidr1, cidr1MinusCidr2, netset.AllTransports())
 	conn9UnionConn6 := conn9.Union(conn6)
 	require.True(t, conn10.Equal(conn9UnionConn6))
 
 	// demonstrate split in allowed connections for src dimensions, to be reflected in partitions
 	// starting from conn8
 	udp53 := netset.NewUDPTransport(netp.MinPort, netp.MaxPort, 53, 53)
-	conn11 := netset.EndpointsTrafficSetFrom(leftHalfCidr1, subsetOfCidr1MinusCidr2, udp53)
+	conn11 := netset.NewEndpointsTrafficSet(leftHalfCidr1, subsetOfCidr1MinusCidr2, udp53)
 	conn12 := conn11.Union(conn8)
 
 	// another way to produce obj equiv to conn12 :
-	conn13 := netset.EndpointsTrafficSetFrom(leftHalfCidr1, subsetOfCidr1MinusCidr2, tcpAndICMP.Union(udp53))
-	conn14 := netset.EndpointsTrafficSetFrom(leftHalfCidr1, cidr1MinusCidr2, netset.AllTCPSetTransport())
-	conn15 := netset.EndpointsTrafficSetFrom(rightHalfCidr1, subsetOfCidr1MinusCidr2, tcpAndICMP)
-	conn16 := netset.EndpointsTrafficSetFrom(rightHalfCidr1, cidr1MinusCidr2, netset.AllTCPSetTransport())
+	conn13 := netset.NewEndpointsTrafficSet(leftHalfCidr1, subsetOfCidr1MinusCidr2, tcpAndICMP.Union(udp53))
+	conn14 := netset.NewEndpointsTrafficSet(leftHalfCidr1, cidr1MinusCidr2, netset.AllTCPTransport())
+	conn15 := netset.NewEndpointsTrafficSet(rightHalfCidr1, subsetOfCidr1MinusCidr2, tcpAndICMP)
+	conn16 := netset.NewEndpointsTrafficSet(rightHalfCidr1, cidr1MinusCidr2, netset.AllTCPTransport())
 	conn17 := (conn13.Union(conn14)).Union(conn15.Union(conn16))
 	require.True(t, conn12.Equal(conn17))
 

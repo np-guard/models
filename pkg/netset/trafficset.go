@@ -20,8 +20,8 @@ type EndpointsTrafficSet struct {
 	props ds.TripleSet[*IPBlock, *IPBlock, *TransportSet]
 }
 
-// NewEndpointsTrafficSet returns an empty EndpointsTrafficSet
-func NewEndpointsTrafficSet() *EndpointsTrafficSet {
+// EmptyEndpointsTrafficSet returns an empty EndpointsTrafficSet
+func EmptyEndpointsTrafficSet() *EndpointsTrafficSet {
 	return &EndpointsTrafficSet{props: ds.NewLeftTripleSet[*IPBlock, *IPBlock, *TransportSet]()}
 }
 
@@ -76,9 +76,9 @@ func (c *EndpointsTrafficSet) IsSubset(other *EndpointsTrafficSet) bool {
 	return c.props.IsSubset(other.props)
 }
 
-// EndpointsTrafficSetFrom returns a new EndpointsTrafficSet object from input src, dst IP-ranges sets ands
+// NewEndpointsTrafficSet returns a new EndpointsTrafficSet object from input src, dst IP-ranges sets ands
 // TransportSet connections
-func EndpointsTrafficSetFrom(src, dst *IPBlock, conn *TransportSet) *EndpointsTrafficSet {
+func NewEndpointsTrafficSet(src, dst *IPBlock, conn *TransportSet) *EndpointsTrafficSet {
 	return &EndpointsTrafficSet{props: ds.CartesianLeftTriple(src, dst, conn)}
 }
 

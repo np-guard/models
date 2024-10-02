@@ -19,7 +19,7 @@ import (
 const ICMPValue = netp.DestinationUnreachable
 
 func TestAllConnectionsTransportSet(t *testing.T) {
-	c := netset.AllTransportSet()
+	c := netset.AllTransports()
 	// String
 	require.Equal(t, netset.AllConnections, c.String())
 	// IsAll
@@ -69,7 +69,7 @@ func TestBasicSetTCPTransportSet(t *testing.T) {
 	fmt.Println(e)
 	require.Equal(t, "TCP", e.String())
 
-	c := netset.AllTransportSet().Subtract(e)
+	c := netset.AllTransports().Subtract(e)
 	fmt.Println(c)
 	require.Equal(t, "ICMP,UDP", c.String())
 
@@ -81,7 +81,7 @@ func TestBasicSet2TransportSet(t *testing.T) {
 	except1 := netset.NewICMPTransport(ICMPValue, ICMPValue, 5, 5)
 	except2 := netset.NewTCPorUDPTransport(netp.ProtocolStringTCP, 1, 65535, 1, 65535)
 
-	d := netset.AllTransportSet().Subtract(except1).Subtract(except2)
+	d := netset.AllTransports().Subtract(except1).Subtract(except2)
 	fmt.Println(d) // ICMP type: 0-2,4-254 | ICMP type: 3 code: 0-4,6-255;UDP
 
 	require.Equal(t, 2, len(d.ICMPSet().Partitions()))
@@ -102,6 +102,6 @@ func TestBasicSet2TransportSet(t *testing.T) {
 
 func TestBasicSet3TransportSet(t *testing.T) {
 	c := netset.NewICMPTransport(ICMPValue, ICMPValue, 5, 5)
-	d := netset.AllTransportSet().Subtract(c).Union(netset.NewICMPTransport(ICMPValue, ICMPValue, 5, 5))
+	d := netset.AllTransports().Subtract(c).Union(netset.NewICMPTransport(ICMPValue, ICMPValue, 5, 5))
 	require.Equal(t, netset.AllConnections, d.String())
 }
