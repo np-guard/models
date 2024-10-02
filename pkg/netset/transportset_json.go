@@ -4,24 +4,23 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package connection
+package netset
 
 import (
 	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netp"
-	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
 )
 
-func getCubeAsTCPItems(srcPorts, dstPorts *netset.PortSet, p int64) []spec.TcpUdp {
+func getCubeAsTCPItems(srcPorts, dstPorts *PortSet, p int64) []spec.TcpUdp {
 	protocol := spec.TcpUdpProtocol(netp.ProtocolStringTCP)
-	if p == netset.UDPCode {
+	if p == UDPCode {
 		protocol = spec.TcpUdpProtocol(netp.ProtocolStringUDP)
 	}
 	var tcpItemsTemp []spec.TcpUdp
 	var tcpItemsFinal []spec.TcpUdp
 	// consider src ports
-	if !srcPorts.Equal(netset.AllPorts()) {
+	if !srcPorts.Equal(AllPorts()) {
 		// iterate the interval in the interval-set
 		for _, span := range srcPorts.Intervals() {
 			tcpRes := spec.TcpUdp{Protocol: protocol, MinSourcePort: int(span.Start()), MaxSourcePort: int(span.End())}
@@ -31,7 +30,7 @@ func getCubeAsTCPItems(srcPorts, dstPorts *netset.PortSet, p int64) []spec.TcpUd
 		tcpItemsTemp = append(tcpItemsTemp, spec.TcpUdp{Protocol: protocol})
 	}
 	// consider dst ports
-	if !dstPorts.Equal(netset.AllPorts()) {
+	if !dstPorts.Equal(AllPorts()) {
 		// iterate the interval in the interval-set
 		for _, span := range dstPorts.Intervals() {
 			for _, tcpItemTemp := range tcpItemsTemp {
@@ -54,8 +53,8 @@ func getCubeAsTCPItems(srcPorts, dstPorts *netset.PortSet, p int64) []spec.TcpUd
 type Details spec.ProtocolList
 
 func getCubeAsICMPItems(typesSet, codesSet *interval.CanonicalSet) []spec.Icmp {
-	allTypes := typesSet.Equal(netset.AllICMPTypes())
-	allCodes := codesSet.Equal(netset.AllICMPCodes())
+	allTypes := typesSet.Equal(AllICMPTypes())
+	allCodes := codesSet.Equal(AllICMPCodes())
 	switch {
 	case allTypes && allCodes:
 		return []spec.Icmp{{Protocol: spec.IcmpProtocolICMP}}
@@ -88,7 +87,7 @@ func getCubeAsICMPItems(typesSet, codesSet *interval.CanonicalSet) []spec.Icmp {
 }
 
 // ToJSON returns a `Details` object for JSON representation of the input connection Set.
-func ToJSON(c *Set) Details {
+func ToJSON(c *TransportSet) Details {
 	if c == nil {
 		return Details{}
 	}

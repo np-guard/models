@@ -28,11 +28,38 @@ func NewTCPorUDPTransport(protocol netp.ProtocolString, srcMinP, srcMaxP, dstMin
 	)}
 }
 
+// NewTCP returns a set of TCP connections containing the specified ports
+func NewTCPTransport(srcMinP, srcMaxP, dstMinP, dstMaxP int64) *TransportSet {
+	return NewTCPorUDPTransport(netp.ProtocolStringTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+}
+
+func NewUDPTransport(srcMinP, srcMaxP, dstMinP, dstMaxP int64) *TransportSet {
+	return NewTCPorUDPTransport(netp.ProtocolStringUDP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+}
+
 func NewICMPTransport(minType, maxType, minCode, maxCode int64) *TransportSet {
 	return &TransportSet{ds.NewDisjoint(
 		EmptyTCPorUDPSet(),
 		NewICMPSet(minType, maxType, minCode, maxCode),
 	)}
+}
+
+func AllTCPorUDPTransport(protocol netp.ProtocolString) *TransportSet {
+	return NewTCPorUDPTransport(protocol, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort)
+}
+
+func AllICMPTransport() *TransportSet {
+	return AllOrNothingTransport(false, true)
+}
+
+// NewTCPSet returns a set of connections containing the TCP protocol with all its possible ports
+func AllTCPSetTransport() *TransportSet {
+	return AllTCPorUDPTransport(netp.ProtocolStringTCP)
+}
+
+// NewUDPSet returns a set of connections containing the UDP protocol with all its possible ports
+func AllUDPSetTransport() *TransportSet {
+	return AllTCPorUDPTransport(netp.ProtocolStringUDP)
 }
 
 func AllOrNothingTransport(allTcpudp, allIcmp bool) *TransportSet {
@@ -53,6 +80,10 @@ func AllOrNothingTransport(allTcpudp, allIcmp bool) *TransportSet {
 
 func AllTransportSet() *TransportSet {
 	return AllOrNothingTransport(true, true)
+}
+
+func EmptyTransportSet() *TransportSet {
+	return AllOrNothingTransport(false, false)
 }
 
 func (t *TransportSet) SwapPorts() *TransportSet {
