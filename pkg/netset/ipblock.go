@@ -23,6 +23,9 @@ const (
 	// CidrAll represents the CIDR for all addresses "0.0.0.0/0"
 	CidrAll = "0.0.0.0/0"
 
+	FirstIPAddressString = "0.0.0.0"
+	LastIPAddressString  = "255.255.255.255"
+
 	// internal const  below
 	ipBase         = 10
 	ipMask         = 0xffffffff
@@ -261,6 +264,16 @@ func IPBlockFromCidrOrAddress(s string) (*IPBlock, error) {
 	return IPBlockFromIPAddress(s)
 }
 
+// IPBlockFromRange returns a new IPBlock object that contains startIP-endIP
+func IPBlockFromRange(startIP, endIP *IPBlock) (*IPBlock, error) {
+	s := startIP.ToIPAddressString() + "-" + endIP.ToIPAddressString()
+	ipblock, err := IPBlockFromIPRangeStr(s)
+	if err != nil {
+		return nil, err
+	}
+	return ipblock, nil
+}
+
 // IPBlockFromCidrList returns IPBlock object from multiple CIDRs given as list of strings
 func IPBlockFromCidrList(cidrsList []string) (*IPBlock, error) {
 	res := NewIPBlock()
@@ -355,8 +368,8 @@ func (b *IPBlock) FirstIPAddress() string {
 	return int64ToIP4(b.ipRange.Min())
 }
 
-// FirstIPAdddresObject returns the first IP Address for this IPBlock
-func (b *IPBlock) FirstIPAdddresObject() *IPBlock {
+// FirstIPAddresObject returns the first IP Address for this IPBlock
+func (b *IPBlock) FirstIPAddresObject() *IPBlock {
 	res, _ := IPBlockFromIPAddress(b.FirstIPAddress())
 	return res
 }
@@ -366,10 +379,31 @@ func (b *IPBlock) LastIPAddress() string {
 	return int64ToIP4(b.ipRange.Max())
 }
 
-// LastIPAdddresObject returns the last IP Address for this IPBlock
-func (b *IPBlock) LastIPAdddresObject() *IPBlock {
+// LastIPAddresObject returns the last IP Address for this IPBlock
+func (b *IPBlock) LastIPAddresObject() *IPBlock {
 	res, _ := IPBlockFromIPAddress(b.LastIPAddress())
 	return res
+}
+
+// NextIP returns the next ip address after this IPBlock
+func (b *IPBlock) NextIP() (*IPBlock, error) {
+	if GetLastIPAdress().IsSubset(b) {
+		return nil, fmt.Errorf("%s is contained in ipblock", LastIPAddressString)
+	}
+	other := GetCidrAll().Subtract(b)
+	otherIPRanges := other.Split()
+	lastRange := otherIPRanges[len(otherIPRanges)-1]
+	return lastRange.FirstIPAddresObject(), nil
+}
+
+// PreviousIP returns the previous ip address before this IPBlock
+func (b *IPBlock) PreviousIP() (*IPBlock, error) {
+	if GetFirstIPAdress().IsSubset(b) {
+		return nil, fmt.Errorf("%s is contained in IPBlock", FirstIPAddressString)
+	}
+	other := GetCidrAll().Subtract(b)
+	otherFirstRange := other.Split()[0]
+	return otherFirstRange.LastIPAddresObject(), nil
 }
 
 func intervalToCidrList(ipRange interval.Interval) []string {
@@ -427,6 +461,18 @@ func IPBlockFromIPRangeStr(ipRangeStr string) (*IPBlock, error) {
 // GetCidrAll returns IPBlock object of the entire range 0.0.0.0/0
 func GetCidrAll() *IPBlock {
 	res, _ := IPBlockFromCidr(CidrAll)
+	return res
+}
+
+// GetFirstIPAdress returns IPBlock object of 0.0.0.0
+func GetFirstIPAdress() *IPBlock {
+	res, _ := IPBlockFromIPAddress(FirstIPAddressString)
+	return res
+}
+
+// GetLastIPAdress returns IPBlock object of 255.255.255.255
+func GetLastIPAdress() *IPBlock {
+	res, _ := IPBlockFromIPAddress(LastIPAddressString)
 	return res
 }
 
