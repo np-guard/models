@@ -495,3 +495,11 @@ func (b *IPBlock) String() string {
 	}
 	return b.ToCidrListString()
 }
+
+// TouchingIPRanges returns true if this and other ipblocks objects are touching
+func (b *IPBlock) TouchingIPRanges(other *IPBlock) bool {
+	u := b.Copy().Union(b)
+	IPRanges := u.ToIPRanges()
+	ranges := strings.Split(IPRanges, commaSeparator)
+	return (len(ranges) == 1 && !b.Overlap(other))
+}
