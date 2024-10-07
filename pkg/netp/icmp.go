@@ -14,10 +14,10 @@ import (
 
 // general non-strict ICMP type, code ranges
 const (
-	MinICMPType int64 = 0
-	MaxICMPType int64 = 254
-	MinICMPCode int64 = 0
-	MaxICMPCode int64 = 255
+	MinICMPType int = 0
+	MaxICMPType int = 254
+	MinICMPCode int = 0
+	MaxICMPCode int = 255
 )
 
 type ICMPTypeCode struct {
@@ -49,14 +49,35 @@ func NewICMP(typeCode *ICMPTypeCode) (ICMP, error) {
 	return ICMP{TypeCode: res}, nil
 }
 
+func NewICMPWithoutRFCValidation(typeCode *ICMPTypeCode) (ICMP, error) {
+	if typeCode == nil {
+		return ICMP{TypeCode: nil}, nil
+	}
+	if typeCode.Type < MinICMPType || typeCode.Type > MaxICMPType {
+		return ICMP{}, fmt.Errorf("icmp type must be in the range [%d-%d]; got %d", MinICMPType, MaxICMPType, typeCode.Type)
+	}
+	if typeCode.Code != nil && (*typeCode.Code < MinICMPCode || *typeCode.Code > MaxICMPCode) {
+		return ICMP{}, fmt.Errorf("icmp code must be in the range [%d-%d]; got %d", MinICMPCode, MaxICMPCode, typeCode.Code)
+	}
+	return ICMP{TypeCode: &ICMPTypeCode{Type: typeCode.Type, Code: typeCode.Code}}, nil
+}
+
 func ICMPFromTypeAndCode(icmpType, icmpCode *int) (ICMP, error) {
+	return newICMPFromTypeAndCode(icmpType, icmpCode, NewICMP)
+}
+
+func ICMPFromTypeAndCodeWithoutRFCValidation(icmpType, icmpCode *int) (ICMP, error) {
+	return newICMPFromTypeAndCode(icmpType, icmpCode, NewICMPWithoutRFCValidation)
+}
+
+func newICMPFromTypeAndCode(icmpType, icmpCode *int, newIcmp func(*ICMPTypeCode) (ICMP, error)) (ICMP, error) {
 	if icmpType == nil && icmpCode != nil {
 		return ICMP{}, fmt.Errorf("cannot specify ICMP code without ICMP type")
 	}
 	if icmpType != nil {
-		return NewICMP(&ICMPTypeCode{Type: *icmpType, Code: icmpCode})
+		return newIcmp(&ICMPTypeCode{Type: *icmpType, Code: icmpCode})
 	}
-	return NewICMP(nil)
+	return newIcmp(nil)
 }
 
 func int64ToInt(i *int64) *int {
@@ -69,6 +90,10 @@ func int64ToInt(i *int64) *int {
 
 func ICMPFromTypeAndCode64(icmpType, icmpCode *int64) (ICMP, error) {
 	return ICMPFromTypeAndCode(int64ToInt(icmpType), int64ToInt(icmpCode))
+}
+
+func ICMPFromTypeAndCode64WithoutValidation(icmpType, icmpCode *int64) (ICMP, error) {
+	return ICMPFromTypeAndCodeWithoutRFCValidation(int64ToInt(icmpType), int64ToInt(icmpCode))
 }
 
 func (t ICMP) ICMPTypeCode() *ICMPTypeCode {
