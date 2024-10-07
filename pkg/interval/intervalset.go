@@ -43,6 +43,13 @@ func (c *CanonicalSet) Min() int64 {
 	return c.intervalSet[0].Start()
 }
 
+func (c *CanonicalSet) Max() int64 {
+	if len(c.intervalSet) == 0 {
+		log.Panic("cannot take max from empty interval set")
+	}
+	return c.intervalSet[c.NumIntervals()-1].End()
+}
+
 // IsEmpty returns true if the CanonicalSet is empty
 func (c *CanonicalSet) IsEmpty() bool {
 	return len(c.intervalSet) == 0

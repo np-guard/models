@@ -144,7 +144,12 @@ func (b *IPBlock) ipCount() int {
 	return int(b.ipRange.CalculateSize())
 }
 
-// Split returns a set of IpBlock objects, each with a single range of ips
+// IsASingleIPAddress returns true if this ipblock is a single IP address
+func (b *IPBlock) IsASingleIPAddress() bool {
+	return b.ipRange.IsSingleNumber()
+}
+
+// Split returns a set of IPBlock objects, each with a single range of ips
 func (b *IPBlock) Split() []*IPBlock {
 	intervals := b.ipRange.Intervals()
 	res := make([]*IPBlock, len(intervals))
@@ -154,6 +159,18 @@ func (b *IPBlock) Split() []*IPBlock {
 		}
 	}
 	return res
+}
+
+// SplitToCidrs returns a set of Cidrs
+func (b *IPBlock) SplitToCidrs() []*IPBlock {
+	cidrs := make([]*IPBlock, 0)
+	for _, ipRange := range b.ipRange.Intervals() {
+		for _, cidrString := range intervalToCidrList(ipRange) {
+			ipblock, _ := IPBlockFromCidrOrAddress(cidrString)
+			cidrs = append(cidrs, ipblock)
+		}
+	}
+	return cidrs
 }
 
 // int64ToIP4 returns a string of an ip address from an input integer ip value
@@ -336,6 +353,23 @@ func (b *IPBlock) ToIPAddressString() string {
 // FirstIPAddress returns the first IP Address string for this IPBlock
 func (b *IPBlock) FirstIPAddress() string {
 	return int64ToIP4(b.ipRange.Min())
+}
+
+// FirstIPAdddresObject returns the first IP Address for this IPBlock
+func (b *IPBlock) FirstIPAdddresObject() *IPBlock {
+	res, _ := IPBlockFromIPAddress(b.FirstIPAddress())
+	return res
+}
+
+// LastIPAddress returns the last IP Address string for this IPBlock
+func (b *IPBlock) LastIPAddress() string {
+	return int64ToIP4(b.ipRange.Max())
+}
+
+// LastIPAdddresObject returns the last IP Address for this IPBlock
+func (b *IPBlock) LastIPAdddresObject() *IPBlock {
+	res, _ := IPBlockFromIPAddress(b.LastIPAddress())
+	return res
 }
 
 func intervalToCidrList(ipRange interval.Interval) []string {
