@@ -23,6 +23,9 @@ const (
 	// CidrAll represents the CIDR for all addresses "0.0.0.0/0"
 	CidrAll = "0.0.0.0/0"
 
+	FirstIPAddressString = "0.0.0.0"
+	LastIPAddressString  = "255.255.255.255"
+
 	// internal const  below
 	ipBase         = 10
 	ipMask         = 0xffffffff
@@ -144,7 +147,12 @@ func (b *IPBlock) ipCount() int {
 	return int(b.ipRange.CalculateSize())
 }
 
-// Split returns a set of IpBlock objects, each with a single range of ips
+// IsSingleIPAddress returns true if this ipblock is a single IP address
+func (b *IPBlock) IsSingleIPAddress() bool {
+	return b.ipRange.IsSingleNumber()
+}
+
+// Split returns a set of IPBlock objects, each with a single range of ips
 func (b *IPBlock) Split() []*IPBlock {
 	intervals := b.ipRange.Intervals()
 	res := make([]*IPBlock, len(intervals))
@@ -154,6 +162,18 @@ func (b *IPBlock) Split() []*IPBlock {
 		}
 	}
 	return res
+}
+
+// SplitToCidrs returns a slice of IPBlocks, each representing a single CIDR
+func (b *IPBlock) SplitToCidrs() []*IPBlock {
+	cidrs := make([]*IPBlock, 0)
+	for _, ipRange := range b.ipRange.Intervals() {
+		for _, cidrString := range intervalToCidrList(ipRange) {
+			ipblock, _ := IPBlockFromCidr(cidrString)
+			cidrs = append(cidrs, ipblock)
+		}
+	}
+	return cidrs
 }
 
 // int64ToIP4 returns a string of an ip address from an input integer ip value
@@ -242,6 +262,16 @@ func IPBlockFromCidrOrAddress(s string) (*IPBlock, error) {
 		return IPBlockFromCidr(s)
 	}
 	return IPBlockFromIPAddress(s)
+}
+
+// IPBlockFromIPRange returns a new IPBlock object that contains startIP-endIP
+func IPBlockFromIPRange(startIP, endIP *IPBlock) (*IPBlock, error) {
+	if !startIP.IsSingleIPAddress() || !endIP.IsSingleIPAddress() {
+		return nil, fmt.Errorf("both startIP and endIP should be a single IP address")
+	}
+	return &IPBlock{
+		ipRange: interval.New(startIP.ipRange.Min(), endIP.ipRange.Min()).ToSet(),
+	}, nil
 }
 
 // IPBlockFromCidrList returns IPBlock object from multiple CIDRs given as list of strings
@@ -338,6 +368,51 @@ func (b *IPBlock) FirstIPAddress() string {
 	return int64ToIP4(b.ipRange.Min())
 }
 
+// FirstIPAddressObject returns the first IP Address for this IPBlock
+func (b *IPBlock) FirstIPAddressObject() *IPBlock {
+	ipNum := b.ipRange.Min()
+	return &IPBlock{
+		ipRange: interval.New(ipNum, ipNum).ToSet(),
+	}
+}
+
+// LastIPAddress returns the last IP Address string for this IPBlock
+func (b *IPBlock) LastIPAddress() string {
+	return int64ToIP4(b.ipRange.Max())
+}
+
+// LastIPAddressObject returns the last IP Address for this IPBlock
+func (b *IPBlock) LastIPAddressObject() *IPBlock {
+	ipNum := b.ipRange.Max()
+	return &IPBlock{
+		ipRange: interval.New(ipNum, ipNum).ToSet(),
+	}
+}
+
+// NextIP returns the next ip address after this IPBlock
+func (b *IPBlock) NextIP() (*IPBlock, error) {
+	if GetLastIPAddress().IsSubset(b) {
+		return nil, fmt.Errorf("%s is contained in ipblock", LastIPAddressString)
+	}
+	lastIP := b.LastIPAddressObject()
+	ipNum := lastIP.ipRange.Min() + 1
+	return &IPBlock{
+		ipRange: interval.New(ipNum, ipNum).ToSet(),
+	}, nil
+}
+
+// PreviousIP returns the previous ip address before this IPBlock
+func (b *IPBlock) PreviousIP() (*IPBlock, error) {
+	if GetFirstIPAddress().IsSubset(b) {
+		return nil, fmt.Errorf("%s is contained in IPBlock", FirstIPAddressString)
+	}
+	firstIP := b.FirstIPAddressObject()
+	ipNum := firstIP.ipRange.Min() - 1
+	return &IPBlock{
+		ipRange: interval.New(ipNum, ipNum).ToSet(),
+	}, nil
+}
+
 func intervalToCidrList(ipRange interval.Interval) []string {
 	start := ipRange.Start()
 	end := ipRange.End()
@@ -396,6 +471,18 @@ func GetCidrAll() *IPBlock {
 	return res
 }
 
+// GetFirstIPAddress returns IPBlock object of 0.0.0.0
+func GetFirstIPAddress() *IPBlock {
+	res, _ := IPBlockFromIPAddress(FirstIPAddressString)
+	return res
+}
+
+// GetLastIPAddress returns IPBlock object of 255.255.255.255
+func GetLastIPAddress() *IPBlock {
+	res, _ := IPBlockFromIPAddress(LastIPAddressString)
+	return res
+}
+
 // PrefixLength returns the cidr's prefix length, assuming the ipBlock is exactly one cidr.
 // Prefix length specifies the number of bits in the IP address that are to be used as the subnet mask.
 func (b *IPBlock) PrefixLength() (int64, error) {
@@ -414,4 +501,13 @@ func (b *IPBlock) String() string {
 		return b.FirstIPAddress()
 	}
 	return b.ToCidrListString()
+}
+
+// TouchingIPRanges returns true if this and other ipblocks objects are touching.
+// assumption: both IPBlocks represent a single IP range
+func (b *IPBlock) TouchingIPRanges(other *IPBlock) (bool, error) {
+	if b.ipRange.NumIntervals() != 1 || other.ipRange.NumIntervals() != 1 {
+		return false, fmt.Errorf("both ipblocks should be a single IP range")
+	}
+	return (!b.Overlap(other) && b.Union(other).ipRange.NumIntervals() == 1), nil
 }

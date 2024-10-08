@@ -41,6 +41,44 @@ func TestOps(t *testing.T) {
 
 	intersect2 := minus.Intersect(intersect)
 	require.True(t, intersect2.IsEmpty())
+
+	ipb3, err := ipb2.NextIP()
+	ipb4, _ := netset.IPBlockFromCidrOrAddress("1.2.3.5")
+	require.Nil(t, err)
+	require.Equal(t, ipb3, ipb4)
+
+	ipb5, err := ipb3.PreviousIP()
+	require.Nil(t, err)
+	require.Equal(t, ipb2, ipb5)
+
+	ipb6, err := ipb1.NextIP() // ipb6 = 1.2.4.0
+	ipb7, _ := netset.IPBlockFromCidrOrAddress("1.2.4.0")
+	require.Nil(t, err)
+	require.Equal(t, ipb6, ipb7)
+
+	require.False(t, ipb1.IsSingleIPAddress())
+	require.True(t, ipb2.IsSingleIPAddress())
+
+	ipb8, err := ipb7.PreviousIP() // ipb8 = 1.2.3.255
+	require.Nil(t, err)
+	require.Equal(t, ipb8, ipb1.LastIPAddressObject())
+
+	ipb9, err := netset.IPBlockFromIPRange(ipb4, ipb6)
+	require.Nil(t, err)
+	// ipb9 = 1.2.3.5-1.2.4.0. Equal to the union of:
+	// 1.2.3.5/32, 1.2.3.6/31, 1.2.3.8/29, 1.2.3.16/28,
+	// 1.2.3.32/27, 1.2.3.64/26, 1.2.3.128/25, 1.2.4.0/32
+	require.Len(t, ipb9.SplitToCidrs(), 8)
+
+	t1, err := ipb9.TouchingIPRanges(ipb2)
+	require.Nil(t, err)
+	require.True(t, t1)
+
+	t2, err := ipb9.TouchingIPRanges(ipb7)
+	require.Nil(t, err)
+	require.False(t, t2)
+
+	require.Equal(t, ipb7, ipb7.FirstIPAddressObject())
 }
 
 func TestConversions(t *testing.T) {
