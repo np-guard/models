@@ -92,7 +92,7 @@ func ICMPFromTypeAndCode64(icmpType, icmpCode *int64) (ICMP, error) {
 	return ICMPFromTypeAndCode(int64ToInt(icmpType), int64ToInt(icmpCode))
 }
 
-func ICMPFromTypeAndCode64WithoutValidation(icmpType, icmpCode *int64) (ICMP, error) {
+func ICMPFromTypeAndCode64WithoutRFCValidation(icmpType, icmpCode *int64) (ICMP, error) {
 	return ICMPFromTypeAndCodeWithoutRFCValidation(int64ToInt(icmpType), int64ToInt(icmpCode))
 }
 
