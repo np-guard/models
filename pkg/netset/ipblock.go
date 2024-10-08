@@ -148,7 +148,7 @@ func (b *IPBlock) ipCount() int {
 }
 
 // IsASingleIPAddress returns true if this ipblock is a single IP address
-func (b *IPBlock) IsASingleIPAddress() bool {
+func (b *IPBlock) IsSingleIPAddress() bool {
 	return b.ipRange.IsSingleNumber()
 }
 
@@ -164,12 +164,12 @@ func (b *IPBlock) Split() []*IPBlock {
 	return res
 }
 
-// SplitToCidrs returns a set of Cidrs
+// SplitToCidrs returns a slice of IPBlocks, each representing a single CIDR
 func (b *IPBlock) SplitToCidrs() []*IPBlock {
 	cidrs := make([]*IPBlock, 0)
 	for _, ipRange := range b.ipRange.Intervals() {
 		for _, cidrString := range intervalToCidrList(ipRange) {
-			ipblock, _ := IPBlockFromCidrOrAddress(cidrString)
+			ipblock, _ := IPBlockFromCidr(cidrString)
 			cidrs = append(cidrs, ipblock)
 		}
 	}
@@ -369,7 +369,7 @@ func (b *IPBlock) FirstIPAddress() string {
 }
 
 // FirstIPAddresObject returns the first IP Address for this IPBlock
-func (b *IPBlock) FirstIPAddresObject() *IPBlock {
+func (b *IPBlock) FirstIPAddressObject() *IPBlock {
 	res, _ := IPBlockFromIPAddress(b.FirstIPAddress())
 	return res
 }
@@ -380,30 +380,30 @@ func (b *IPBlock) LastIPAddress() string {
 }
 
 // LastIPAddresObject returns the last IP Address for this IPBlock
-func (b *IPBlock) LastIPAddresObject() *IPBlock {
+func (b *IPBlock) LastIPAddressObject() *IPBlock {
 	res, _ := IPBlockFromIPAddress(b.LastIPAddress())
 	return res
 }
 
 // NextIP returns the next ip address after this IPBlock
 func (b *IPBlock) NextIP() (*IPBlock, error) {
-	if GetLastIPAdress().IsSubset(b) {
+	if GetLastIPAddress().IsSubset(b) {
 		return nil, fmt.Errorf("%s is contained in ipblock", LastIPAddressString)
 	}
 	other := GetCidrAll().Subtract(b)
 	otherIPRanges := other.Split()
 	lastRange := otherIPRanges[len(otherIPRanges)-1]
-	return lastRange.FirstIPAddresObject(), nil
+	return lastRange.FirstIPAddressObject(), nil
 }
 
 // PreviousIP returns the previous ip address before this IPBlock
 func (b *IPBlock) PreviousIP() (*IPBlock, error) {
-	if GetFirstIPAdress().IsSubset(b) {
+	if GetFirstIPAddress().IsSubset(b) {
 		return nil, fmt.Errorf("%s is contained in IPBlock", FirstIPAddressString)
 	}
 	other := GetCidrAll().Subtract(b)
 	otherFirstRange := other.Split()[0]
-	return otherFirstRange.LastIPAddresObject(), nil
+	return otherFirstRange.LastIPAddressObject(), nil
 }
 
 func intervalToCidrList(ipRange interval.Interval) []string {
@@ -464,14 +464,14 @@ func GetCidrAll() *IPBlock {
 	return res
 }
 
-// GetFirstIPAdress returns IPBlock object of 0.0.0.0
-func GetFirstIPAdress() *IPBlock {
+// GetFirstIPAddress returns IPBlock object of 0.0.0.0
+func GetFirstIPAddress() *IPBlock {
 	res, _ := IPBlockFromIPAddress(FirstIPAddressString)
 	return res
 }
 
-// GetLastIPAdress returns IPBlock object of 255.255.255.255
-func GetLastIPAdress() *IPBlock {
+// GetLastIPAddress returns IPBlock object of 255.255.255.255
+func GetLastIPAddress() *IPBlock {
 	res, _ := IPBlockFromIPAddress(LastIPAddressString)
 	return res
 }
@@ -496,9 +496,10 @@ func (b *IPBlock) String() string {
 	return b.ToCidrListString()
 }
 
-// TouchingIPRanges returns true if this and other ipblocks objects are touching
+// TouchingIPRanges returns true if this and other ipblocks objects are touching.
+// assumption: both IPBlocks are a single IP range
 func (b *IPBlock) TouchingIPRanges(other *IPBlock) bool {
-	u := b.Copy().Union(b)
+	u := b.Union(other)
 	IPRanges := u.ToIPRanges()
 	ranges := strings.Split(IPRanges, commaSeparator)
 	return (len(ranges) == 1 && !b.Overlap(other))
