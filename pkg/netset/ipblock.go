@@ -264,14 +264,14 @@ func IPBlockFromCidrOrAddress(s string) (*IPBlock, error) {
 	return IPBlockFromIPAddress(s)
 }
 
-// IPBlockFromRange returns a new IPBlock object that contains startIP-endIP
-func IPBlockFromRange(startIP, endIP *IPBlock) (*IPBlock, error) {
-	s := startIP.ToIPAddressString() + "-" + endIP.ToIPAddressString()
-	ipblock, err := IPBlockFromIPRangeStr(s)
-	if err != nil {
-		return nil, err
+// IPBlockFromIPRange returns a new IPBlock object that contains startIP-endIP
+func IPBlockFromIPRange(startIP, endIP *IPBlock) (*IPBlock, error) {
+	if !startIP.IsSingleIPAddress() || !endIP.IsSingleIPAddress() {
+		return nil, fmt.Errorf("both startIP and endIP should be a single IP address")
 	}
-	return ipblock, nil
+	return &IPBlock{
+		ipRange: interval.New(startIP.ipRange.Min(), endIP.ipRange.Min()).ToSet(),
+	}, nil
 }
 
 // IPBlockFromCidrList returns IPBlock object from multiple CIDRs given as list of strings
@@ -390,10 +390,11 @@ func (b *IPBlock) NextIP() (*IPBlock, error) {
 	if GetLastIPAddress().IsSubset(b) {
 		return nil, fmt.Errorf("%s is contained in ipblock", LastIPAddressString)
 	}
-	other := GetCidrAll().Subtract(b)
-	otherIPRanges := other.Split()
-	lastRange := otherIPRanges[len(otherIPRanges)-1]
-	return lastRange.FirstIPAddressObject(), nil
+	lastIP := b.LastIPAddressObject()
+	ipNum := lastIP.ipRange.Min()
+	return &IPBlock{
+		ipRange: interval.New(ipNum+1, ipNum+1).ToSet(),
+	}, nil
 }
 
 // PreviousIP returns the previous ip address before this IPBlock
@@ -401,9 +402,11 @@ func (b *IPBlock) PreviousIP() (*IPBlock, error) {
 	if GetFirstIPAddress().IsSubset(b) {
 		return nil, fmt.Errorf("%s is contained in IPBlock", FirstIPAddressString)
 	}
-	other := GetCidrAll().Subtract(b)
-	otherFirstRange := other.Split()[0]
-	return otherFirstRange.LastIPAddressObject(), nil
+	firstIP := b.FirstIPAddressObject()
+	ipNum := firstIP.ipRange.Min()
+	return &IPBlock{
+		ipRange: interval.New(ipNum-1, ipNum-1).ToSet(),
+	}, nil
 }
 
 func intervalToCidrList(ipRange interval.Interval) []string {
@@ -497,10 +500,10 @@ func (b *IPBlock) String() string {
 }
 
 // TouchingIPRanges returns true if this and other ipblocks objects are touching.
-// assumption: both IPBlocks are a single IP range
+// assumption: both IPBlocks represent a single IP range
 func (b *IPBlock) TouchingIPRanges(other *IPBlock) (bool, error) {
-	if len(b.Split()) != 1 || len(other.Split()) != 1 {
+	if b.ipRange.NumIntervals() != 1 || other.ipRange.NumIntervals() != 1 {
 		return false, fmt.Errorf("both ipblocks should be a single IP range")
 	}
-	return (!b.Overlap(other) && len(b.Union(other).Split()) == 1), nil
+	return (!b.Overlap(other) && b.Union(other).ipRange.NumIntervals() == 1), nil
 }
