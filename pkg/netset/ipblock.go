@@ -370,8 +370,10 @@ func (b *IPBlock) FirstIPAddress() string {
 
 // FirstIPAddressObject returns the first IP Address for this IPBlock
 func (b *IPBlock) FirstIPAddressObject() *IPBlock {
-	res, _ := IPBlockFromIPAddress(b.FirstIPAddress())
-	return res
+	ipNum := b.ipRange.Min()
+	return &IPBlock{
+		ipRange: interval.New(ipNum, ipNum).ToSet(),
+	}
 }
 
 // LastIPAddress returns the last IP Address string for this IPBlock
@@ -381,8 +383,10 @@ func (b *IPBlock) LastIPAddress() string {
 
 // LastIPAddressObject returns the last IP Address for this IPBlock
 func (b *IPBlock) LastIPAddressObject() *IPBlock {
-	res, _ := IPBlockFromIPAddress(b.LastIPAddress())
-	return res
+	ipNum := b.ipRange.Max()
+	return &IPBlock{
+		ipRange: interval.New(ipNum, ipNum).ToSet(),
+	}
 }
 
 // NextIP returns the next ip address after this IPBlock
@@ -391,9 +395,9 @@ func (b *IPBlock) NextIP() (*IPBlock, error) {
 		return nil, fmt.Errorf("%s is contained in ipblock", LastIPAddressString)
 	}
 	lastIP := b.LastIPAddressObject()
-	ipNum := lastIP.ipRange.Min()
+	ipNum := lastIP.ipRange.Min() + 1
 	return &IPBlock{
-		ipRange: interval.New(ipNum+1, ipNum+1).ToSet(),
+		ipRange: interval.New(ipNum, ipNum).ToSet(),
 	}, nil
 }
 
@@ -403,9 +407,9 @@ func (b *IPBlock) PreviousIP() (*IPBlock, error) {
 		return nil, fmt.Errorf("%s is contained in IPBlock", FirstIPAddressString)
 	}
 	firstIP := b.FirstIPAddressObject()
-	ipNum := firstIP.ipRange.Min()
+	ipNum := firstIP.ipRange.Min() - 1
 	return &IPBlock{
-		ipRange: interval.New(ipNum-1, ipNum-1).ToSet(),
+		ipRange: interval.New(ipNum, ipNum).ToSet(),
 	}, nil
 }
 
