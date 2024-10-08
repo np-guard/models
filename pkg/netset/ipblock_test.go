@@ -77,6 +77,8 @@ func TestOps(t *testing.T) {
 	t2, err := ipb9.TouchingIPRanges(ipb7)
 	require.Nil(t, err)
 	require.False(t, t2)
+
+	require.Equal(t, ipb7, ipb7.FirstIPAddressObject())
 }
 
 func TestConversions(t *testing.T) {
