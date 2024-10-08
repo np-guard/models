@@ -498,9 +498,9 @@ func (b *IPBlock) String() string {
 
 // TouchingIPRanges returns true if this and other ipblocks objects are touching.
 // assumption: both IPBlocks are a single IP range
-func (b *IPBlock) TouchingIPRanges(other *IPBlock) bool {
-	u := b.Union(other)
-	IPRanges := u.ToIPRanges()
-	ranges := strings.Split(IPRanges, commaSeparator)
-	return (len(ranges) == 1 && !b.Overlap(other))
+func (b *IPBlock) TouchingIPRanges(other *IPBlock) (bool, error) {
+	if len(b.Split()) != 1 || len(other.Split()) != 1 {
+		return false, fmt.Errorf("both ipblocks should be a single IP range")
+	}
+	return (!b.Overlap(other) && len(b.Union(other).Split()) == 1), nil
 }
