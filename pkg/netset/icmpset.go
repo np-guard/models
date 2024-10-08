@@ -89,11 +89,11 @@ func AllICMPSet() *ICMPSet {
 }
 
 func AllICMPCodes() *CodeSet {
-	return interval.New(netp.MinICMPCode, netp.MaxICMPCode).ToSet()
+	return interval.New(int64(netp.MinICMPCode), int64(netp.MaxICMPCode)).ToSet()
 }
 
 func AllICMPTypes() *TypeSet {
-	return interval.New(netp.MinICMPType, netp.MaxICMPType).ToSet()
+	return interval.New(int64(netp.MinICMPType), int64(netp.MaxICMPType)).ToSet()
 }
 
 var allICMP = AllICMPSet()
