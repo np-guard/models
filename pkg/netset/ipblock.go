@@ -147,7 +147,7 @@ func (b *IPBlock) ipCount() int {
 	return int(b.ipRange.CalculateSize())
 }
 
-// IsASingleIPAddress returns true if this ipblock is a single IP address
+// IsSingleIPAddress returns true if this ipblock is a single IP address
 func (b *IPBlock) IsSingleIPAddress() bool {
 	return b.ipRange.IsSingleNumber()
 }
@@ -368,7 +368,7 @@ func (b *IPBlock) FirstIPAddress() string {
 	return int64ToIP4(b.ipRange.Min())
 }
 
-// FirstIPAddresObject returns the first IP Address for this IPBlock
+// FirstIPAddressObject returns the first IP Address for this IPBlock
 func (b *IPBlock) FirstIPAddressObject() *IPBlock {
 	res, _ := IPBlockFromIPAddress(b.FirstIPAddress())
 	return res
@@ -379,7 +379,7 @@ func (b *IPBlock) LastIPAddress() string {
 	return int64ToIP4(b.ipRange.Max())
 }
 
-// LastIPAddresObject returns the last IP Address for this IPBlock
+// LastIPAddressObject returns the last IP Address for this IPBlock
 func (b *IPBlock) LastIPAddressObject() *IPBlock {
 	res, _ := IPBlockFromIPAddress(b.LastIPAddress())
 	return res
