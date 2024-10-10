@@ -205,12 +205,14 @@ const SegmentTypeCidr SegmentType = "cidr"
 const SegmentTypeInstance SegmentType = "instance"
 const SegmentTypeNif SegmentType = "nif"
 const SegmentTypeSubnet SegmentType = "subnet"
+const SegmentTypeVpe SegmentType = "vpe"
 
 var enumValues_SegmentType = []interface{}{
 	"subnet",
 	"cidr",
 	"instance",
 	"nif",
+	"vpe",
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
