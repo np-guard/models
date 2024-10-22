@@ -327,7 +327,7 @@ func cidrToInterval(cidr string) (interval.Interval, error) {
 	return interval.New(int64(startNum), int64(endNum)), nil
 }
 
-// if this ipb contains exactly one cidr AsCidr returns its string
+// AsCidr returns the CIDR string of this IPBlock object, if it contains exactly one CIDR,
 // otherwise it returns an error
 func (b *IPBlock) AsCidr() (string, error) {
 	cidrList := b.ToCidrList()
