@@ -152,6 +152,22 @@ func (b *IPBlock) IsSingleIPAddress() bool {
 	return b.ipRange.IsSingleNumber()
 }
 
+// Compare returns -1 if this<other, 1 if this>other, 0 o.w.
+func (b *IPBlock) Compare(other *IPBlock) int {
+	switch {
+	case b.ipRange.Min() < other.ipRange.Min():
+		return -1
+	case b.ipRange.Min() > other.ipRange.Min():
+		return 1
+	case b.ipRange.Max() < other.ipRange.Max():
+		return -1
+	case b.ipRange.Max() > other.ipRange.Max():
+		return 1
+	default:
+		return 0
+	}
+}
+
 // Split returns a set of IPBlock objects, each with a single range of ips
 func (b *IPBlock) Split() []*IPBlock {
 	intervals := b.ipRange.Intervals()

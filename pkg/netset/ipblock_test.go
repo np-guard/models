@@ -42,12 +42,12 @@ func TestOps(t *testing.T) {
 	intersect2 := minus.Intersect(intersect)
 	require.True(t, intersect2.IsEmpty())
 
-	ipb3, err := ipb2.NextIP()
+	ipb3, err := ipb2.NextIP() // ipb3 = 1.2.3.5
 	ipb4, _ := netset.IPBlockFromCidrOrAddress("1.2.3.5")
 	require.Nil(t, err)
 	require.Equal(t, ipb3, ipb4)
 
-	ipb5, err := ipb3.PreviousIP()
+	ipb5, err := ipb3.PreviousIP() // ipb5 = 1.2.3.4
 	require.Nil(t, err)
 	require.Equal(t, ipb2, ipb5)
 
@@ -79,6 +79,10 @@ func TestOps(t *testing.T) {
 	require.False(t, t2)
 
 	require.Equal(t, ipb7, ipb7.FirstIPAddressObject())
+
+	require.Equal(t, ipb5.Compare(ipb6), -1)
+	require.Equal(t, ipb2.Compare(ipb1), 1)
+	require.Equal(t, ipb3.Compare(ipb4), 0)
 }
 
 func TestConversions(t *testing.T) {
