@@ -166,7 +166,6 @@ func (b *IPBlock) Compare(other *IPBlock) int {
 	default:
 		return 0
 	}
-
 }
 
 // Split returns a set of IPBlock objects, each with a single range of ips
