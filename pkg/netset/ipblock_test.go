@@ -103,6 +103,15 @@ func TestConversions(t *testing.T) {
 	require.Equal(t, ipRange, toPrint[0])
 
 	require.Equal(t, "", ipb1.ToIPAddressString())
+
+	_, err = ipb1.AsCidr()
+	require.NotNil(t, err)
+
+	cidr := "5.2.1.0/24"
+	ipb3, _ := netset.IPBlockFromCidr(cidr)
+	str, err := ipb3.AsCidr()
+	require.Nil(t, err)
+	require.Equal(t, str, cidr)
 }
 
 func TestDisjointIPBlocks(t *testing.T) {

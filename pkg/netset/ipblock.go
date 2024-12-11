@@ -337,6 +337,16 @@ func cidrToInterval(cidr string) (interval.Interval, error) {
 	return interval.New(int64(startNum), int64(endNum)), nil
 }
 
+// AsCidr returns the CIDR string of this IPBlock object, if it contains exactly one CIDR,
+// otherwise it returns an error
+func (b *IPBlock) AsCidr() (string, error) {
+	cidrList := b.ToCidrList()
+	if len(cidrList) != 1 {
+		return "", fmt.Errorf("ipblock contains %d cidrs", len(cidrList))
+	}
+	return cidrList[0], nil
+}
+
 // ToCidrList returns a list of CIDR strings for this IPBlock object
 func (b *IPBlock) ToCidrList() []string {
 	var cidrList []string

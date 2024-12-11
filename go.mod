@@ -1,6 +1,6 @@
 module github.com/np-guard/models
 
-go 1.23
+go 1.22
 
 require github.com/stretchr/testify v1.9.0
 
