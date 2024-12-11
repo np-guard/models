@@ -80,8 +80,9 @@ func TestOps(t *testing.T) {
 
 	require.Equal(t, ipb7, ipb7.FirstIPAddressObject())
 
-	require.True(t, ipb5.Smaller(ipb6))
-	require.True(t, ipb1.Smaller(ipb2))
+	require.Equal(t, ipb5.Compare(ipb6), -1)
+	require.Equal(t, ipb2.Compare(ipb1), 1)
+	require.Equal(t, ipb3.Compare(ipb4), 0)
 }
 
 func TestConversions(t *testing.T) {

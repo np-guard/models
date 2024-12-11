@@ -152,14 +152,21 @@ func (b *IPBlock) IsSingleIPAddress() bool {
 	return b.ipRange.IsSingleNumber()
 }
 
-// Smaller returns true if this ipblock is smaller than other ipblock, and false o.w
-// smaller == this.firstIP is smaller than other.firstIP
-// if this.firstIP is equal to other.firstIP, decide by the lastIP
-func (b *IPBlock) Smaller(other *IPBlock) bool {
-	if b.ipRange.Min() == other.ipRange.Min() {
-		return b.ipRange.Max() < other.ipRange.Max()
+// Compare returns -1 if this<other, 1 if this>other, 0 o.w.
+func (b *IPBlock) Compare(other *IPBlock) int {
+	switch {
+	case b.ipRange.Min() < other.ipRange.Min():
+		return -1
+	case b.ipRange.Min() > other.ipRange.Min():
+		return 1
+	case b.ipRange.Max() < other.ipRange.Max():
+		return -1
+	case b.ipRange.Max() > other.ipRange.Max():
+		return 1
+	default:
+		return 0
 	}
-	return b.ipRange.Min() < other.ipRange.Min()
+
 }
 
 // Split returns a set of IPBlock objects, each with a single range of ips
