@@ -153,7 +153,7 @@ func (b *IPBlock) IsSingleIPAddress() bool {
 }
 
 // Smaller returns true if this ipblock is smaller than other ipblock, and false o.w
-// smaller means the this.firstIP is smaller than other.firstIP
+// smaller == this.firstIP is smaller than other.firstIP
 // if this.firstIP is equal to other.firstIP, decide by the lastIP
 func (b *IPBlock) Smaller(other *IPBlock) bool {
 	if b.ipRange.Min() == other.ipRange.Min() {
