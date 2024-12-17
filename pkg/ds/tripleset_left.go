@@ -22,7 +22,7 @@ func CartesianLeftTriple[S1 Set[S1], S2 Set[S2], S3 Set[S3]](s1 S1, s2 S2, s3 S3
 }
 
 func (c *LeftTripleSet[S1, S2, S3]) Equal(other TripleSet[S1, S2, S3]) bool {
-	return c.m.Equal(asLeftTripleSet(other).m)
+	return c.m.Equal(AsLeftTripleSet(other).m)
 }
 
 func (c *LeftTripleSet[S1, S2, S3]) Copy() TripleSet[S1, S2, S3] {
@@ -41,7 +41,7 @@ func (c *LeftTripleSet[S1, S2, S3]) Size() int {
 	return c.m.Size()
 }
 
-func asLeftTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]](other TripleSet[S1, S2, S3]) *LeftTripleSet[S1, S2, S3] {
+func AsLeftTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]](other TripleSet[S1, S2, S3]) *LeftTripleSet[S1, S2, S3] {
 	r, ok := other.(*LeftTripleSet[S1, S2, S3])
 	if ok {
 		return r
@@ -55,19 +55,19 @@ func asLeftTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]](other TripleSet[S1, S2,
 
 // IsSubset returns true if c is subset of other
 func (c *LeftTripleSet[S1, S2, S3]) IsSubset(other TripleSet[S1, S2, S3]) bool {
-	return c.m.IsSubset(asLeftTripleSet(other).m)
+	return c.m.IsSubset(AsLeftTripleSet(other).m)
 }
 
 func (c *LeftTripleSet[S1, S2, S3]) Union(other TripleSet[S1, S2, S3]) TripleSet[S1, S2, S3] {
-	return &LeftTripleSet[S1, S2, S3]{m: c.m.Union(asLeftTripleSet(other).m)}
+	return &LeftTripleSet[S1, S2, S3]{m: c.m.Union(AsLeftTripleSet(other).m)}
 }
 
 func (c *LeftTripleSet[S1, S2, S3]) Intersect(other TripleSet[S1, S2, S3]) TripleSet[S1, S2, S3] {
-	return &LeftTripleSet[S1, S2, S3]{m: c.m.Intersect(asLeftTripleSet(other).m)}
+	return &LeftTripleSet[S1, S2, S3]{m: c.m.Intersect(AsLeftTripleSet(other).m)}
 }
 
 func (c *LeftTripleSet[S1, S2, S3]) Subtract(other TripleSet[S1, S2, S3]) TripleSet[S1, S2, S3] {
-	return &LeftTripleSet[S1, S2, S3]{m: c.m.Subtract(asLeftTripleSet(other).m)}
+	return &LeftTripleSet[S1, S2, S3]{m: c.m.Subtract(AsLeftTripleSet(other).m)}
 }
 
 func (c *LeftTripleSet[S1, S2, S3]) NumPartitions() int {
@@ -96,7 +96,7 @@ func (c *LeftTripleSet[S1, S2, S3]) Partitions() []Triple[S1, S2, S3] {
 func MapTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3], T1 Set[T1], T2 Set[T2], T3 Set[T3]](c TripleSet[S1, S2, S3],
 	f func(Triple[S1, S2, S3]) Triple[T1, T2, T3]) TripleSet[T1, T2, T3] {
 	var res TripleSet[T1, T2, T3] = NewLeftTripleSet[T1, T2, T3]()
-	for _, triple := range partitionsMap(asLeftTripleSet(c), f) {
+	for _, triple := range partitionsMap(AsLeftTripleSet(c), f) {
 		res = res.Union(CartesianLeftTriple(triple.S1, triple.S2, triple.S3))
 	}
 	return res

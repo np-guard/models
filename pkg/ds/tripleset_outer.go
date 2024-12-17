@@ -21,7 +21,7 @@ func CartesianOuterTriple[S1 Set[S1], S2 Set[S2], S3 Set[S3]](s1 S1, s2 S2, s3 S
 }
 
 func (c *OuterTripleSet[S1, S2, S3]) Equal(other TripleSet[S1, S2, S3]) bool {
-	return c.m.Equal(asOuterTripleSet(other).m)
+	return c.m.Equal(AsOuterTripleSet(other).m)
 }
 
 func (c *OuterTripleSet[S1, S2, S3]) Copy() TripleSet[S1, S2, S3] {
@@ -40,7 +40,7 @@ func (c *OuterTripleSet[S1, S2, S3]) Size() int {
 	return c.m.Size()
 }
 
-func asOuterTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]](other TripleSet[S1, S2, S3]) *OuterTripleSet[S1, S2, S3] {
+func AsOuterTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]](other TripleSet[S1, S2, S3]) *OuterTripleSet[S1, S2, S3] {
 	r, ok := other.(*OuterTripleSet[S1, S2, S3])
 	if ok {
 		return r
@@ -54,19 +54,19 @@ func asOuterTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]](other TripleSet[S1, S2
 
 // IsSubset returns true if c is subset of other
 func (c *OuterTripleSet[S1, S2, S3]) IsSubset(other TripleSet[S1, S2, S3]) bool {
-	return c.m.IsSubset(asOuterTripleSet(other).m)
+	return c.m.IsSubset(AsOuterTripleSet(other).m)
 }
 
 func (c *OuterTripleSet[S1, S2, S3]) Union(other TripleSet[S1, S2, S3]) TripleSet[S1, S2, S3] {
-	return &OuterTripleSet[S1, S2, S3]{m: c.m.Union(asOuterTripleSet(other).m).(*LeftTripleSet[S1, S3, S2])}
+	return &OuterTripleSet[S1, S2, S3]{m: c.m.Union(AsOuterTripleSet(other).m).(*LeftTripleSet[S1, S3, S2])}
 }
 
 func (c *OuterTripleSet[S1, S2, S3]) Intersect(other TripleSet[S1, S2, S3]) TripleSet[S1, S2, S3] {
-	return &OuterTripleSet[S1, S2, S3]{m: c.m.Intersect(asOuterTripleSet(other).m).(*LeftTripleSet[S1, S3, S2])}
+	return &OuterTripleSet[S1, S2, S3]{m: c.m.Intersect(AsOuterTripleSet(other).m).(*LeftTripleSet[S1, S3, S2])}
 }
 
 func (c *OuterTripleSet[S1, S2, S3]) Subtract(other TripleSet[S1, S2, S3]) TripleSet[S1, S2, S3] {
-	return &OuterTripleSet[S1, S2, S3]{m: c.m.Subtract(asOuterTripleSet(other).m).(*LeftTripleSet[S1, S3, S2])}
+	return &OuterTripleSet[S1, S2, S3]{m: c.m.Subtract(AsOuterTripleSet(other).m).(*LeftTripleSet[S1, S3, S2])}
 }
 
 func (c *OuterTripleSet[S1, S2, S3]) Partitions() []Triple[S1, S2, S3] {

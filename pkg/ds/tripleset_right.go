@@ -21,7 +21,7 @@ func CartesianRightTriple[S1 Set[S1], S2 Set[S2], S3 Set[S3]](s1 S1, s2 S2, s3 S
 }
 
 func (c *RightTripleSet[S1, S2, S3]) Equal(other TripleSet[S1, S2, S3]) bool {
-	return c.m.Equal(asRightTripleSet(other).m)
+	return c.m.Equal(AsRightTripleSet(other).m)
 }
 
 func (c *RightTripleSet[S1, S2, S3]) Copy() TripleSet[S1, S2, S3] {
@@ -40,7 +40,7 @@ func (c *RightTripleSet[S1, S2, S3]) Size() int {
 	return c.m.Size()
 }
 
-func asRightTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]](other TripleSet[S1, S2, S3]) *RightTripleSet[S1, S2, S3] {
+func AsRightTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]](other TripleSet[S1, S2, S3]) *RightTripleSet[S1, S2, S3] {
 	r, ok := other.(*RightTripleSet[S1, S2, S3])
 	if ok {
 		return r
@@ -54,19 +54,19 @@ func asRightTripleSet[S1 Set[S1], S2 Set[S2], S3 Set[S3]](other TripleSet[S1, S2
 
 // IsSubset returns true if c is subset of other
 func (c *RightTripleSet[S1, S2, S3]) IsSubset(other TripleSet[S1, S2, S3]) bool {
-	return c.m.IsSubset(asRightTripleSet(other).m)
+	return c.m.IsSubset(AsRightTripleSet(other).m)
 }
 
 func (c *RightTripleSet[S1, S2, S3]) Union(other TripleSet[S1, S2, S3]) TripleSet[S1, S2, S3] {
-	return &RightTripleSet[S1, S2, S3]{m: c.m.Union(asRightTripleSet(other).m).(*LeftTripleSet[S2, S3, S1])}
+	return &RightTripleSet[S1, S2, S3]{m: c.m.Union(AsRightTripleSet(other).m).(*LeftTripleSet[S2, S3, S1])}
 }
 
 func (c *RightTripleSet[S1, S2, S3]) Intersect(other TripleSet[S1, S2, S3]) TripleSet[S1, S2, S3] {
-	return &RightTripleSet[S1, S2, S3]{m: c.m.Intersect(asRightTripleSet(other).m).(*LeftTripleSet[S2, S3, S1])}
+	return &RightTripleSet[S1, S2, S3]{m: c.m.Intersect(AsRightTripleSet(other).m).(*LeftTripleSet[S2, S3, S1])}
 }
 
 func (c *RightTripleSet[S1, S2, S3]) Subtract(other TripleSet[S1, S2, S3]) TripleSet[S1, S2, S3] {
-	return &RightTripleSet[S1, S2, S3]{m: c.m.Subtract(asRightTripleSet(other).m).(*LeftTripleSet[S2, S3, S1])}
+	return &RightTripleSet[S1, S2, S3]{m: c.m.Subtract(AsRightTripleSet(other).m).(*LeftTripleSet[S2, S3, S1])}
 }
 
 func (c *RightTripleSet[S1, S2, S3]) Partitions() []Triple[S1, S2, S3] {
