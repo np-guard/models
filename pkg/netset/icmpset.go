@@ -77,6 +77,18 @@ func NewICMPSet(minType, maxType, minCode, maxCode int64) *ICMPSet {
 	)
 }
 
+func ICMPSetFromICMP(icmp netp.ICMP) *ICMPSet {
+	if icmp.TypeCode == nil {
+		return AllICMPSet()
+	}
+	icmpType := int64(icmp.TypeCode.Type)
+	if icmp.TypeCode.Code == nil {
+		return NewICMPSet(icmpType, icmpType, int64(netp.MinICMPCode), int64(netp.MaxICMPCode))
+	}
+	icmpCode := int64(*icmp.TypeCode.Code)
+	return NewICMPSet(icmpType, icmpType, icmpCode, icmpCode)
+}
+
 func EmptyICMPSet() *ICMPSet {
 	return &ICMPSet{props: ds.NewProductLeft[*TypeSet, *CodeSet]()}
 }

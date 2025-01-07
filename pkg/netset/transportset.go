@@ -35,10 +35,24 @@ func NewUDPTransport(srcMinP, srcMaxP, dstMinP, dstMaxP int64) *TransportSet {
 	return NewTCPorUDPTransport(netp.ProtocolStringUDP, srcMinP, srcMaxP, dstMinP, dstMaxP)
 }
 
+func NewICMPTransportFromICMPSet(icmpSet *ICMPSet) *TransportSet {
+	return &TransportSet{ds.NewDisjoint(
+		EmptyTCPorUDPSet(),
+		icmpSet.Copy(),
+	)}
+}
+
 func NewICMPTransport(minType, maxType, minCode, maxCode int64) *TransportSet {
 	return &TransportSet{ds.NewDisjoint(
 		EmptyTCPorUDPSet(),
 		NewICMPSet(minType, maxType, minCode, maxCode),
+	)}
+}
+
+func NewTCPUDPTransportFromTCPUDPSet(tcpudpSet *TCPUDPSet) *TransportSet {
+	return &TransportSet{ds.NewDisjoint(
+		tcpudpSet.Copy(),
+		EmptyICMPSet(),
 	)}
 }
 
