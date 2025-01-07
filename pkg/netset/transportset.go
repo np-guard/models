@@ -49,7 +49,7 @@ func NewICMPTransport(minType, maxType, minCode, maxCode int64) *TransportSet {
 	)}
 }
 
-func NewICMPTransportFromTCPUDPSet(tcpudpSet *TCPUDPSet) *TransportSet {
+func NewTCPUDPTransportFromTCPUDPSet(tcpudpSet *TCPUDPSet) *TransportSet {
 	return &TransportSet{ds.NewDisjoint(
 		tcpudpSet.Copy(),
 		EmptyICMPSet(),
