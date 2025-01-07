@@ -42,6 +42,13 @@ func NewICMPTransport(minType, maxType, minCode, maxCode int64) *TransportSet {
 	)}
 }
 
+func NewICMPTransportFromICMPSet(icmpSet *ICMPSet) *TransportSet {
+	return &TransportSet{ds.NewDisjoint(
+		EmptyTCPorUDPSet(),
+		icmpSet.Copy(),
+	)}
+}
+
 func AllTCPorUDPTransport(protocol netp.ProtocolString) *TransportSet {
 	return NewTCPorUDPTransport(protocol, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort)
 }
