@@ -29,6 +29,33 @@ func (c *LeftTripleSet[S1, S2, S3]) Copy() TripleSet[S1, S2, S3] {
 	return &LeftTripleSet[S1, S2, S3]{m: c.m.Copy()}
 }
 
+// S1 returns the projection TripleSet[S1, S2, S3] on the set S1.
+func (c *LeftTripleSet[S1, S2, S3]) S1(empty S1) S1 {
+	res := empty.Copy()
+	for _, p := range c.Partitions() {
+		res = res.Union(p.S1)
+	}
+	return res
+}
+
+// S2 returns the projection TripleSet[S1, S2, S3] on the set S2.
+func (c *LeftTripleSet[S1, S2, S3]) S2(empty S2) S2 {
+	res := empty.Copy()
+	for _, p := range c.Partitions() {
+		res = res.Union(p.S2)
+	}
+	return res
+}
+
+// S3 returns the projection TripleSet[S1, S2, S3] on the set S3.
+func (c *LeftTripleSet[S1, S2, S3]) S3(empty S3) S3 {
+	res := empty.Copy()
+	for _, p := range c.Partitions() {
+		res = res.Union(p.S3)
+	}
+	return res
+}
+
 func (c *LeftTripleSet[S1, S2, S3]) Hash() int {
 	return c.m.Hash()
 }

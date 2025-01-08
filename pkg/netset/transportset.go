@@ -151,6 +151,10 @@ func (t *TransportSet) Subtract(other *TransportSet) *TransportSet {
 	return &TransportSet{t.set.Subtract(other.set)}
 }
 
+func (t *TransportSet) Overlap(other *TransportSet) bool {
+	return !t.Intersect(other).IsEmpty()
+}
+
 func (t *TransportSet) String() string {
 	if t.IsEmpty() {
 		return NoConnections
