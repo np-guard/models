@@ -60,6 +60,11 @@ func TestCubioidLeftRightOuter(t *testing.T) {
 	require.Equal(t, d1.String(), d3.String())
 	require.Equal(t, d2.String(), d3.String())
 
+	d1Left := d1.(*ds.LeftTripleSet[*interval.CanonicalSet, *interval.CanonicalSet, *interval.CanonicalSet])
+	require.Equal(t, d1Left.S1(interval.NewCanonicalSet()), interval.New(1, 100).ToSet())
+	require.Equal(t, d1Left.S2(interval.NewCanonicalSet()), interval.New(3, 100).ToSet())
+	require.Equal(t, d1Left.S3(interval.NewCanonicalSet()), interval.New(2, 100).ToSet())
+
 	// union with dimensions overlaps
 	e1 := cubioidLeft(1, 100, 500, 500, 600, 600)
 	d1e1 := union(d1, e1)
