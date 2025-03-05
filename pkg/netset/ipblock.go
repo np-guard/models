@@ -468,7 +468,7 @@ func intervalToCidrList(ipRange interval.Interval) []string {
 
 func parseIP(ip string) (int64, error) {
 	startIP := net.ParseIP(ip)
-	if startIP == nil {
+	if startIP == nil || startIP.To4() == nil {
 		return 0, fmt.Errorf("%v is not a valid ipv4", ip)
 	}
 	return int64(binary.BigEndian.Uint32(startIP.To4())), nil
