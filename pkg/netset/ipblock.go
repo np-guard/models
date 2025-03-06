@@ -535,7 +535,7 @@ func (b *IPBlock) TouchingIPRanges(other *IPBlock) (bool, error) {
 	if b.ipRange.NumIntervals() != 1 || other.ipRange.NumIntervals() != 1 {
 		return false, fmt.Errorf("both ipblocks should be a single IP range")
 	}
-	return (!b.Overlap(other) && b.Union(other).ipRange.NumIntervals() == 1), nil
+	return !b.Overlap(other) && b.Union(other).ipRange.NumIntervals() == 1, nil
 }
 
 func (b *IPBlock) Complementary() *IPBlock {
