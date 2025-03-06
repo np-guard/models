@@ -537,3 +537,8 @@ func (b *IPBlock) TouchingIPRanges(other *IPBlock) (bool, error) {
 	}
 	return (!b.Overlap(other) && b.Union(other).ipRange.NumIntervals() == 1), nil
 }
+
+func (b *IPBlock) Complementary() *IPBlock {
+	allIPBlock := GetCidrAll()
+	return allIPBlock.Subtract(b)
+}
