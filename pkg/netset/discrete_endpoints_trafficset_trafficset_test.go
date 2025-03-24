@@ -15,7 +15,7 @@ import (
 	"github.com/np-guard/models/pkg/netset"
 )
 
-func TestSimpleTrafficSetBasicOperations(t *testing.T) {
+func TestDiscreteTrafficSetBasicOperations(t *testing.T) {
 	s1 := interval.New(0, 1).ToSet()
 	s2 := interval.New(2, 3).ToSet()
 	s3 := s1.Union(s2)

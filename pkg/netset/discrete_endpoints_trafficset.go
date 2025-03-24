@@ -22,35 +22,35 @@ type DiscreteEndpointsTrafficSet struct {
 	props ds.TripleSet[*interval.CanonicalSet, *interval.CanonicalSet, *TransportSet]
 }
 
-// EmptyDiscreteEndpointsTrafficSet returns an empty SimpleEndpointsTrafficSet
+// EmptyDiscreteEndpointsTrafficSet returns an empty DiscreteEndpointsTrafficSet
 func EmptyDiscreteEndpointsTrafficSet() *DiscreteEndpointsTrafficSet {
 	return &DiscreteEndpointsTrafficSet{props: ds.NewLeftTripleSet[*interval.CanonicalSet, *interval.CanonicalSet, *TransportSet]()}
 }
 
-// Equal returns true is this SimpleEndpointsTrafficSet captures the exact same set of connections as `other` does.
+// Equal returns true is this DiscreteEndpointsTrafficSet captures the exact same set of connections as `other` does.
 func (c *DiscreteEndpointsTrafficSet) Equal(other *DiscreteEndpointsTrafficSet) bool {
 	return c.props.Equal(other.props)
 }
 
-// Copy returns new SimpleEndpointsTrafficSet object with same set of connections as current one
+// Copy returns new DiscreteEndpointsTrafficSet object with same set of connections as current one
 func (c *DiscreteEndpointsTrafficSet) Copy() *DiscreteEndpointsTrafficSet {
 	return &DiscreteEndpointsTrafficSet{
 		props: c.props.Copy(),
 	}
 }
 
-// Intersect returns a SimpleEndpointsTrafficSet object with connection tuples that result from intersection of
+// Intersect returns a DiscreteEndpointsTrafficSet object with connection tuples that result from intersection of
 // this and `other` sets
 func (c *DiscreteEndpointsTrafficSet) Intersect(other *DiscreteEndpointsTrafficSet) *DiscreteEndpointsTrafficSet {
 	return &DiscreteEndpointsTrafficSet{props: c.props.Intersect(other.props)}
 }
 
-// IsEmpty returns true of the SimpleEndpointsTrafficSet is empty
+// IsEmpty returns true of the DiscreteEndpointsTrafficSet is empty
 func (c *DiscreteEndpointsTrafficSet) IsEmpty() bool {
 	return c.props.IsEmpty()
 }
 
-// Union returns a SimpleEndpointsTrafficSet object with connection tuples that result from union of
+// Union returns a DiscreteEndpointsTrafficSet object with connection tuples that result from union of
 // this and `other` sets
 func (c *DiscreteEndpointsTrafficSet) Union(other *DiscreteEndpointsTrafficSet) *DiscreteEndpointsTrafficSet {
 	if other.IsEmpty() {
@@ -64,7 +64,7 @@ func (c *DiscreteEndpointsTrafficSet) Union(other *DiscreteEndpointsTrafficSet) 
 	}
 }
 
-// Subtract returns a SimpleEndpointsTrafficSet object with connection tuples that result from subtraction of
+// Subtract returns a DiscreteEndpointsTrafficSet object with connection tuples that result from subtraction of
 // `other` from this set
 func (c *DiscreteEndpointsTrafficSet) Subtract(other *DiscreteEndpointsTrafficSet) *DiscreteEndpointsTrafficSet {
 	if other.IsEmpty() {
@@ -78,7 +78,7 @@ func (c *DiscreteEndpointsTrafficSet) IsSubset(other *DiscreteEndpointsTrafficSe
 	return c.props.IsSubset(other.props)
 }
 
-// NewDiscreteEndpointsTrafficSet returns a new SimpleEndpointsTrafficSet object from input src, dst endpoint sets ands
+// NewDiscreteEndpointsTrafficSet returns a new DiscreteEndpointsTrafficSet object from input src, dst endpoint sets ands
 // TransportSet connections
 func NewDiscreteEndpointsTrafficSet(src, dst *interval.CanonicalSet, conn *TransportSet) *DiscreteEndpointsTrafficSet {
 	return &DiscreteEndpointsTrafficSet{props: ds.CartesianLeftTriple(src, dst, conn)}
