@@ -1,16 +1,21 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
 package netset_test
 
 import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/np-guard/models/pkg/interval"
 	"github.com/np-guard/models/pkg/netset"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSimpleTrafficSetBasicOperations(t *testing.T) {
-
 	s1 := interval.New(0, 1).ToSet()
 	s2 := interval.New(2, 3).ToSet()
 	s3 := s1.Union(s2)
@@ -31,5 +36,4 @@ func TestSimpleTrafficSetBasicOperations(t *testing.T) {
 	fmt.Println((conn2.Subtract(conn1)).String())
 
 	fmt.Println("done")
-
 }
